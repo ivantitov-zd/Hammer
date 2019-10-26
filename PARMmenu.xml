@@ -12,7 +12,7 @@
                     parms = kwargs['parms']
                     if parms:
                         parm = parms[0]
-                        if parm.name() == 'font' or parm.description().lower() == 'font':
+                        if parm.name().lower() == 'font' or parm.description().lower() == 'font':
                             return 1
                     return 0
                 </expression>
