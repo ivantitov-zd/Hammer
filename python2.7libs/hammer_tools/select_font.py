@@ -139,11 +139,6 @@ class SelectFontDialog(QDialog):
         self.font_list_model.endResetModel()
         super(SelectFontDialog, self).show()
 
-    def exec_(self, parm):
-        self.parm = parm
-        self.previous_value = parm.eval()
-        super(SelectFontDialog, self).exec_()
-
     def apply(self, index):
         self.parm.set(index.data(Qt.UserRole))
 
