@@ -27,5 +27,27 @@ hdefereval.executeDeferred(lambda: select(parm))
             </scriptCode>
         </addScriptItem>
 
+        <addScriptItem id="hammer_open_folder">
+            <label>Open Folder...</label>
+            <parent>root_menu</parent>
+            <insertBefore />
+            <context>
+                <expression>
+                    parms = kwargs['parms']
+                    if parms:
+                        parm = parms[0]
+                        if parm.parmTemplate().stringType() == hou.stringParmType.FileReference:
+                            return 1
+                    return 0
+                </expression>
+            </context>
+            <scriptCode>
+import os
+
+parm = kwargs['parms'][0]
+os.startfile(os.path.normpath(os.path.dirname(parm.eval())))
+            </scriptCode>
+        </addScriptItem>
+
     </menu>
 </menuDocument>
