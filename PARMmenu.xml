@@ -5,7 +5,7 @@
         <addScriptItem id="hammer_select_font">
             <label>Select Font...</label>
             <parent>root_menu</parent>
-            <insertBefore/>
+            <insertBefore />
             <context>
                 <networkCategory>Sop,Cop2</networkCategory>
                 <expression>
