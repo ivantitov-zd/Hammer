@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mainMenu>
+    <menuBar>
+
+        <!-- ========================= Preferences Menu ========================= -->
+
+        <addScriptItem id="h.hammer_tools">
+            <label>Hammer Tools</label>
+            <parent>preferences_submenu</parent>
+            <insertAfter />
+<!--             <scriptCode>
+from hammer_tools.preferences import PreferencesDialog
+            </scriptCode> -->
+        </addScriptItem>
+
+
+    </menuBar>
+</mainMenu>
