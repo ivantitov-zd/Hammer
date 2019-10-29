@@ -21,18 +21,33 @@ def readDetailIntrinsic(node_or_geo, name):
     return ()
 
 
+def forceTuple(func):
+    def wrapper(*args, **kwargs):
+        res = func(*args, **kwargs)
+        if not isinstance(res, tuple):
+            return res,
+        else:
+            return res
+
+    return wrapper
+
+
+@forceTuple
 def primitiveGroups(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'primitivegroups')
 
 
+@forceTuple
 def pointGroups(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'pointgroups')
 
 
+@forceTuple
 def edgeGroups(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'edgegroups')
 
 
+@forceTuple
 def vertexGroups(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'vertexgroups')
 
@@ -50,18 +65,22 @@ def groups(node_or_geo, group_type=Primitive | Point | Edge | Vertex):
     return tuple(group_list)
 
 
+@forceTuple
 def primitiveAttribs(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'primitiveattributes')
 
 
+@forceTuple
 def pointAttribs(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'pointattributes')
 
 
+@forceTuple
 def vertexAttribs(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'vertexattributes')
 
 
+@forceTuple
 def detailAttribs(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'detailattributes')
 
