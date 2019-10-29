@@ -65,6 +65,18 @@ def groups(node_or_geo, group_type=Primitive | Point | Edge | Vertex):
     return tuple(group_list)
 
 
+def groupMenu(node, input_index=0, group_type=Primitive | Point | Edge | Vertex):
+    menu = []
+    if isinstance(node, str):
+        node = hou.node(node)
+    inputs = node.inputs()
+    if inputs and len(inputs) > input_index and inputs[input_index]:
+        group_list = groups(inputs[input_index], group_type)
+        for group in group_list:
+            menu.extend((group, group))
+    return tuple(menu)
+
+
 @forceTuple
 def primitiveAttribs(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'primitiveattributes')
@@ -85,7 +97,7 @@ def detailAttribs(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'detailattributes')
 
 
-def attribs(node_or_geo, attrib_type=None):
+def attribs(node_or_geo, attrib_type=Primitive | Point | Vertex | Detail):
     attrib_list = []
     if attrib_type & Primitive:
         attrib_list.extend(primitiveAttribs(node_or_geo))
@@ -96,6 +108,18 @@ def attribs(node_or_geo, attrib_type=None):
     if attrib_type & Detail:
         attrib_list.extend(detailAttribs(node_or_geo))
     return tuple(attrib_list)
+
+
+def attribMenu(node, input_index=0, attrib_type=Primitive | Point | Vertex | Detail):
+    menu = []
+    if isinstance(node, str):
+        node = hou.node(node)
+    inputs = node.inputs()
+    if inputs and len(inputs) > input_index and inputs[input_index]:
+        attrib_list = attribs(inputs[input_index], attrib_type)
+        for attrib in attrib_list:
+            menu.extend((attrib, attrib))
+    return tuple(menu)
 
 
 def primitiveCount(node_or_geo):
