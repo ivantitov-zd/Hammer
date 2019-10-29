@@ -77,6 +77,22 @@ def groupMenu(node, input_index=0, group_type=Primitive | Point | Edge | Vertex)
     return tuple(menu)
 
 
+def groupType(parm='grouptype'):
+    if isinstance(parm, str):
+        parm = hou.parm(parm)
+    value = parm.evalAsString().lower()
+    if value == 'guess':
+        return Primitive | Point | Edge | Vertex
+    elif value.startswith('prim'):
+        return Primitive
+    elif value.startswith('point'):
+        return Point
+    elif value.startswith('edge'):
+        return Edge
+    elif value.startswith('vert'):
+        return Vertex
+
+
 @forceTuple
 def primitiveAttribs(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'primitiveattributes')
@@ -120,6 +136,22 @@ def attribMenu(node, input_index=0, attrib_type=Primitive | Point | Vertex | Det
         for attrib in attrib_list:
             menu.extend((attrib, attrib))
     return tuple(menu)
+
+
+def attribType(parm='class'):
+    if isinstance(parm, str):
+        parm = hou.parm(parm)
+    value = parm.evalAsString().lower()
+    if value == 'guess':
+        return Primitive | Point | Vertex | Detail
+    elif value.startswith('prim'):
+        return Primitive
+    elif value.startswith('point'):
+        return Point
+    elif value.startswith('vert'):
+        return Vertex
+    elif value == 'detail' or value.startswith('global'):
+        return Detail
 
 
 def primitiveCount(node_or_geo):
