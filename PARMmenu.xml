@@ -2,7 +2,7 @@
 <menuDocument>
     <menu>
 
-        <addScriptItem id="hammer_select_font">
+        <addScriptItem id="hammer.select_font">
             <label>Select Font...</label>
             <parent>root_menu</parent>
             <insertBefore />
@@ -27,7 +27,7 @@ hdefereval.executeDeferred(lambda: select(parm))
             </scriptCode>
         </addScriptItem>
 
-        <addScriptItem id="hammer_open_folder">
+        <addScriptItem id="hammer.open_folder">
             <label>Open Folder...</label>
             <parent>root_menu</parent>
             <insertBefore />
@@ -49,6 +49,96 @@ parm = kwargs['parms'][0]
 os.startfile(os.path.normpath(os.path.dirname(parm.eval())))
             </scriptCode>
         </addScriptItem>
+
+        <subMenu id="hammer.set_ramp_interpolation">
+
+            <label>Set Interpolation</label>
+            <parent>root_menu</parent>
+            <insertBefore />
+            <context>
+                <expression>
+                    parms = kwargs['parms']
+                    if parms:
+                        template = parms[0].parmTemplate()
+                        if template.type() == hou.parmTemplateType.Ramp and \
+                           template.parmType() == hou.rampParmType.Float and \
+                           parms[0].node().isEditable():
+                            return 1
+                    return 0
+                </expression>
+            </context>
+
+            <scriptItem id="hammer.set_ramp_interpolation.constant">
+                <label>Constant</label>
+                <scriptCode>
+from hammer_tools.parmutils import setRampParmInterpolation
+
+parm = kwargs['parms'][0]
+setRampParmInterpolation(parm, hou.rampBasis.Constant)
+                </scriptCode>
+            </scriptItem>
+
+            <scriptItem id="hammer.set_ramp_interpolation.linear">
+                <label>Linear</label>
+                <scriptCode>
+from hammer_tools.parmutils import setRampParmInterpolation
+
+parm = kwargs['parms'][0]
+setRampParmInterpolation(parm, hou.rampBasis.Linear)
+                </scriptCode>
+            </scriptItem>
+
+            <scriptItem id="hammer.set_ramp_interpolation.catmullrom">
+                <label>Catmull-Rom</label>
+                <scriptCode>
+from hammer_tools.parmutils import setRampParmInterpolation
+
+parm = kwargs['parms'][0]
+setRampParmInterpolation(parm, hou.rampBasis.CatmullRom)
+                </scriptCode>
+            </scriptItem>
+
+            <scriptItem id="hammer.set_ramp_interpolation.monotonecubic">
+                <label>Monotone Cubic</label>
+                <scriptCode>
+from hammer_tools.parmutils import setRampParmInterpolation
+
+parm = kwargs['parms'][0]
+setRampParmInterpolation(parm, hou.rampBasis.MonotoneCubic)
+                </scriptCode>
+            </scriptItem>
+
+            <scriptItem id="hammer.set_ramp_interpolation.bezier">
+                <label>Bezier</label>
+                <scriptCode>
+from hammer_tools.parmutils import setRampParmInterpolation
+
+parm = kwargs['parms'][0]
+setRampParmInterpolation(parm, hou.rampBasis.Bezier)
+                </scriptCode>
+            </scriptItem>
+
+            <scriptItem id="hammer.set_ramp_interpolation.bspline">
+                <label>B-Spline</label>
+                <scriptCode>
+from hammer_tools.parmutils import setRampParmInterpolation
+
+parm = kwargs['parms'][0]
+setRampParmInterpolation(parm, hou.rampBasis.BSpline)
+                </scriptCode>
+            </scriptItem>
+
+            <scriptItem id="hammer.set_ramp_interpolation.hermite">
+                <label>Hermite</label>
+                <scriptCode>
+from hammer_tools.parmutils import setRampParmInterpolation
+
+parm = kwargs['parms'][0]
+setRampParmInterpolation(parm, hou.rampBasis.Hermite)
+                </scriptCode>
+            </scriptItem>
+
+        </subMenu>
 
     </menu>
 </menuDocument>
