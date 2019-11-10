@@ -2,17 +2,29 @@
 <mainMenu>
     <menuBar>
 
+        <!-- ============================ File Menu ============================= -->
+
+        <addScriptItem id="h.hammer_previous_files">
+            <label>Open Previous Files...</label>
+            <parent>file_menu</parent>
+            <insertAfter>recent_files</insertAfter>
+            <scriptCode>
+from hammer_tools.previous_files import show
+
+show()
+            </scriptCode>
+        </addScriptItem>
+
         <!-- ========================= Preferences Menu ========================= -->
 
         <addScriptItem id="h.prefs_hammer_tools">
             <label>Hammer Tools</label>
             <parent>preferences_submenu</parent>
-            <insertAfter />
-<!--             <scriptCode>
-from hammer_tools.preferences import PreferencesDialog
-            </scriptCode> -->
+            <insertAfter/>
+            <!--             <scriptCode>
+            from hammer_tools.preferences import PreferencesDialog
+                        </scriptCode> -->
         </addScriptItem>
-
 
     </menuBar>
 </mainMenu>
