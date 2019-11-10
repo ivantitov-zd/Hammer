@@ -22,7 +22,6 @@ class FilterField(QLineEdit):
     def __init__(self):
         super(FilterField, self).__init__()
 
-        self.setFrame(False)
         self.setPlaceholderText('Type to Filter...')
 
     def keyPressEvent(self, event):
