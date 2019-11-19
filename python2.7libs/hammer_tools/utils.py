@@ -9,7 +9,6 @@ except ImportError:
     from PySide2.QtWidgets import QAction
     from PySide2.QtGui import QKeySequence
 
-
 isWindowsOS = sys.platform.startswith('win')
 isLinuxOS = sys.platform.startswith('linux')
 isMacOS = sys.platform == 'darwin'
@@ -26,3 +25,16 @@ def createAction(parent, label, callback=None, help=None, icon=None, shortcut=No
     if shortcut is not None:
         action.setShortcut(QKeySequence(shortcut))
     return action
+
+
+def fuzzyMatch(pattern, word):
+    position = 0
+    index = 0
+    while index != len(pattern):
+        try:
+            new_position = word.index(pattern[index], position)
+        except ValueError:
+            return False
+        index += 1
+        position = new_position + 1
+    return True

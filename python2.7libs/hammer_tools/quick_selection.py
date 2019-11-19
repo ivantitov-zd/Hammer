@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from hammer_tools.utils import fuzzyMatch
+
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
@@ -41,20 +43,24 @@ class FilterField(QLineEdit):
         super(FilterField, self).mousePressEvent(event)
 
 
-# class FontListModel(QAbstractListModel):
-#     def __init__(self, parent=None):
-#         super(FontListModel, self).__init__(parent)
-#
-#         self.data_list = ()
-#
-#     def rowCount(self, parent):
-#         return len(self.data_list)
-#
-#     def data(self, index, role):
-#         if role == Qt.DisplayRole:
-#             return self.data_list[index.row()]
-#         elif role == Qt.UserRole or role == Qt.ToolTipRole:
-#             return self.data_list[index.row()]
+class FuzzyFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super(FuzzyFilterProxyModel, self).__init__(parent)
+
+        self.__filter_pattern = ''
+
+    def setFilterPattern(self, pattern):
+        self.beginResetModel()
+        if self.filterCaseSensitivity() == Qt.CaseInsensitive:
+            self.__filter_pattern = pattern.lower()
+        else:
+            self.__filter_pattern = pattern
+        self.endResetModel()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        source_model = self.sourceModel()
+        text = source_model.data(source_model.index(source_row, 0, source_parent), Qt.DisplayRole)
+        return fuzzyMatch(self.__filter_pattern, text if self.filterCaseSensitivity() == Qt.CaseSensitive else text.lower())
 
 
 class FontLabelDelegate(QStyledItemDelegate):
@@ -68,7 +74,6 @@ class FontLabelDelegate(QStyledItemDelegate):
         if option.state & QStyle.State_Selected:
             painter.fillRect(option.rect, option.palette.color(QPalette.Highlight))
         text = index.data(Qt.DisplayRole)
-        # font_name = index.data(Qt.UserRole)
         font_name = text
         font_tokens = font_name.lower().split()
         font = QFont(font_name, 12)
@@ -144,9 +149,9 @@ class SelectDialog(QDialog):
 
         # List
         self.list_model = QStringListModel(self)
-        self.list_filter_model = QSortFilterProxyModel(self)
-        self.list_filter_model.setSourceModel(self.list_model)
+        self.list_filter_model = FuzzyFilterProxyModel(self)
         self.list_filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.list_filter_model.setSourceModel(self.list_model)
 
         self.list_view = SelectListView()
         self.list_view.setModel(self.list_filter_model)
@@ -157,7 +162,7 @@ class SelectDialog(QDialog):
 
         # Filter
         self.filter_field = FilterField()
-        self.filter_field.textChanged.connect(lambda p: self.list_filter_model.setFilterWildcard('*' + p + '*'))
+        self.filter_field.textChanged.connect(self.list_filter_model.setFilterPattern)
         self.filter_field.downPressed.connect(self.switchToList)
         self.filter_field.accepted.connect(self.acceptFromFilterField)
 
@@ -189,15 +194,11 @@ class SelectDialog(QDialog):
     def show(self, parm):
         self.parm = parm
         self.previous_value = parm.eval()
-        # self.list_model.beginResetModel()
-        # self.list_model.data_list = parm.menuItems()
-        # self.list_model.endResetModel()
         self.list_model.setStringList(parm.menuItems())
         self.filter_field.setFocus()
         super(SelectDialog, self).show()
 
     def apply(self, index):
-        # self.parm.set(index.data(Qt.UserRole))
         self.parm.set(index.data(Qt.DisplayRole))
 
     def reject(self):
@@ -214,7 +215,7 @@ class SelectFontDialog(SelectDialog):
         self.list_view.setItemDelegate(FontLabelDelegate(self))
 
 
-def select(parm):
+def selectAny(parm):
     if not hasattr(hou.session, 'hammer_select_dialog'):
         hou.session.hammer_select_dialog = SelectDialog(hou.qt.mainWindow())
     hou.session.hammer_select_dialog.show(parm)

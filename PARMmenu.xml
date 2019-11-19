@@ -23,10 +23,10 @@
                 </expression>
             </context>
             <scriptCode>
-from hammer_tools.quick_selection import select
+from hammer_tools.quick_selection import selectAny
 
 parm = kwargs['parms'][0]
-select(parm)
+selectAny(parm)
             </scriptCode>
         </addScriptItem>
 
@@ -58,9 +58,11 @@ selectFont(parm)
             <insertBefore />
             <context>
                 <expression>
-                    template = kwargs['parms'][0].parmTemplate()
+                    parm = kwargs['parms'][0]
+                    template = parm.parmTemplate()
                     if template.type() == hou.parmTemplateType.String and \
-                       template.stringType() == hou.stringParmType.FileReference:
+                       template.stringType() == hou.stringParmType.FileReference and \
+                       parm.name().lower() != 'font' and parm.description().lower() != 'font':
                         return 1
                     return 0
                 </expression>
