@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menuDocument>
+    <menu>
+
+        <scriptItem id="hammer_edit_shelf_tools">
+            <label>Edit Shelf Tools...</label>
+            <insertAfter>edit_shelf</insertAfter>
+            <scriptCode>
+from hammer_tools.edit_shelf_tools import editShelf
+
+editShelf(kwargs['ownername'])
+            </scriptCode>
+        </scriptItem>
+
+    </menu>
+</menuDocument>
