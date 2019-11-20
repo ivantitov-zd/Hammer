@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menuDocument>
+    <menu>
+
+        <scriptItem id="hammer_copy_shelf_tool">
+            <label>Copy Tool to another Shelf...</label>
+            <insertAfter>edit_tool</insertAfter>
+            <scriptCode>
+from hammer_tools.copy_tool import copyTool
+
+copyTool(kwargs['ownername'])
+            </scriptCode>
+        </scriptItem>
+
+    </menu>
+</menuDocument>
