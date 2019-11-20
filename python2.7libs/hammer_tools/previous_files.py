@@ -3,6 +3,8 @@ from __future__ import print_function
 import os
 import sqlite3
 
+from hammer_tools.utils import fuzzyMatch
+
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
@@ -16,7 +18,7 @@ except ImportError:
 
 import hou
 
-from .quick_selection import FilterField
+from .quick_selection import FilterField, FuzzyFilterProxyModel
 
 
 def createDatabase(filepath):
@@ -97,8 +99,8 @@ def setSessionWatcher():
 
 
 class PreviousFilesModel(QAbstractTableModel):
-    def __init__(self):
-        super(PreviousFilesModel, self).__init__()
+    def __init__(self, parent=None):
+        super(PreviousFilesModel, self).__init__(parent)
 
         # Database
         db_file = os.path.abspath(os.path.join(hou.homeHoudiniDirectory(), 'hammer_previous_files.db'))
@@ -152,8 +154,6 @@ class PreviousFilesView(QTableView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
-
-        self.setModel(PreviousFilesModel())
 
         self.doubleClicked.connect(self.openSelectedFile)
 
@@ -281,10 +281,17 @@ class PreviousFiles(QDialog):
         self.right_vertical_layout.setSpacing(0)
         self.main_layout.addLayout(self.right_vertical_layout)
 
-        self.filter_field = FilterField()
-        self.right_vertical_layout.addWidget(self.filter_field)
-
+        # File list
+        self.model = PreviousFilesModel(self)
+        self.filter_model = FuzzyFilterProxyModel(self)
+        self.filter_model.setSourceModel(self.model)
         self.view = PreviousFilesView()
+        self.view.setModel(self.filter_model)
+
+        self.filter_field = FilterField()
+        self.filter_field.textChanged.connect(self.filter_model.setFilterPattern)
+
+        self.right_vertical_layout.addWidget(self.filter_field)
         self.right_vertical_layout.addWidget(self.view)
 
     def createNewHip(self):
