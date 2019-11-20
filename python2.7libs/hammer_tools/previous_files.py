@@ -3,8 +3,6 @@ from __future__ import print_function
 import os
 import sqlite3
 
-from hammer_tools.utils import fuzzyMatch
-
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
@@ -229,8 +227,8 @@ class PreviousFiles(QDialog):
     def __init__(self, parent=None):
         super(PreviousFiles, self).__init__(parent, Qt.Window)
 
-        self.setWindowTitle('Welcome')
-        self.resize(700, 500)
+        self.setWindowTitle('Previous Files')
+        self.resize(800, 500)
         self.setStyleSheet(hou.qt.styleSheet())
 
         self.main_layout = QHBoxLayout(self)
