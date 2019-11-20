@@ -233,62 +233,63 @@ class PreviousFiles(QDialog):
         self.resize(700, 500)
         self.setStyleSheet(hou.qt.styleSheet())
 
-        self.mainLayout = QHBoxLayout(self)
-        self.mainLayout.setContentsMargins(4, 4, 4, 4)
-        self.mainLayout.setSpacing(4)
+        self.main_layout = QHBoxLayout(self)
+        self.main_layout.setContentsMargins(4, 4, 4, 4)
+        self.main_layout.setSpacing(4)
 
-        self.leftVerticalLayout = QVBoxLayout()
-        self.leftVerticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.leftVerticalLayout.setSpacing(0)
-        self.mainLayout.addLayout(self.leftVerticalLayout)
+        self.left_vertical_layout = QVBoxLayout()
+        self.left_vertical_layout.setContentsMargins(0, 0, 0, 0)
+        self.left_vertical_layout.setSpacing(0)
+        self.main_layout.addLayout(self.left_vertical_layout)
 
         self.new = QPushButton('New File')
         self.new.setMinimumWidth(100)
         self.new.clicked.connect(self.createNewHip)
-        self.leftVerticalLayout.addWidget(self.new)
+        self.left_vertical_layout.addWidget(self.new)
 
-        self.openMenu = QMenu(self)
-        openInManualMode = QAction('Open in Manual Mode', self)
-        openInManualMode.triggered.connect(lambda: self.openHip(True))
-        self.openMenu.addAction(openInManualMode)
+        self.open_menu = QMenu(self)
+        open_in_manual_mode = QAction('Open in Manual Mode', self)
+        open_in_manual_mode.triggered.connect(lambda: self.openHip(True))
+        self.open_menu.addAction(open_in_manual_mode)
 
         self.open = QToolButton()
         self.open.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.open.setMenu(self.openMenu)
+        self.open.setMenu(self.open_menu)
         self.open.setStyleSheet('border-radius: 1; border-style: none')
         self.open.setMinimumWidth(100)
         self.open.setText('Open...')
         self.open.clicked.connect(self.openHip)
-        self.leftVerticalLayout.addWidget(self.open)
+        self.left_vertical_layout.addWidget(self.open)
 
         self.merge = QPushButton('Merge...')
         self.merge.clicked.connect(self.mergeHips)
-        self.leftVerticalLayout.addWidget(self.merge)
+        self.left_vertical_layout.addWidget(self.merge)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
-        self.leftVerticalLayout.addSpacerItem(spacer)
+        self.left_vertical_layout.addSpacerItem(spacer)
 
         self.open_temp = QPushButton('Open Temp')
         self.open_temp.clicked.connect(openTemp)
-        self.leftVerticalLayout.addWidget(self.open_temp)
+        self.left_vertical_layout.addWidget(self.open_temp)
 
         self.open_crash = QPushButton('Open Crash')
-        self.leftVerticalLayout.addWidget(self.open_crash)
+        self.open_crash.clicked.connect(self.openLastCrashFile)
+        self.left_vertical_layout.addWidget(self.open_crash)
 
-        self.rightVerticalLayout = QVBoxLayout()
-        self.rightVerticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.rightVerticalLayout.setSpacing(0)
-        self.mainLayout.addLayout(self.rightVerticalLayout)
+        self.right_vertical_layout = QVBoxLayout()
+        self.right_vertical_layout.setContentsMargins(0, 0, 0, 0)
+        self.right_vertical_layout.setSpacing(0)
+        self.main_layout.addLayout(self.right_vertical_layout)
 
         self.filter_field = FilterField()
-        self.rightVerticalLayout.addWidget(self.filter_field)
+        self.right_vertical_layout.addWidget(self.filter_field)
 
         self.view = PreviousFilesView()
-        self.rightVerticalLayout.addWidget(self.view)
+        self.right_vertical_layout.addWidget(self.view)
 
     def createNewHip(self):
-        hou.hipFile.clear()
         self.hide()
+        hou.hipFile.clear()
 
     def openHip(self, manual=False):
         files = hou.ui.selectFile(title='Open', file_type=hou.fileType.Hip, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
@@ -306,21 +307,31 @@ class PreviousFiles(QDialog):
             self.hide()
 
     def detectCrashFile(self):
-        last_file = None
-        last_timestamp = 0
         temp_path = hou.getenv('TEMP')
         for file in os.listdir(temp_path):
-            if file.startswith('crash.') and file.endswith('.hip') or \
-                    file.endswith('.hiplc') or \
-                    file.endswith('.hipnc'):
-                timestamp = os.stat(temp_path + '/' + file).st_mtime
+            if file.startswith('crash.') and file.endswith('.hip') or file.endswith('.hiplc') or file.endswith('.hipnc'):
+                self.open_crash.setVisible(True)
+                return
+        self.open_crash.setVisible(False)
+
+    def openLastCrashFile(self, manual=False):
+        last_file = None
+        last_timestamp = 0
+        houdini_temp_path = hou.getenv('TEMP')
+        for file in os.listdir(houdini_temp_path):
+            if file.startswith('crash.') and file.endswith('.hip') or file.endswith('.hiplc') or file.endswith('.hipnc'):
+                timestamp = os.stat('{}/{}'.format(houdini_temp_path, file)).st_mtime
                 if timestamp > last_timestamp:
                     last_timestamp = timestamp
                     last_file = file
         if last_file is None:
-            self.open_crash.setVisible(False)
+            hou.ui.displayMessage('Crash file not found')
+            self.detectCrashFile()
         else:
-            self.open_crash.setVisible(True)
+            self.hide()
+            hou.hipFile.load('{}/{}'.format(houdini_temp_path, last_file))
+            if manual:
+                hou.setUpdateMode(hou.updateMode.Manual)
 
     def showEvent(self, event):
         self.detectCrashFile()
