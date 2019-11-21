@@ -53,11 +53,22 @@ class CopyShelfTool(QDialog):
 
         main_layout.addWidget(self.shelf_list_view)
 
+        # Data
+        self.tool = None
+
     def copyTool(self):
-        pass
+        index = self.shelf_list_view.currentIndex()
+        if index:
+            shelf = index.data(Qt.UserRole)
+            tools = shelf.tools()
+            hou.shelves.beginChangeBlock()
+            shelf.setTools(tools + (self.tool,))
+            hou.shelves.endChangeBlock()
+            self.hide()
 
     def show(self, tool):
         self.setWindowTitle('Copy [{}] Tool to another Shelf'.format(tool.label()))
+        self.tool = tool
         self.shelf_list_model.updateData()
         super(CopyShelfTool, self).show()
 
