@@ -5,5 +5,13 @@
  Note, that two definitions of the same element are not allowed in
  a single file. -->
 
-  <toolshelf name="hammer_tools" label="Hammer Tools"/>
+  <toolshelf name="hammer_tools" label="Hammer Tools">
+    <memberTool name="hammer::merge_objects::1.0"/>
+  </toolshelf>
+
+  <tool name="hammer::merge_objects::1.0" label="Merge Objects" icon="SHELF_combine_objects">
+    <script scriptType="python"><![CDATA[from hammer_tools.merge_objects import mergeSelectedObjects
+
+mergeSelectedObjects()]]></script>
+  </tool>
 </shelfDocument>
