@@ -270,7 +270,17 @@ class PreviousFiles(QDialog):
         self.open_temp.clicked.connect(openTemp)
         self.left_vertical_layout.addWidget(self.open_temp)
 
-        self.open_crash = QPushButton('Open Crash')
+        self.open_crash_menu = QMenu(self)
+        open_crash_in_manual_mode = QAction('Open in Manual Mode', self)
+        open_crash_in_manual_mode.triggered.connect(lambda: self.openLastCrashFile(True))
+        self.open_crash_menu.addAction(open_crash_in_manual_mode)
+
+        self.open_crash = QToolButton()
+        self.open_crash.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.open_crash.setMenu(self.open_crash_menu)
+        self.open_crash.setStyleSheet('border-radius: 1; border-style: none')
+        self.open_crash.setMinimumWidth(100)
+        self.open_crash.setText('Open Crash')
         self.open_crash.clicked.connect(self.openLastCrashFile)
         self.left_vertical_layout.addWidget(self.open_crash)
 
