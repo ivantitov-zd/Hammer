@@ -15,6 +15,22 @@ show()
             </scriptCode>
         </addScriptItem>
 
+        <subMenu id="file_menu">
+
+            <subMenu id="hammer_dependencies">
+
+                <label>Dependencies</label>
+                <insertAfter>recent_projects</insertAfter>
+
+                <scriptItem>
+                    <label>Collect Files...</label>
+                </scriptItem>
+
+            </subMenu>
+
+        </subMenu>
+
+
         <!-- ========================= Preferences Menu ========================= -->
 
         <addScriptItem id="h.prefs_hammer_tools">
