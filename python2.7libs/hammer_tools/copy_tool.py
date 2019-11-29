@@ -13,6 +13,8 @@ except ImportError:
 
 import hou
 
+from .quick_selection import FilterField, FuzzyFilterProxyModel
+
 
 class ShelfListModel(QAbstractListModel):
     def __init__(self, parent=None):
@@ -21,10 +23,15 @@ class ShelfListModel(QAbstractListModel):
         self.__shelf_list = {}
 
     def updateData(self):
+        self.beginResetModel()
         self.__shelf_list = hou.shelves.shelves()
+        self.endResetModel()
 
     def rowCount(self, parent):
         return len(self.__shelf_list)
+
+    def flags(self, index):
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def data(self, index, role):
         shelf = self.__shelf_list.values()[index.row()]
@@ -45,13 +52,23 @@ class CopyShelfTool(QDialog):
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
 
+        # Filter Field
+        self.filter_field = FilterField()
+        main_layout.addWidget(self.filter_field)
+
         # Shelf list
         self.shelf_list_model = ShelfListModel(self)
-        self.shelf_list_view = QListView()
-        self.shelf_list_view.setModel(self.shelf_list_model)
-        self.shelf_list_view.doubleClicked.connect(self.copyTool)
 
+        self.shelf_list_filter_model = FuzzyFilterProxyModel(self)
+        self.shelf_list_filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.shelf_list_filter_model.setSourceModel(self.shelf_list_model)
+
+        self.shelf_list_view = QListView()
+        self.shelf_list_view.setModel(self.shelf_list_filter_model)
+        self.shelf_list_view.doubleClicked.connect(self.copyTool)
         main_layout.addWidget(self.shelf_list_view)
+
+        self.filter_field.textChanged.connect(self.shelf_list_filter_model.setFilterPattern)
 
         # Data
         self.tool = None
@@ -67,8 +84,8 @@ class CopyShelfTool(QDialog):
             self.hide()
 
     def show(self, tool):
-        self.setWindowTitle('Copy [{}] Tool to another Shelf'.format(tool.label()))
         self.tool = tool
+        self.setWindowTitle('Copy [{}] Tool to another Shelf'.format(tool.label()))
         self.shelf_list_model.updateData()
         super(CopyShelfTool, self).show()
 
