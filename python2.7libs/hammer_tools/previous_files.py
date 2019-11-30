@@ -153,71 +153,6 @@ class PreviousFilesView(QTableView):
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-        self.doubleClicked.connect(self.openSelectedFile)
-
-        refreshAction = QAction('Refresh', self)
-        refreshAction.setShortcut(QKeySequence(Qt.Key_F5))
-        refreshAction.triggered.connect(lambda: self.model().updateLogData())
-        self.addAction(refreshAction)
-
-        # Menu
-        self.createMenu()
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.showMenu)
-
-    def createMenu(self):
-        menu = QMenu(self)
-
-        self.openSelectedFileAction = QAction('Open', self)
-        self.openSelectedFileAction.triggered.connect(self.openSelectedFile)
-        menu.addAction(self.openSelectedFileAction)
-
-        self.openSelectedFileInManualModeAction = QAction('Open in Manual Mode', self)
-        self.openSelectedFileInManualModeAction.triggered.connect(self.openSelectedFileInManualMode)
-        menu.addAction(self.openSelectedFileInManualModeAction)
-
-        self.mergeSelectedFilesAction = QAction('Merge', self)
-        self.mergeSelectedFilesAction.triggered.connect(self.mergeSelectedFiles)
-        menu.addAction(self.mergeSelectedFilesAction)
-
-        self.openSelectedFoldersAction = QAction('Open Folder', self)
-        self.openSelectedFoldersAction.triggered.connect(self.openSelectedFolders)
-        menu.addAction(self.openSelectedFoldersAction)
-
-        self.menu = menu
-
-    def showMenu(self):
-        selectionModel = self.selectionModel()
-        selectedRowCount = len(selectionModel.selectedRows())
-        if selectedRowCount > 0:
-            if selectedRowCount > 1:
-                self.openSelectedFileAction.setEnabled(False)
-                self.openSelectedFileInManualModeAction.setEnabled(False)
-            else:
-                self.openSelectedFileAction.setEnabled(True)
-                self.openSelectedFileInManualModeAction.setEnabled(True)
-            self.menu.exec_(QCursor.pos())
-
-    def openSelectedFile(self):
-        selection = self.selectionModel()
-        name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
-        extension = selection.selectedRows(0)[0].data(Qt.UserRole)
-        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
-
-        hou.hipFile.load('{}/{}{}'.format(folder, name, extension))
-
-    def openSelectedFileInManualMode(self):
-        self.openSelectedFile()
-        hou.setUpdateMode(hou.updateMode.Manual)
-
-    def mergeSelectedFiles(self):
-        raise NotImplementedError
-
-    def openSelectedFolders(self):
-        selection = self.selectionModel()
-        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
-        os.startfile(folder)
-
 
 def openTemp():
     os.startfile(hou.getenv('TEMP'))
@@ -231,19 +166,19 @@ class PreviousFiles(QDialog):
         self.resize(800, 500)
         self.setStyleSheet(hou.qt.styleSheet())
 
-        self.main_layout = QHBoxLayout(self)
-        self.main_layout.setContentsMargins(4, 4, 4, 4)
-        self.main_layout.setSpacing(4)
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(4)
 
-        self.left_vertical_layout = QVBoxLayout()
-        self.left_vertical_layout.setContentsMargins(0, 0, 0, 0)
-        self.left_vertical_layout.setSpacing(0)
-        self.main_layout.addLayout(self.left_vertical_layout)
+        left_vertical_layout = QVBoxLayout()
+        left_vertical_layout.setContentsMargins(0, 0, 0, 0)
+        left_vertical_layout.setSpacing(0)
+        main_layout.addLayout(left_vertical_layout)
 
         self.new = QPushButton('New File')
         self.new.setMinimumWidth(100)
         self.new.clicked.connect(self.createNewHip)
-        self.left_vertical_layout.addWidget(self.new)
+        left_vertical_layout.addWidget(self.new)
 
         self.open_menu = QMenu(self)
         open_in_manual_mode = QAction('Open in Manual Mode', self)
@@ -257,18 +192,18 @@ class PreviousFiles(QDialog):
         self.open.setMinimumWidth(100)
         self.open.setText('Open...')
         self.open.clicked.connect(self.openHip)
-        self.left_vertical_layout.addWidget(self.open)
+        left_vertical_layout.addWidget(self.open)
 
         self.merge = QPushButton('Merge...')
         self.merge.clicked.connect(self.mergeHips)
-        self.left_vertical_layout.addWidget(self.merge)
+        left_vertical_layout.addWidget(self.merge)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
-        self.left_vertical_layout.addSpacerItem(spacer)
+        left_vertical_layout.addSpacerItem(spacer)
 
         self.open_temp = QPushButton('Open Temp')
         self.open_temp.clicked.connect(openTemp)
-        self.left_vertical_layout.addWidget(self.open_temp)
+        left_vertical_layout.addWidget(self.open_temp)
 
         self.open_crash_menu = QMenu(self)
         open_crash_in_manual_mode = QAction('Open in Manual Mode', self)
@@ -282,25 +217,91 @@ class PreviousFiles(QDialog):
         self.open_crash.setMinimumWidth(100)
         self.open_crash.setText('Open Crash')
         self.open_crash.clicked.connect(self.openLastCrashFile)
-        self.left_vertical_layout.addWidget(self.open_crash)
+        left_vertical_layout.addWidget(self.open_crash)
 
-        self.right_vertical_layout = QVBoxLayout()
-        self.right_vertical_layout.setContentsMargins(0, 0, 0, 0)
-        self.right_vertical_layout.setSpacing(0)
-        self.main_layout.addLayout(self.right_vertical_layout)
+        right_vertical_layout = QVBoxLayout()
+        right_vertical_layout.setContentsMargins(0, 0, 0, 0)
+        right_vertical_layout.setSpacing(0)
+        main_layout.addLayout(right_vertical_layout)
+
+        # Filter
+        self.filter_field = FilterField()
+        right_vertical_layout.addWidget(self.filter_field)
 
         # File list
         self.model = PreviousFilesModel(self)
+
         self.filter_model = FuzzyFilterProxyModel(self)
         self.filter_model.setSourceModel(self.model)
+
         self.view = PreviousFilesView()
         self.view.setModel(self.filter_model)
+        self.view.doubleClicked.connect(self.openSelectedFile)
+        right_vertical_layout.addWidget(self.view)
 
-        self.filter_field = FilterField()
         self.filter_field.textChanged.connect(self.filter_model.setFilterPattern)
 
-        self.right_vertical_layout.addWidget(self.filter_field)
-        self.right_vertical_layout.addWidget(self.view)
+        # File list menu
+        self.menu = QMenu()
+
+        self.open_selected_file_action = QAction('Open', self)
+        self.open_selected_file_action.triggered.connect(self.openSelectedFile)
+        self.menu.addAction(self.open_selected_file_action)
+
+        self.open_selected_file_in_manual_mode_action = QAction('Open in Manual Mode', self)
+        self.open_selected_file_in_manual_mode_action.triggered.connect(self.openSelectedFileInManualMode)
+        self.menu.addAction(self.open_selected_file_in_manual_mode_action)
+
+        self.merge_selected_files_action = QAction('Merge', self)
+        self.merge_selected_files_action.triggered.connect(self.mergeSelectedFiles)
+        self.menu.addAction(self.merge_selected_files_action)
+
+        self.openSelectedFoldersAction = QAction('Open Folder', self)
+        self.openSelectedFoldersAction.triggered.connect(self.openSelectedFolders)
+        self.menu.addAction(self.openSelectedFoldersAction)
+
+        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.customContextMenuRequested.connect(self.showMenu)
+
+        refresh_action = QAction('Refresh', self)
+        refresh_action.setShortcut(QKeySequence(Qt.Key_F5))
+        refresh_action.triggered.connect(self.model.updateLogData)
+        self.addAction(refresh_action)
+
+    def showMenu(self):
+        selection_model = self.selectionModel()
+        selected_row_count = len(selection_model.selectedRows())
+        if selected_row_count > 0:
+            if selected_row_count > 1:
+                self.open_selected_file_action.setEnabled(False)
+                self.open_selected_file_in_manual_mode_action.setEnabled(False)
+            else:
+                self.open_selected_file_action.setEnabled(True)
+                self.open_selected_file_in_manual_mode_action.setEnabled(True)
+            self.menu.exec_(QCursor.pos())
+
+    def openSelectedFile(self):
+        self.hide()
+        selection = self.view.selectionModel()
+        name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
+        extension = selection.selectedRows(0)[0].data(Qt.UserRole)
+        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
+
+        hou.hipFile.load('{}/{}{}'.format(folder, name, extension))
+
+    def openSelectedFileInManualMode(self):
+        self.hide()
+        self.openSelectedFile()
+        hou.setUpdateMode(hou.updateMode.Manual)
+
+    def mergeSelectedFiles(self):
+        raise NotImplementedError
+
+    def openSelectedFolders(self):
+        self.hide()
+        selection = self.view.selectionModel()
+        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
+        os.startfile(folder)
 
     def createNewHip(self):
         self.hide()
@@ -350,6 +351,8 @@ class PreviousFiles(QDialog):
 
     def showEvent(self, event):
         self.detectCrashFile()
+        self.filter_field.setFocus()
+        self.filter_field.selectAll()
         super(PreviousFiles, self).showEvent(event)
 
 
