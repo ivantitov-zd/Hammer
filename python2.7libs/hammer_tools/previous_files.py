@@ -269,7 +269,7 @@ class PreviousFiles(QDialog):
         self.addAction(refresh_action)
 
     def showMenu(self):
-        selection_model = self.selectionModel()
+        selection_model = self.view.selectionModel()
         selected_row_count = len(selection_model.selectedRows())
         if selected_row_count > 0:
             if selected_row_count > 1:
