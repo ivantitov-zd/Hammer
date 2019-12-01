@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menuDocument>
+    <menu>
+
+        <subMenu id="opmenu.save_menu">
+
+            <actionItem id="opmenu.hammer_save_to_presets">
+                <label>To Presets...</label>
+                <insertAfter/>
+                <context>
+                    <expression>
+                        node = kwargs['node']
+                        return node.parent().isEditable() and len(node.parms()) > 0
+                    </expression>
+                </context>
+                <!--<scriptCode>-->
+<!--from hammer_tools.presets import CreatePresetDialog-->
+
+<!--CreatePresetDialog.createPresetFromNode(kwargs['node'])-->
+                <!--</scriptCode>-->
+            </actionItem>
+
+        </subMenu>
+
+    </menu>
+</menuDocument>
