@@ -182,7 +182,7 @@ class PreviousFiles(QDialog):
 
         self.open_menu = QMenu(self)
         open_in_manual_mode = QAction('Open in Manual Mode', self)
-        open_in_manual_mode.triggered.connect(lambda: self.openHip(True))
+        open_in_manual_mode.triggered.connect(lambda: self.openFile(True))
         self.open_menu.addAction(open_in_manual_mode)
 
         self.open = QToolButton()
@@ -191,11 +191,11 @@ class PreviousFiles(QDialog):
         self.open.setStyleSheet('border-radius: 1; border-style: none')
         self.open.setMinimumWidth(100)
         self.open.setText('Open...')
-        self.open.clicked.connect(self.openHip)
+        self.open.clicked.connect(self.openFile)
         left_vertical_layout.addWidget(self.open)
 
         self.merge = QPushButton('Merge...')
-        self.merge.clicked.connect(self.mergeHips)
+        self.merge.clicked.connect(self.mergeFiles)
         left_vertical_layout.addWidget(self.merge)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -283,10 +283,9 @@ class PreviousFiles(QDialog):
     def openSelectedFile(self):
         self.hide()
         selection = self.view.selectionModel()
+        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
         name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
         extension = selection.selectedRows(0)[0].data(Qt.UserRole)
-        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
-
         hou.hipFile.load('{}/{}{}'.format(folder, name, extension))
 
     def openSelectedFileInManualMode(self):
@@ -295,19 +294,27 @@ class PreviousFiles(QDialog):
         hou.setUpdateMode(hou.updateMode.Manual)
 
     def mergeSelectedFiles(self):
-        raise NotImplementedError
+        self.hide()
+        selection = self.view.selectionModel()
+        folders = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(1))
+        names = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(0))
+        extensions = map(lambda index: index.data(Qt.UserRole), selection.selectedRows(0))
+        for folder, name, extension in zip(folders, names, extensions):
+            hou.hipFile.merge('{}/{}{}'.format(folder, name, extension))
 
     def openSelectedFolders(self):
         self.hide()
         selection = self.view.selectionModel()
-        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
-        os.startfile(folder)
+        if len(selection.selectedRows()) > 4:
+            return
+        for index in selection.selectedRows(1):
+            os.startfile(index.data(Qt.DisplayRole))
 
     def createNewHip(self):
         self.hide()
         hou.hipFile.clear()
 
-    def openHip(self, manual=False):
+    def openFile(self, manual=False):
         files = hou.ui.selectFile(title='Open', file_type=hou.fileType.Hip, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
         if files and files[0]:
             hou.hipFile.load(files[0])
@@ -315,7 +322,7 @@ class PreviousFiles(QDialog):
             if manual:
                 hou.setUpdateMode(hou.updateMode.Manual)
 
-    def mergeHips(self):
+    def mergeFiles(self):
         files = hou.ui.selectFile(title='Merge', file_type=hou.fileType.Hip, multiple_select=True, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
         if files and files[0]:
             for file in tuple(map(lambda f: hou.expandString(f), files)):
