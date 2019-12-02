@@ -3,6 +3,12 @@
 #define _SPLINEUTILS_H_
 
 int
+is_control_vertex(const int geometry; const int vtxnum)
+{
+    // pass
+}
+
+int
 is_control_point(const int geometry; const int ptnum)
 {
     int prims[] = pointprims(geometry, ptnum);
@@ -27,6 +33,11 @@ is_control_point(const int geometry; const int ptnum)
     return -1;  // Not curve
 }
 
+int prev_control_vertex(const int geometry; const int vtxnum)
+{
+    // pass
+}
+
 int
 prev_control_point(const int geometry; const int ptnum)
 {
@@ -35,6 +46,12 @@ prev_control_point(const int geometry; const int ptnum)
 
 int
 next_control_point(const int geometry; const int ptnum)
+{
+    // pass
+}
+
+int
+control_vertex(const int geometry; const int vtxnum)
 {
     // pass
 }
