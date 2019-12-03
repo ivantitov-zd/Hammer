@@ -303,7 +303,6 @@ class PreviousFiles(QDialog):
             hou.hipFile.merge('{}/{}{}'.format(folder, name, extension))
 
     def openSelectedFolders(self):
-        self.hide()
         selection = self.view.selectionModel()
         if len(selection.selectedRows()) > 4:
             return
