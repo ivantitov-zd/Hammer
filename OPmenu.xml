@@ -37,5 +37,22 @@ hou.audio.play()
             </scriptCode>
         </addScriptItem>
 
+        <addScriptItem id="opmenu.hammer_set_scene_audio">
+            <label>Use as Scene Audio</label>
+            <parent>opmenu.actions_menu</parent>
+            <insertAfter>opmenu.hammer_play_sound</insertAfter>
+            <context>
+                <expression>
+                    node_type = kwargs['node'].type()
+                    return node_type.category() in (hou.chopNodeTypeCategory(), hou.chopNetNodeTypeCategory()) or node_type.name() == 'chopnet'
+                </expression>
+            </context>
+            <scriptCode>
+hou.audio.useTimeLineMode()
+hou.audio.useChops()
+hou.audio.setChopPath(kwargs['node'].path())
+            </scriptCode>
+        </addScriptItem>
+
     </menu>
 </menuDocument>
