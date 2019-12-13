@@ -19,5 +19,23 @@ CreatePresetDialog.createPresetFromNode(kwargs['node'])
             </scriptCode>
         </addScriptItem>
 
+        <addScriptItem id="opmenu.hammer_play_sound">
+            <label>Play Sound</label>
+            <parent>opmenu.actions_menu</parent>
+            <insertBefore />
+            <context>
+                <expression>
+                    node_type = kwargs['node'].type()
+                    return node_type.category() in (hou.chopNodeTypeCategory(), hou.chopNetNodeTypeCategory()) or node_type.name() == 'chopnet'
+                </expression>
+            </context>
+            <scriptCode>
+hou.audio.useTestMode()
+hou.audio.useChops()
+hou.audio.setChopPath(kwargs['node'].path())
+hou.audio.play()
+            </scriptCode>
+        </addScriptItem>
+
     </menu>
 </menuDocument>
