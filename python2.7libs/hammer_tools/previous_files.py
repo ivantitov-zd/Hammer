@@ -58,13 +58,13 @@ class SessionWatcher:
 
     def logEvent(self, filepath, event):
         query = self.db.cursor()
-        folder, fullname = os.path.split(filepath)
+        location, fullname = os.path.split(filepath)
         name, extension = os.path.splitext(fullname)
         # Check folder and get id
-        r = query.execute('SELECT `id` FROM `folder` WHERE `path` == ? LIMIT 1;', (folder,))
+        r = query.execute('SELECT `id` FROM `folder` WHERE `path` == ? LIMIT 1;', (location,))
         r = r.fetchone()
         if r is None:
-            query.execute('INSERT INTO `folder` (`path`) VALUES (?);', (folder,))
+            query.execute('INSERT INTO `folder` (`path`) VALUES (?);', (location,))
             self.db.commit()
             rowid = query.lastrowid
         else:
@@ -148,7 +148,7 @@ class PreviousFilesModel(QAbstractTableModel):
         return 3
 
     def headerData(self, section, orientation, role):
-        headers = ('Name', 'Folder', 'Timestamp')
+        headers = ('Name', 'Location', 'Timestamp')
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return headers[section]
 
@@ -287,9 +287,9 @@ class PreviousFiles(QDialog):
         self.merge_selected_files_action.triggered.connect(self.mergeSelectedFiles)
         self.menu.addAction(self.merge_selected_files_action)
 
-        self.open_selected_folders_action = QAction('Open Location', self)
-        self.open_selected_folders_action.triggered.connect(self.openSelectedLocations)
-        self.menu.addAction(self.open_selected_folders_action)
+        self.open_selected_locations_action = QAction('Open Location', self)
+        self.open_selected_locations_action.triggered.connect(self.openSelectedLocations)
+        self.menu.addAction(self.open_selected_locations_action)
 
         self.menu.addSeparator()
 
@@ -359,8 +359,8 @@ class PreviousFiles(QDialog):
         locations = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(1))
         names = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(0))
         extensions = map(lambda index: index.data(Qt.UserRole), selection.selectedRows(0))
-        for folder, name, extension in zip(locations, names, extensions):
-            hou.hipFile.merge('{}/{}{}'.format(folder, name, extension))
+        for location, name, extension in zip(locations, names, extensions):
+            hou.hipFile.merge('{}/{}{}'.format(location, name, extension))
 
     def openSelectedLocations(self):
         selection = self.view.selectionModel()
