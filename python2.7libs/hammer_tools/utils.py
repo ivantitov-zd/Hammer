@@ -28,13 +28,23 @@ def createAction(parent, label, callback=None, help=None, icon=None, shortcut=No
 
 
 def fuzzyMatch(pattern, word):
-    position = 0
+    if pattern == word:
+        return True, 999999
+    weight = 0
+    count = 0
     index = 0
-    while index != len(pattern):
+    for char in word:
         try:
-            new_position = word.index(pattern[index], position)
-        except ValueError:
-            return False
-        index += 1
-        position = new_position + 1
-    return True
+            if char == pattern[index]:
+                count += 1
+                index += 1
+            elif count != 0:
+                weight += count * count
+                count = 0
+        except IndexError:
+            pass
+    if count != 0:
+        weight += count * count
+    if index < len(pattern):
+        return False, weight
+    return True, weight
