@@ -121,6 +121,10 @@ class PreviousFilesModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super(PreviousFilesModel, self).__init__(parent)
 
+        # Icons
+        self.__file_exists_icon = hou.qt.Icon('TOP_status_cooked', 18, 18)
+        self.__file_not_exists_icon = hou.qt.Icon('TOP_status_error', 18, 18)
+
         # Database
         db_file = os.path.abspath(os.path.join(hou.homeHoudiniDirectory(), 'hammer_previous_files.db'))
         if not os.path.exists(db_file):
@@ -165,6 +169,13 @@ class PreviousFilesModel(QAbstractTableModel):
                 row = index.row()
                 name, location, _, extension = self.__log[row]
                 return os.path.normpath(os.path.join(location, name + extension)).replace('\\', '/')
+        elif role == Qt.DecorationRole:
+            if index.column() == 0:
+                name, location, _, extension = self.__log[index.row()]
+                if os.path.exists(os.path.join(location, name + extension)):
+                    return self.__file_exists_icon
+                else:
+                    return self.__file_not_exists_icon
 
 
 class PreviousFilesView(QTableView):
