@@ -205,19 +205,22 @@ class PreviousFiles(QDialog):
         self.open_temp.clicked.connect(openTemp)
         left_vertical_layout.addWidget(self.open_temp)
 
-        self.open_crash_menu = QMenu(self)
+        self.open_crash_button_menu = QMenu(self)
         open_crash_in_manual_mode = QAction('Open in Manual Mode', self)
         open_crash_in_manual_mode.triggered.connect(lambda: self.openLastCrashFile(True))
-        self.open_crash_menu.addAction(open_crash_in_manual_mode)
+        self.open_crash_button_menu.addAction(open_crash_in_manual_mode)
+        # Todo: repair crash file action
+        # Todo: remove crash files action
 
-        self.open_crash = QToolButton()
-        self.open_crash.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.open_crash.setMenu(self.open_crash_menu)
-        self.open_crash.setStyleSheet('border-radius: 1; border-style: none')
-        self.open_crash.setMinimumWidth(100)
-        self.open_crash.setText('Open Crash')
-        self.open_crash.clicked.connect(self.openLastCrashFile)
-        left_vertical_layout.addWidget(self.open_crash)
+        self.open_crash_button = QToolButton()
+        self.open_crash_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.open_crash_button.setMenu(self.open_crash_button_menu)
+        self.open_crash_button.setStyleSheet('border-radius: 1; border-style: none; background-color: rgb(165, 70, 70);')
+        self.open_crash_button.setMinimumWidth(100)
+        self.open_crash_button.setText('Open Crash')
+        self.open_crash_button.setToolTip('Open Last Crash File')
+        self.open_crash_button.clicked.connect(self.openLastCrashFile)
+        left_vertical_layout.addWidget(self.open_crash_button)
 
         right_vertical_layout = QVBoxLayout()
         right_vertical_layout.setContentsMargins(0, 0, 0, 0)
