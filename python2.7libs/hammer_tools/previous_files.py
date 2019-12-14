@@ -63,7 +63,7 @@ class SessionWatcher:
         r = query.execute('SELECT `id` FROM `folder` WHERE `path` == ? LIMIT 1;', (folder,))
         r = r.fetchone()
         if r is None:
-            query.execute('INSERT INTO `folder` (path) VALUES (?);', (folder,))
+            query.execute('INSERT INTO `folder` (`path`) VALUES (?);', (folder,))
             self.db.commit()
             rowid = query.lastrowid
         else:
@@ -107,21 +107,21 @@ class PreviousFilesModel(QAbstractTableModel):
         else:
             self.db = sqlite3.connect(db_file)
 
-        self.log = (())
+        self.__log = (())
 
         self.updateLogData()
 
     def updateLogData(self):
         self.beginResetModel()
-        self.log = self.db.cursor().execute('SELECT file.name, folder.path, log.timestamp, file.extension FROM `log` '
-                                            'JOIN `file` ON log.file_id = file.id '
-                                            'JOIN `folder` ON file.folder_id = folder.id '
-                                            'GROUP BY log.file_id '
-                                            'ORDER BY log.id DESC;').fetchall()
+        self.__log = self.db.cursor().execute('SELECT file.name, folder.path, log.timestamp, file.extension FROM `log` '
+                                              'JOIN `file` ON log.file_id = file.id '
+                                              'JOIN `folder` ON file.folder_id = folder.id '
+                                              'GROUP BY log.file_id '
+                                              'ORDER BY log.id DESC;').fetchall()
         self.endResetModel()
 
     def rowCount(self, parent):
-        return len(self.log)
+        return len(self.__log)
 
     def columnCount(self, parent):
         return 3
@@ -136,9 +136,14 @@ class PreviousFilesModel(QAbstractTableModel):
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            return self.log[index.row()][index.column()]
-        elif role == Qt.UserRole and index.column() == 0:
-            return self.log[index.row()][3]
+            return self.__log[index.row()][index.column()]
+        elif role == Qt.UserRole:
+            if index.column() == 0:
+                return self.__log[index.row()][3]
+            if index.column() == 1:
+                row = index.row()
+                name, location, _, extension = self.__log[row]
+                return os.path.normpath(os.path.join(location, name + extension)).replace('\\', '/')
 
 
 class PreviousFilesView(QTableView):
@@ -259,13 +264,28 @@ class PreviousFiles(QDialog):
         self.merge_selected_files_action.triggered.connect(self.mergeSelectedFiles)
         self.menu.addAction(self.merge_selected_files_action)
 
-        self.openSelectedFoldersAction = QAction('Open Folder', self)
-        self.openSelectedFoldersAction.triggered.connect(self.openSelectedFolders)
-        self.menu.addAction(self.openSelectedFoldersAction)
+        self.open_selected_folders_action = QAction('Open Location', self)
+        self.open_selected_folders_action.triggered.connect(self.openSelectedFolders)
+        self.menu.addAction(self.open_selected_folders_action)
+
+        self.menu.addSeparator()
+
+        self.copy_name_action = QAction('Copy Name', self)
+        self.copy_name_action.triggered.connect(self.copySelectedNames)
+        self.menu.addAction(self.copy_name_action)
+
+        self.copy_location_action = QAction('Copy Location', self)
+        self.copy_location_action.triggered.connect(self.copySelectedLocations)
+        self.menu.addAction(self.copy_location_action)
+
+        self.copy_link_action = QAction('Copy Link', self)
+        self.copy_link_action.triggered.connect(self.copySelectedLinks)
+        self.menu.addAction(self.copy_link_action)
 
         self.view.setContextMenuPolicy(Qt.CustomContextMenu)
         self.view.customContextMenuRequested.connect(self.showMenu)
 
+        # Actions
         refresh_action = QAction('Refresh', self)
         refresh_action.setShortcut(QKeySequence(Qt.Key_F5))
         refresh_action.triggered.connect(self.model.updateLogData)
@@ -357,6 +377,27 @@ class PreviousFiles(QDialog):
             hou.hipFile.load('{}/{}'.format(houdini_temp_path, last_file))
             if manual:
                 hou.setUpdateMode(hou.updateMode.Manual)
+
+    def copySelectedNames(self):
+        selection = self.view.selectionModel()
+        names = []
+        for index in selection.selectedRows(0):
+            names.append(index.data(Qt.DisplayRole))
+        qApp.clipboard().setText('\n'.join(names))
+
+    def copySelectedLocations(self):
+        selection = self.view.selectionModel()
+        locations = []
+        for index in selection.selectedRows(1):
+            locations.append(index.data(Qt.DisplayRole))
+        qApp.clipboard().setText('\n'.join(locations))
+
+    def copySelectedLinks(self):
+        selection = self.view.selectionModel()
+        links = []
+        for index in selection.selectedRows(1):
+            links.append(index.data(Qt.UserRole))
+        qApp.clipboard().setText('\n'.join(links))
 
     def showEvent(self, event):
         self.detectCrashFile()
