@@ -102,6 +102,7 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
         super(FuzzyFilterProxyModel, self).__init__(parent)
 
         self.__filter_pattern = ''
+        self.setDynamicSortFilter(True)
 
     def setFilterPattern(self, pattern):
         self.beginResetModel()
@@ -114,7 +115,17 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, source_row, source_parent):
         source_model = self.sourceModel()
         text = source_model.data(source_model.index(source_row, 1, source_parent), Qt.UserRole)
-        return fuzzyMatch(self.__filter_pattern, text if self.filterCaseSensitivity() == Qt.CaseSensitive else text.lower())
+        matches, weight = fuzzyMatch(self.__filter_pattern, text if self.filterCaseSensitivity() == Qt.CaseSensitive else text.lower())
+        return matches
+
+    def lessThan(self, source_left, source_right):
+        text1 = source_left.data(Qt.DisplayRole)
+        _, weight1 = fuzzyMatch(self.__filter_pattern, text1 if self.filterCaseSensitivity() == Qt.CaseSensitive else text1.lower())
+
+        text2 = source_right.data(Qt.DisplayRole)
+        _, weight2 = fuzzyMatch(self.__filter_pattern, text2 if self.filterCaseSensitivity() == Qt.CaseSensitive else text2.lower())
+
+        return weight1 < weight2
 
 
 class PreviousFilesModel(QAbstractTableModel):
@@ -278,6 +289,8 @@ class PreviousFiles(QDialog):
 
         self.view = PreviousFilesView()
         self.view.setModel(self.filter_model)
+        self.view.setSortingEnabled(True)
+        self.view.sortByColumn(0, Qt.DescendingOrder)
         self.view.doubleClicked.connect(self.openSelectedFile)
         right_vertical_layout.addWidget(self.view)
 
