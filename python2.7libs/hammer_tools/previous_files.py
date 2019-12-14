@@ -16,7 +16,8 @@ except ImportError:
 
 import hou
 
-from .quick_selection import FilterField, FuzzyFilterProxyModel
+from .quick_selection import FilterField
+from .utils import fuzzyMatch
 
 
 def createDatabase(filepath):
@@ -94,6 +95,26 @@ class SessionWatcher:
 def setSessionWatcher():
     hou.session.__hammer_session_watcher = SessionWatcher()
     hou.hipFile.addEventCallback(hou.session.__hammer_session_watcher)
+
+
+class FuzzyFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super(FuzzyFilterProxyModel, self).__init__(parent)
+
+        self.__filter_pattern = ''
+
+    def setFilterPattern(self, pattern):
+        self.beginResetModel()
+        if self.filterCaseSensitivity() == Qt.CaseInsensitive:
+            self.__filter_pattern = pattern.lower()
+        else:
+            self.__filter_pattern = pattern
+        self.endResetModel()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        source_model = self.sourceModel()
+        text = source_model.data(source_model.index(source_row, 1, source_parent), Qt.UserRole)
+        return fuzzyMatch(self.__filter_pattern, text if self.filterCaseSensitivity() == Qt.CaseSensitive else text.lower())
 
 
 class PreviousFilesModel(QAbstractTableModel):
@@ -241,6 +262,7 @@ class PreviousFiles(QDialog):
         self.model = PreviousFilesModel(self)
 
         self.filter_model = FuzzyFilterProxyModel(self)
+        self.filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.filter_model.setSourceModel(self.model)
 
         self.view = PreviousFilesView()
@@ -266,8 +288,18 @@ class PreviousFiles(QDialog):
         self.menu.addAction(self.merge_selected_files_action)
 
         self.open_selected_folders_action = QAction('Open Location', self)
-        self.open_selected_folders_action.triggered.connect(self.openSelectedFolders)
+        self.open_selected_folders_action.triggered.connect(self.openSelectedLocations)
         self.menu.addAction(self.open_selected_folders_action)
+
+        self.menu.addSeparator()
+
+        self.filter_by_name_action = QAction('Filter by Name', self)
+        self.filter_by_name_action.triggered.connect(self.filterByName)
+        self.menu.addAction(self.filter_by_name_action)
+
+        self.filter_by_location_action = QAction('Filter by Location', self)
+        self.filter_by_location_action.triggered.connect(self.filterByLocation)
+        self.menu.addAction(self.filter_by_location_action)
 
         self.menu.addSeparator()
 
@@ -299,18 +331,22 @@ class PreviousFiles(QDialog):
             if selected_row_count > 1:
                 self.open_selected_file_action.setEnabled(False)
                 self.open_selected_file_in_manual_mode_action.setEnabled(False)
-            else:
+                self.filter_by_name_action.setEnabled(False)
+                self.filter_by_location_action.setEnabled(False)
+            else:  # Single file
                 self.open_selected_file_action.setEnabled(True)
                 self.open_selected_file_in_manual_mode_action.setEnabled(True)
+                self.filter_by_name_action.setEnabled(True)
+                self.filter_by_location_action.setEnabled(True)
             self.menu.exec_(QCursor.pos())
 
     def openSelectedFile(self):
         self.hide()
         selection = self.view.selectionModel()
-        folder = selection.selectedRows(1)[0].data(Qt.DisplayRole)
+        location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
         name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
         extension = selection.selectedRows(0)[0].data(Qt.UserRole)
-        hou.hipFile.load('{}/{}{}'.format(folder, name, extension))
+        hou.hipFile.load('{}/{}{}'.format(location, name, extension))
 
     def openSelectedFileInManualMode(self):
         self.openSelectedFile()
@@ -320,13 +356,13 @@ class PreviousFiles(QDialog):
         self.hide()
         selection = self.view.selectionModel()
         # todo
-        folders = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(1))
+        locations = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(1))
         names = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(0))
         extensions = map(lambda index: index.data(Qt.UserRole), selection.selectedRows(0))
-        for folder, name, extension in zip(folders, names, extensions):
+        for folder, name, extension in zip(locations, names, extensions):
             hou.hipFile.merge('{}/{}{}'.format(folder, name, extension))
 
-    def openSelectedFolders(self):
+    def openSelectedLocations(self):
         selection = self.view.selectionModel()
         if len(selection.selectedRows()) > 4:
             return
@@ -379,6 +415,16 @@ class PreviousFiles(QDialog):
             hou.hipFile.load('{}/{}'.format(houdini_temp_path, last_file))
             if manual:
                 hou.setUpdateMode(hou.updateMode.Manual)
+
+    def filterByName(self):
+        selection = self.view.selectionModel()
+        name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
+        self.filter_field.setText(name)
+
+    def filterByLocation(self):
+        selection = self.view.selectionModel()
+        location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
+        self.filter_field.setText(location)
 
     def copySelectedNames(self):
         selection = self.view.selectionModel()
