@@ -185,30 +185,31 @@ class PreviousFiles(QDialog):
         self.new.clicked.connect(self.createNewHip)
         left_vertical_layout.addWidget(self.new)
 
-        self.open_menu = QMenu(self)
+        self.open_button_menu = QMenu(self)
         open_in_manual_mode = QAction('Open in Manual Mode', self)
         open_in_manual_mode.triggered.connect(lambda: self.openFile(True))
-        self.open_menu.addAction(open_in_manual_mode)
+        self.open_button_menu.addAction(open_in_manual_mode)
 
-        self.open = QToolButton()
-        self.open.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.open.setMenu(self.open_menu)
-        self.open.setStyleSheet('border-radius: 1; border-style: none')
-        self.open.setMinimumWidth(100)
-        self.open.setText('Open...')
-        self.open.clicked.connect(self.openFile)
-        left_vertical_layout.addWidget(self.open)
+        self.open_button = QToolButton()
+        self.open_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.open_button.setMenu(self.open_button_menu)
+        self.open_button.setStyleSheet('border-radius: 1; border-style: none')
+        self.open_button.setMinimumWidth(100)
+        self.open_button.setText('Open...')
+        self.open_button.clicked.connect(self.openFile)
+        left_vertical_layout.addWidget(self.open_button)
 
-        self.merge = QPushButton('Merge...')
-        self.merge.clicked.connect(self.mergeFiles)
-        left_vertical_layout.addWidget(self.merge)
+        self.merge_button = QPushButton('Merge...')
+        self.merge_button.clicked.connect(self.mergeFiles)
+        left_vertical_layout.addWidget(self.merge_button)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
         left_vertical_layout.addSpacerItem(spacer)
 
-        self.open_temp = QPushButton('Open Temp')
-        self.open_temp.clicked.connect(openTemp)
-        left_vertical_layout.addWidget(self.open_temp)
+        self.open_temp_button = QPushButton('Open Temp')
+        self.open_temp_button.setToolTip('Open Houdini Temp Location')
+        self.open_temp_button.clicked.connect(openTemp)
+        left_vertical_layout.addWidget(self.open_temp_button)
 
         self.open_crash_button_menu = QMenu(self)
         open_crash_in_manual_mode = QAction('Open in Manual Mode', self)
@@ -312,13 +313,13 @@ class PreviousFiles(QDialog):
         hou.hipFile.load('{}/{}{}'.format(folder, name, extension))
 
     def openSelectedFileInManualMode(self):
-        self.hide()
         self.openSelectedFile()
         hou.setUpdateMode(hou.updateMode.Manual)
 
     def mergeSelectedFiles(self):
         self.hide()
         selection = self.view.selectionModel()
+        # todo
         folders = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(1))
         names = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(0))
         extensions = map(lambda index: index.data(Qt.UserRole), selection.selectedRows(0))
@@ -347,7 +348,8 @@ class PreviousFiles(QDialog):
     def mergeFiles(self):
         files = hou.ui.selectFile(title='Merge', file_type=hou.fileType.Hip, multiple_select=True, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
         if files and files[0]:
-            for file in tuple(map(lambda f: hou.expandString(f), files)):
+            files = [hou.expandString(file) for file in files]  # Prevent aging variables
+            for file in files:
                 hou.hipFile.merge(file)
             self.hide()
 
@@ -355,9 +357,9 @@ class PreviousFiles(QDialog):
         temp_path = hou.getenv('TEMP')
         for file in os.listdir(temp_path):
             if file.startswith('crash.') and file.endswith('.hip') or file.endswith('.hiplc') or file.endswith('.hipnc'):
-                self.open_crash.setVisible(True)
+                self.open_crash_button.setVisible(True)
                 return
-        self.open_crash.setVisible(False)
+        self.open_crash_button.setVisible(False)
 
     def openLastCrashFile(self, manual=False):
         last_file = None
