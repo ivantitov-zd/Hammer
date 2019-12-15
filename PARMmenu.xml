@@ -2,7 +2,7 @@
 <menuDocument>
     <menu>
 
-        <addScriptItem id="hammer.select">
+        <addScriptItem id="h.pane.parms.hammer_select">
             <label>Select...</label>
             <parent>root_menu</parent>
             <insertBefore />
@@ -30,7 +30,7 @@ selectAny(parm)
             </scriptCode>
         </addScriptItem>
 
-        <addScriptItem id="hammer.select_font">
+        <addScriptItem id="h.pane.parms.hammer_select_font">
             <label>Select Font...</label>
             <parent>root_menu</parent>
             <insertBefore />
@@ -52,7 +52,7 @@ selectFont(parm)
             </scriptCode>
         </addScriptItem>
 
-        <addScriptItem id="hammer.open_folder">
+        <addScriptItem id="h.pane.parms.hammer_open_folder">
             <label>Open Folder...</label>
             <parent>root_menu</parent>
             <insertBefore />
@@ -75,7 +75,7 @@ os.startfile(os.path.normpath(os.path.dirname(parm.eval())))
             </scriptCode>
         </addScriptItem>
 
-        <subMenu id="hammer.set_ramp_interpolation">
+        <subMenu id="h.pane.parms.hammer_set_ramp_interpolation">
 
             <label>Set Interpolation</label>
             <parent>root_menu</parent>
@@ -91,7 +91,7 @@ os.startfile(os.path.normpath(os.path.dirname(parm.eval())))
                 </expression>
             </context>
 
-            <scriptItem id="hammer.set_ramp_interpolation.constant">
+            <scriptItem id="h.pane.parms.hammer_set_ramp_interpolation_constant">
                 <label>Constant</label>
                 <scriptCode>
 from hammer_tools.parmutils import setRampParmInterpolation
@@ -101,7 +101,7 @@ setRampParmInterpolation(parm, hou.rampBasis.Constant)
                 </scriptCode>
             </scriptItem>
 
-            <scriptItem id="hammer.set_ramp_interpolation.linear">
+            <scriptItem id="h.pane.parms.hammer_set_ramp_interpolation_linear">
                 <label>Linear</label>
                 <scriptCode>
 from hammer_tools.parmutils import setRampParmInterpolation
@@ -111,7 +111,7 @@ setRampParmInterpolation(parm, hou.rampBasis.Linear)
                 </scriptCode>
             </scriptItem>
 
-            <scriptItem id="hammer.set_ramp_interpolation.catmullrom">
+            <scriptItem id="h.pane.parms.hammer_set_ramp_interpolation_catmullrom">
                 <label>Catmull-Rom</label>
                 <scriptCode>
 from hammer_tools.parmutils import setRampParmInterpolation
@@ -121,7 +121,7 @@ setRampParmInterpolation(parm, hou.rampBasis.CatmullRom)
                 </scriptCode>
             </scriptItem>
 
-            <scriptItem id="hammer.set_ramp_interpolation.monotonecubic">
+            <scriptItem id="h.pane.parms.hammer_set_ramp_interpolation_monotonecubic">
                 <label>Monotone Cubic</label>
                 <scriptCode>
 from hammer_tools.parmutils import setRampParmInterpolation
@@ -131,7 +131,7 @@ setRampParmInterpolation(parm, hou.rampBasis.MonotoneCubic)
                 </scriptCode>
             </scriptItem>
 
-            <scriptItem id="hammer.set_ramp_interpolation.bezier">
+            <scriptItem id="h.pane.parms.hammer_set_ramp_interpolation_bezier">
                 <label>Bezier</label>
                 <scriptCode>
 from hammer_tools.parmutils import setRampParmInterpolation
@@ -141,7 +141,7 @@ setRampParmInterpolation(parm, hou.rampBasis.Bezier)
                 </scriptCode>
             </scriptItem>
 
-            <scriptItem id="hammer.set_ramp_interpolation.bspline">
+            <scriptItem id="h.pane.parms.hammer_set_ramp_interpolation_bspline">
                 <label>B-Spline</label>
                 <scriptCode>
 from hammer_tools.parmutils import setRampParmInterpolation
@@ -151,7 +151,7 @@ setRampParmInterpolation(parm, hou.rampBasis.BSpline)
                 </scriptCode>
             </scriptItem>
 
-            <scriptItem id="hammer.set_ramp_interpolation.hermite">
+            <scriptItem id="h.pane.parms.hammer_set_ramp_interpolation_hermite">
                 <label>Hermite</label>
                 <scriptCode>
 from hammer_tools.parmutils import setRampParmInterpolation

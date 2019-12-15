@@ -2,7 +2,7 @@
 <menuDocument>
     <menu>
 
-        <scriptItem id="hammer_edit_shelf_tools">
+        <scriptItem id="h.shelf.menu.hammer_edit_shelf_tools">
             <label>Edit Shelf Tools...</label>
             <insertAfter>edit_shelf</insertAfter>
             <scriptCode>

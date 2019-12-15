@@ -2,7 +2,7 @@
 <menuDocument>
     <menu>
 
-        <scriptItem id="hammer_copy_shelf_tool">
+        <scriptItem id="h.shelf.menu.hammer_copy_shelf_tool">
             <label>Copy Tool to another Shelf...</label>
             <insertAfter>edit_tool</insertAfter>
             <scriptCode>
