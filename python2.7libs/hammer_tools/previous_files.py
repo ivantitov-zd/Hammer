@@ -364,6 +364,28 @@ class PreviousFiles(QDialog):
                 self.filter_by_location_action.setEnabled(True)
             self.menu.exec_(QCursor.pos())
 
+    def importFBX(self, path, suppress_save_prompt=False):
+        hou.hipFile.importFBX(file_name=path, suppress_save_prompt=suppress_save_prompt)
+
+    def importAlembic(self, path):
+        location, file = os.path.split(path)
+        name, extension = os.path.splitext(file)
+        obj_node = hou.node('/obj')
+        alembic_node = obj_node.createNode('alembicarchive', name)
+        alembic_node.parm('fileName').set(path)
+        alembic_node.parm('buildHierarchy').pressButton()
+
+    def importGLTF(self, path):
+        location, file = os.path.split(path)
+        name, extension = os.path.splitext(file)
+        obj_node = hou.node('/obj')
+        gltf_node = obj_node.createNode('gltf_hierarchy', name)
+        gltf_node.parm('filename').set(path)
+        gltf_node.parm('lockgeo').set(0)
+        if extension.lower() == '.glb':
+            gltf_node.parm('assetfolder').set('$HIP/{}_data'.format(name))
+        gltf_node.parm('buildscene').pressButton()
+
     def openSelectedFile(self):
         self.hide()
         selection = self.view.selectionModel()
@@ -398,12 +420,25 @@ class PreviousFiles(QDialog):
         hou.hipFile.clear()
 
     def openFile(self, manual=False):
-        files = hou.ui.selectFile(title='Open', file_type=hou.fileType.Hip, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
+        files = hou.ui.selectFile(title='Open', pattern='*.hip, *.hipnc, *.hiplc, *.hip*, *.abc, *.fbx, *.gltf, *.glb', chooser_mode=hou.fileChooserMode.Read).split(' ; ')
         if files and files[0]:
-            hou.hipFile.load(files[0])
-            self.hide()
-            if manual:
-                hou.setUpdateMode(hou.updateMode.Manual)
+            _, extension = os.path.splitext(files[0])
+            try:
+                if extension.lower().startswith('.hip'):
+                    hou.hipFile.load(files[0])
+                elif extension.lower() == '.abc':
+                    hou.hipFile.clear(suppress_save_prompt=True)
+                    self.importAlembic(files[0])
+                elif extension.lower() == '.fbx':
+                    self.importFBX(files[0])
+                elif extension.lower().startswith('.gl'):
+                    hou.hipFile.clear(suppress_save_prompt=True)
+                    self.importGLTF(files[0])
+                if manual:
+                    hou.setUpdateMode(hou.updateMode.Manual)
+                self.hide()
+            except hou.OperationFailed:
+                pass
 
     def mergeFiles(self):
         files = hou.ui.selectFile(title='Merge', file_type=hou.fileType.Hip, multiple_select=True, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
