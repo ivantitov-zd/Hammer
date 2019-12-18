@@ -15,7 +15,7 @@ except ImportError:
 
 import hou
 
-from .quick_selection import FilterField
+from .quick_selection import FilterField, FuzzyFilterProxyModel
 
 
 class SettingsManager:
@@ -396,6 +396,9 @@ class SectionView(QWidget):
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
         main_layout.addSpacerItem(spacer)
 
+    def setFilterPattern(self, pattern):
+        raise NotImplementedError  # todo: filtering
+
 
 class HammerSettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -425,8 +428,9 @@ class HammerSettingsDialog(QDialog):
         self.filter_field = FilterField()
         left_layout.addWidget(self.filter_field)
 
-        # Section
+        # Section View
         self.section_view = SectionView()
+        self.filter_field.textChanged.connect(self.section_view.setFilterPattern)
         splitter.addWidget(self.section_view)
 
         # Section List
@@ -445,8 +449,13 @@ class HammerSettingsDialog(QDialog):
         self.section_list_model = SectionListModel(self)
         self.section_list_model.setSectionList(sections)
 
+        self.fuzzy_proxy_model = FuzzyFilterProxyModel(self)
+        self.fuzzy_proxy_model.setSourceModel(self.section_list_model)
+        self.fuzzy_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.filter_field.textChanged.connect(self.fuzzy_proxy_model.setFilterPattern)
+
         self.section_list_view = SectionListView()
-        self.section_list_view.setModel(self.section_list_model)
+        self.section_list_view.setModel(self.fuzzy_proxy_model)
         self.section_list_view.clicked.connect(self.setCurrentSection)
         left_layout.addWidget(self.section_list_view)
 
