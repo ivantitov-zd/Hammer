@@ -93,8 +93,8 @@ class SessionWatcher:
 
 
 def setSessionWatcher():
-    hou.session.__hammer_session_watcher = SessionWatcher()
-    hou.hipFile.addEventCallback(hou.session.__hammer_session_watcher)
+    hou.session.hammer_session_watcher = SessionWatcher()
+    hou.hipFile.addEventCallback(hou.session.hammer_session_watcher)
 
 
 class FuzzyFilterProxyModel(QSortFilterProxyModel):
@@ -206,6 +206,31 @@ def openTemp():
     os.startfile(hou.getenv('TEMP'))
 
 
+def importFBX(path, suppress_save_prompt=False):
+    hou.hipFile.importFBX(file_name=path, suppress_save_prompt=suppress_save_prompt)
+
+
+def importAlembic(path):
+    location, file = os.path.split(path)
+    name, extension = os.path.splitext(file)
+    obj_node = hou.node('/obj')
+    alembic_node = obj_node.createNode('alembicarchive', name)
+    alembic_node.parm('fileName').set(path)
+    alembic_node.parm('buildHierarchy').pressButton()
+
+
+def importGLTF(path):
+    location, file = os.path.split(path)
+    name, extension = os.path.splitext(file)
+    obj_node = hou.node('/obj')
+    gltf_node = obj_node.createNode('gltf_hierarchy', name)
+    gltf_node.parm('filename').set(path)
+    gltf_node.parm('lockgeo').set(0)
+    if extension.lower() == '.glb':
+        gltf_node.parm('assetfolder').set('$HIP/{}_data'.format(name))
+    gltf_node.parm('buildscene').pressButton()
+
+
 class PreviousFiles(QDialog):
     def __init__(self, parent=None):
         super(PreviousFiles, self).__init__(parent, Qt.Window)
@@ -230,7 +255,7 @@ class PreviousFiles(QDialog):
 
         self.open_button_menu = QMenu(self)
         open_in_manual_mode = QAction('Open in Manual Mode', self)
-        open_in_manual_mode.triggered.connect(lambda: self.openFile(True))
+        open_in_manual_mode.triggered.connect(lambda: self.chooseAndOpenFile(True))
         self.open_button_menu.addAction(open_in_manual_mode)
 
         self.open_button = QToolButton()
@@ -239,7 +264,7 @@ class PreviousFiles(QDialog):
         self.open_button.setStyleSheet('border-radius: 1; border-style: none')
         self.open_button.setMinimumWidth(100)
         self.open_button.setText('Open...')
-        self.open_button.clicked.connect(self.openFile)
+        self.open_button.clicked.connect(self.chooseAndOpenFile)
         left_vertical_layout.addWidget(self.open_button)
 
         self.merge_button = QPushButton('Merge...')
@@ -300,11 +325,11 @@ class PreviousFiles(QDialog):
         self.menu = QMenu()
 
         self.open_selected_file_action = QAction('Open', self)
-        self.open_selected_file_action.triggered.connect(self.openSelectedFile)
+        self.open_selected_file_action.triggered.connect(lambda: self.openSelectedFile())
         self.menu.addAction(self.open_selected_file_action)
 
         self.open_selected_file_in_manual_mode_action = QAction('Open in Manual Mode', self)
-        self.open_selected_file_in_manual_mode_action.triggered.connect(self.openSelectedFileInManualMode)
+        self.open_selected_file_in_manual_mode_action.triggered.connect(lambda: self.openSelectedFile(True))
         self.menu.addAction(self.open_selected_file_in_manual_mode_action)
 
         self.merge_selected_files_action = QAction('Merge', self)
@@ -364,39 +389,13 @@ class PreviousFiles(QDialog):
                 self.filter_by_location_action.setEnabled(True)
             self.menu.exec_(QCursor.pos())
 
-    def importFBX(self, path, suppress_save_prompt=False):
-        hou.hipFile.importFBX(file_name=path, suppress_save_prompt=suppress_save_prompt)
-
-    def importAlembic(self, path):
-        location, file = os.path.split(path)
-        name, extension = os.path.splitext(file)
-        obj_node = hou.node('/obj')
-        alembic_node = obj_node.createNode('alembicarchive', name)
-        alembic_node.parm('fileName').set(path)
-        alembic_node.parm('buildHierarchy').pressButton()
-
-    def importGLTF(self, path):
-        location, file = os.path.split(path)
-        name, extension = os.path.splitext(file)
-        obj_node = hou.node('/obj')
-        gltf_node = obj_node.createNode('gltf_hierarchy', name)
-        gltf_node.parm('filename').set(path)
-        gltf_node.parm('lockgeo').set(0)
-        if extension.lower() == '.glb':
-            gltf_node.parm('assetfolder').set('$HIP/{}_data'.format(name))
-        gltf_node.parm('buildscene').pressButton()
-
-    def openSelectedFile(self):
+    def openSelectedFile(self, manual=False):
         self.hide()
         selection = self.view.selectionModel()
         location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
         name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
         extension = selection.selectedRows(0)[0].data(Qt.UserRole)
-        hou.hipFile.load('{}/{}{}'.format(location, name, extension))
-
-    def openSelectedFileInManualMode(self):
-        self.openSelectedFile()
-        hou.setUpdateMode(hou.updateMode.Manual)
+        self.openFile('{}/{}{}'.format(location, name, extension), manual)
 
     def mergeSelectedFiles(self):
         self.hide()
@@ -419,26 +418,31 @@ class PreviousFiles(QDialog):
         self.hide()
         hou.hipFile.clear()
 
-    def openFile(self, manual=False):
+    def openFile(self, file, manual=False):
+        file = hou.expandString(file)
+        _, extension = os.path.splitext(file)
+        try:
+            if extension.lower().startswith('.hip'):
+                hou.hipFile.load(file)
+            else:
+                hou.hipFile.clear(suppress_save_prompt=True)
+                if extension.lower() == '.abc':
+                    importAlembic(file)
+                elif extension.lower() == '.fbx':
+                    importFBX(file)
+                elif extension.lower().startswith('.gl'):
+                    importGLTF(file)
+                hou.session.hammer_session_watcher.logEvent(file, LogEvent.Load)
+            if manual:
+                hou.setUpdateMode(hou.updateMode.Manual)
+            self.hide()
+        except hou.OperationFailed:
+            pass
+
+    def chooseAndOpenFile(self, manual=False):
         files = hou.ui.selectFile(title='Open', pattern='*.hip, *.hipnc, *.hiplc, *.hip*, *.abc, *.fbx, *.gltf, *.glb', chooser_mode=hou.fileChooserMode.Read).split(' ; ')
         if files and files[0]:
-            _, extension = os.path.splitext(files[0])
-            try:
-                if extension.lower().startswith('.hip'):
-                    hou.hipFile.load(files[0])
-                elif extension.lower() == '.abc':
-                    hou.hipFile.clear(suppress_save_prompt=True)
-                    self.importAlembic(files[0])
-                elif extension.lower() == '.fbx':
-                    self.importFBX(files[0])
-                elif extension.lower().startswith('.gl'):
-                    hou.hipFile.clear(suppress_save_prompt=True)
-                    self.importGLTF(files[0])
-                if manual:
-                    hou.setUpdateMode(hou.updateMode.Manual)
-                self.hide()
-            except hou.OperationFailed:
-                pass
+            self.openFile(files[0], manual)
 
     def mergeFiles(self):
         files = hou.ui.selectFile(title='Merge', file_type=hou.fileType.Hip, multiple_select=True, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
@@ -507,6 +511,7 @@ class PreviousFiles(QDialog):
         qApp.clipboard().setText('\n'.join(links))
 
     def showEvent(self, event):
+        self.model.updateLogData()
         self.detectCrashFile()
         self.filter_field.setFocus()
         self.filter_field.selectAll()
