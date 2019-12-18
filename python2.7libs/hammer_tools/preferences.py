@@ -25,53 +25,269 @@ class AbstractSetting(QWidget):
     def __init__(self):
         super(AbstractSetting, self).__init__()
 
-    def id(self):
-        raise NotImplementedError
+        # Layout
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(4)
 
     def name(self):
         raise NotImplementedError
 
     def description(self):
+        raise NotImplementedError
+
+    def id(self):
+        raise NotImplementedError
+
+    def value(self):
+        raise NotImplementedError
+
+    def setValue(self, value):
         raise NotImplementedError
 
 
 class SettingGroup(QGroupBox):
     def __init__(self, name):
-        self.setTitle(name)
+        super(SettingGroup, self).__init__()
 
+        # Data
+        self.__name = None
+        self.setName(name)
+
+        # Layout
         main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(4)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+    def name(self):
+        return self.__name
+
+    def setName(self, name):
+        self.__name = name
+        self.setTitle(name)
 
     def addSetting(self, setting):
         self.layout().addWidget(setting)
 
 
-class OpenFolderSetting(AbstractSetting):
+class EnableOpenFolder(AbstractSetting):
     def __init__(self):
-        super(OpenFolderSetting, self).__init__()
+        super(EnableOpenFolder, self).__init__()
 
-    def id(self):
-        pass
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
 
     def name(self):
-        return 'Open Folder'
+        return 'Enable Open Folder'
 
     def description(self):
-        return None
+        return ''
+
+    def id(self):
+        return 'hammer.enable_open_folder'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
+
+
+class EnablePreviousFiles(AbstractSetting):
+    def __init__(self):
+        super(EnablePreviousFiles, self).__init__()
+
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
+
+    def name(self):
+        return 'Enable Previous Files'
+
+    def description(self):
+        return ''
+
+    def id(self):
+        return 'hammer.enable_previous_files'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
+
+
+class EnableSetInterpolation(AbstractSetting):
+    def __init__(self):
+        super(EnableSetInterpolation, self).__init__()
+
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
+
+    def name(self):
+        return 'Enable Set Interpolation'
+
+    def description(self):
+        return ''
+
+    def id(self):
+        return 'hammer.enable_set_interpolation'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
+
+
+class EnablePlaySound(AbstractSetting):
+    def __init__(self):
+        super(EnablePlaySound, self).__init__()
+
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
+
+    def name(self):
+        return 'Enable Play Sound'
+
+    def description(self):
+        return ''
+
+    def id(self):
+        return 'hammer.enable_play_sound'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
+
+
+class EnableSetSceneAudio(AbstractSetting):
+    def __init__(self):
+        super(EnableSetSceneAudio, self).__init__()
+
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
+
+    def name(self):
+        return 'Enable Play as Scene Audio'
+
+    def description(self):
+        return ''
+
+    def id(self):
+        return 'hammer.enable_play_as_scene_audio'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
+
+
+class QuickSelection(AbstractSetting):
+    def __init__(self):
+        super(QuickSelection, self).__init__()
+
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
+
+    def name(self):
+        return 'Enable Quick Selection'
+
+    def description(self):
+        return ''
+
+    def id(self):
+        return 'hammer.enable_quick_selection'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
+
+
+class CollectFiles(AbstractSetting):
+    def __init__(self):
+        super(CollectFiles, self).__init__()
+
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
+
+    def name(self):
+        return 'Enable Collect Files'
+
+    def description(self):
+        return ''
+
+    def id(self):
+        return 'hammer.enable_collect_files'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
+
+
+class FileManager(AbstractSetting):
+    def __init__(self):
+        super(FileManager, self).__init__()
+
+        # Enable
+        self.enable_toggle = QCheckBox(self.name())
+        self.layout().addWidget(self.enable_toggle)
+
+    def name(self):
+        return 'Enable File Manager'
+
+    def description(self):
+        return ''
+
+    def id(self):
+        return 'hammer.enable_file_manager'
+
+    def value(self):
+        return self.enable_toggle.isChecked()
+
+    def setValue(self, value):
+        self.enable_toggle.setChecked(value)
 
 
 class Section(QWidget):
     def __init__(self, name, description=''):
         super(Section, self).__init__()
 
-        self.name = name
-        self.description = description
-
+        # Data
+        self.__name = name
+        self.__description = description
         self.__settings = []
+
+        # Layout
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(2)
+
+    def name(self):
+        return self.__name
+
+    def setName(self, name):
+        self.__name = name
+
+    def description(self):
+        raise NotImplementedError
 
     def addSetting(self, setting):
         self.__settings.append(setting)
+        self.layout().addWidget(setting)
 
     def __contains__(self, item):
         for setting in self.__settings:
@@ -84,6 +300,7 @@ class SectionListModel(QAbstractListModel):
     def __init__(self, parent=None):
         super(SectionListModel, self).__init__(parent)
 
+        # Data
         self.__sections = []
 
     def setSectionList(self, sections):
@@ -99,7 +316,7 @@ class SectionListModel(QAbstractListModel):
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            return self.__sections[index.row()].name
+            return self.__sections[index.row()].name()
         if role == Qt.UserRole:
             return self.__sections[index.row()]
 
@@ -118,27 +335,30 @@ class SectionView(QWidget):
         # Data
         self.__section = section
 
+    def setSection(self, section):
+        self.__section = section
+
         # Layout
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
 
-    def clear(self):
-        self.__section = None
+        main_layout.addWidget(self.__section)
 
-    def setSection(self, section):
-        self.clear()
-        self.__section = section
+        # Spacer
+        spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
+        main_layout.addSpacerItem(spacer)
 
 
-class HammerPreferencesDialog(QDialog):
+class HammerSettingsDialog(QDialog):
     def __init__(self, parent=None):
-        super(HammerPreferencesDialog, self).__init__(parent, Qt.Window)
+        super(HammerSettingsDialog, self).__init__(parent, Qt.Window)
 
         # UI
-        self.setWindowTitle('Hammer Tools: Preferences')
+        self.setWindowTitle('Hammer Tools: Settings')
         self.setStyleSheet(hou.qt.styleSheet())
 
+        # Layout
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
@@ -146,7 +366,12 @@ class HammerPreferencesDialog(QDialog):
         left_layout = QVBoxLayout()
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(4)
-        main_layout.addLayout(left_layout)
+
+        splitter = QSplitter(Qt.Horizontal)
+        main_layout.addWidget(splitter)
+        left_widget = QWidget()
+        left_widget.setLayout(left_layout)
+        splitter.addWidget(left_widget)
 
         # Filter
         self.filter_field = FilterField()
@@ -154,11 +379,18 @@ class HammerPreferencesDialog(QDialog):
 
         # Section
         self.section_view = SectionView()
-        main_layout.addWidget(self.section_view)
+        splitter.addWidget(self.section_view)
 
         # Section List
         general_section = Section('General')
-        general_section.addSetting(OpenFolderSetting())
+        general_section.addSetting(EnableOpenFolder())
+        general_section.addSetting(EnablePreviousFiles())
+        general_section.addSetting(EnableSetInterpolation())
+        general_section.addSetting(EnableSetSceneAudio())
+        general_section.addSetting(EnablePlaySound())
+        general_section.addSetting(QuickSelection())
+        general_section.addSetting(CollectFiles())
+        general_section.addSetting(FileManager())
 
         sections = [general_section]
 
