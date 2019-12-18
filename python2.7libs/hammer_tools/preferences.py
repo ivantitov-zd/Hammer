@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import json
+
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
@@ -15,7 +17,52 @@ import hou
 
 from .quick_selection import FilterField
 
-PREF_FILE = hou.homeHoudiniDirectory() + '/hammer_tools.pref'
+
+class SettingsManager:
+    class State:
+        Direct = 1
+        Accumulation = 2
+
+    def __init__(self):
+        self.pref_file = hou.homeHoudiniDirectory() + '/hammer_tools.pref'
+
+        # Data
+        self.__data = {}
+        self.__accumulated_data = {}
+        self.__state = SettingsManager.State.Direct
+
+    def beginEditing(self):
+        self.__state = SettingsManager.State.Accumulation
+
+    def endEditing(self):
+        self.__state = SettingsManager.State.Direct
+        self.__data.update(self.__accumulated_data)
+        self.__accumulated_data.clear()
+
+    def value(self, setting_id):
+        if setting_id not in self.__data:
+            raise Exception  # todo exception
+        return self.__data[setting_id]
+
+    def setValue(self, setting_id, value):
+        if setting_id in self.__data:
+            if self.__state == SettingsManager.State.Direct:
+                self.__data[setting_id] = value
+            elif self.__state == SettingsManager.State.Accumulation:
+                self.__accumulated_data[setting_id] = value
+            else:
+                raise Exception  # todo exception
+        # todo?: new id
+
+    def saveToFile(self, path=None):
+        # todo: try and state
+        with open(self.pref_file if path is None else path, 'w') as file:
+            json.dump(self.__data, file)
+
+    def loadFromFile(self, path=None):
+        # todo: try and state
+        with open(self.pref_file if path is None else path, 'r') as file:
+            self.__data = json.load(file)
 
 
 class AbstractSetting(QWidget):
@@ -190,9 +237,9 @@ class EnableSetSceneAudio(AbstractSetting):
         self.enable_toggle.setChecked(value)
 
 
-class QuickSelection(AbstractSetting):
+class EnableQuickSelection(AbstractSetting):
     def __init__(self):
-        super(QuickSelection, self).__init__()
+        super(EnableQuickSelection, self).__init__()
 
         # Enable
         self.enable_toggle = QCheckBox(self.name())
@@ -214,9 +261,9 @@ class QuickSelection(AbstractSetting):
         self.enable_toggle.setChecked(value)
 
 
-class CollectFiles(AbstractSetting):
+class EnableCollectFiles(AbstractSetting):
     def __init__(self):
-        super(CollectFiles, self).__init__()
+        super(EnableCollectFiles, self).__init__()
 
         # Enable
         self.enable_toggle = QCheckBox(self.name())
@@ -238,9 +285,9 @@ class CollectFiles(AbstractSetting):
         self.enable_toggle.setChecked(value)
 
 
-class FileManager(AbstractSetting):
+class EnableFileManager(AbstractSetting):
     def __init__(self):
-        super(FileManager, self).__init__()
+        super(EnableFileManager, self).__init__()
 
         # Enable
         self.enable_toggle = QCheckBox(self.name())
@@ -357,6 +404,7 @@ class HammerSettingsDialog(QDialog):
         # UI
         self.setWindowTitle('Hammer Tools: Settings')
         self.setStyleSheet(hou.qt.styleSheet())
+        self.resize(800, 500)
 
         # Layout
         main_layout = QHBoxLayout(self)
@@ -388,9 +436,9 @@ class HammerSettingsDialog(QDialog):
         general_section.addSetting(EnableSetInterpolation())
         general_section.addSetting(EnableSetSceneAudio())
         general_section.addSetting(EnablePlaySound())
-        general_section.addSetting(QuickSelection())
-        general_section.addSetting(CollectFiles())
-        general_section.addSetting(FileManager())
+        general_section.addSetting(EnableQuickSelection())
+        general_section.addSetting(EnableCollectFiles())
+        general_section.addSetting(EnableFileManager())
 
         sections = [general_section]
 
