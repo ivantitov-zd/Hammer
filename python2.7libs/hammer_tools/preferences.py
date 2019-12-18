@@ -23,6 +23,10 @@ class SettingsManager:
         Direct = 1
         Accumulation = 2
 
+    class SaveBehaviour:
+        Immediatly = 1
+        OnDemand = 2
+
     def __init__(self):
         self.pref_file = hou.homeHoudiniDirectory() + '/hammer_tools.pref'
 
@@ -30,14 +34,17 @@ class SettingsManager:
         self.__data = {}
         self.__accumulated_data = {}
         self.__state = SettingsManager.State.Direct
+        self.__save_mode = SettingsManager.SaveBehaviour.Immediatly
 
-    def beginEditing(self):
+    def beginEdit(self):
         self.__state = SettingsManager.State.Accumulation
 
-    def endEditing(self):
+    def endEdit(self):  # todo: autosync?
         self.__state = SettingsManager.State.Direct
         self.__data.update(self.__accumulated_data)
         self.__accumulated_data.clear()
+        if self.__save_mode == SettingsManager.SaveBehaviour.Immediatly:
+            self.save()
 
     def value(self, setting_id):
         if setting_id not in self.__data:
@@ -48,21 +55,26 @@ class SettingsManager:
         if setting_id in self.__data:
             if self.__state == SettingsManager.State.Direct:
                 self.__data[setting_id] = value
+                if self.__save_mode == SettingsManager.SaveBehaviour.Immediatly:
+                    self.save()
             elif self.__state == SettingsManager.State.Accumulation:
                 self.__accumulated_data[setting_id] = value
             else:
                 raise Exception  # todo exception
         # todo?: new id
 
-    def saveToFile(self, path=None):
+    def save(self, path=None):
         # todo: try and state
         with open(self.pref_file if path is None else path, 'w') as file:
             json.dump(self.__data, file)
 
-    def loadFromFile(self, path=None):
+    def load(self, path=None):
         # todo: try and state
         with open(self.pref_file if path is None else path, 'r') as file:
             self.__data = json.load(file)
+
+    def sync(self):
+        raise NotImplementedError
 
 
 class AbstractSetting(QWidget):
@@ -330,7 +342,10 @@ class Section(QWidget):
         self.__name = name
 
     def description(self):
-        raise NotImplementedError
+        return self.__description
+
+    def setDescription(self, text):
+        self.__description == text
 
     def addSetting(self, setting):
         self.__settings.append(setting)
@@ -386,9 +401,10 @@ class SectionView(QWidget):
         self.__section = section
 
         # Layout
-        main_layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout()
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
+        self.setLayout(main_layout)
 
         main_layout.addWidget(self.__section)
 
@@ -410,7 +426,7 @@ class HammerSettingsDialog(QDialog):
         self.resize(800, 500)
 
         # Layout
-        main_layout = QHBoxLayout(self)
+        main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
 
@@ -444,7 +460,9 @@ class HammerSettingsDialog(QDialog):
         general_section.addSetting(EnableCollectFiles())
         general_section.addSetting(EnableFileManager())
 
-        sections = [general_section]
+        temp_section = Section('Temp')
+
+        sections = [general_section, temp_section]
 
         self.section_list_model = SectionListModel(self)
         self.section_list_model.setSectionList(sections)
@@ -459,5 +477,21 @@ class HammerSettingsDialog(QDialog):
         self.section_list_view.clicked.connect(self.setCurrentSection)
         left_layout.addWidget(self.section_list_view)
 
+        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Apply, Qt.Horizontal)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.rejected)
+        self.buttons.clicked.connect(self.apply)
+        main_layout.addWidget(self.buttons)
+
     def setCurrentSection(self, index):
         self.section_view.setSection(index.data(Qt.UserRole))
+
+    def accept(self):
+        pass
+
+    def apply(self, button):
+        if QDialogButtonBox.buttonRole(self.buttons, button) == QDialogButtonBox.ApplyRole:
+            pass
+
+    def reject(self):
+        pass
