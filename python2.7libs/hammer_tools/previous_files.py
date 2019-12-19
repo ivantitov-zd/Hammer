@@ -42,12 +42,11 @@ def createDatabase(filepath):
     return db
 
 
-class LogEvent:
-    Load = 0
-    Save = 1
-
-
 class SessionWatcher:
+    class EventType:
+        Load = 0
+        Save = 1
+
     def __init__(self):
         # Database
         db_file = os.path.abspath(os.path.join(hou.homeHoudiniDirectory(), 'hammer_previous_files.db'))
@@ -87,9 +86,9 @@ class SessionWatcher:
 
     def __call__(self, event_type):
         if event_type == hou.hipFileEventType.AfterLoad:
-            self.logEvent(hou.hipFile.path(), LogEvent.Load)
+            self.logEvent(hou.hipFile.path(), SessionWatcher.EventType.Load)
         elif event_type == hou.hipFileEventType.BeforeSave:
-            self.logEvent(hou.hipFile.path(), LogEvent.Save)
+            self.logEvent(hou.hipFile.path(), SessionWatcher.EventType.Save)
 
 
 def setSessionWatcher():
@@ -133,8 +132,8 @@ class PreviousFilesModel(QAbstractTableModel):
         super(PreviousFilesModel, self).__init__(parent)
 
         # Icons
-        self.__file_exists_icon = hou.qt.Icon('TOP_status_cooked', 18, 18)
-        self.__file_not_exists_icon = hou.qt.Icon('TOP_status_error', 18, 18)
+        self.__file_exists_icon = hou.qt.Icon('TOP_status_cooked', 20, 20)
+        self.__file_not_exists_icon = hou.qt.Icon('TOP_status_error', 20, 20)
 
         # Database
         db_file = os.path.abspath(os.path.join(hou.homeHoudiniDirectory(), 'hammer_previous_files.db'))
@@ -316,7 +315,7 @@ class PreviousFiles(QDialog):
         self.view.setModel(self.filter_model)
         self.view.setSortingEnabled(True)
         self.view.sortByColumn(0, Qt.DescendingOrder)
-        self.view.doubleClicked.connect(self.openSelectedFile)
+        self.view.doubleClicked.connect(lambda: self.openSelectedFile())
         right_vertical_layout.addWidget(self.view)
 
         self.filter_field.textChanged.connect(self.filter_model.setFilterPattern)
@@ -432,12 +431,12 @@ class PreviousFiles(QDialog):
                     importFBX(file)
                 elif extension.lower().startswith('.gl'):
                     importGLTF(file)
-                hou.session.hammer_session_watcher.logEvent(file, LogEvent.Load)
+                hou.session.hammer_session_watcher.logEvent(file, SessionWatcher.EventType.Load)
             if manual:
                 hou.setUpdateMode(hou.updateMode.Manual)
             self.hide()
         except hou.OperationFailed:
-            pass
+            self.show()
 
     def chooseAndOpenFile(self, manual=False):
         files = hou.ui.selectFile(title='Open', pattern='*.hip, *.hipnc, *.hiplc, *.hip*, *.abc, *.fbx, *.gltf, *.glb', chooser_mode=hou.fileChooserMode.Read).split(' ; ')
