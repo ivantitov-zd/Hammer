@@ -80,7 +80,7 @@ class SessionWatcher:
         else:
             rowid = r[0]
         # Add event to log
-        query.execute('INSERT INTO `log` (`file_id`, `event`, `timestamp`) VALUES (?, ?, CURRENT_TIMESTAMP);',
+        query.execute('INSERT INTO `log` (`file_id`, `event`, `timestamp`) VALUES (?, ?, datetime("now", "localtime"));',
                       (rowid, event))
         self.db.commit()
 
