@@ -60,7 +60,7 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, source_row, source_parent):
         source_model = self.sourceModel()
         text = source_model.data(source_model.index(source_row, 0, source_parent), Qt.DisplayRole)
-        return fuzzyMatch(self.__filter_pattern, text if self.filterCaseSensitivity() == Qt.CaseSensitive else text.lower())
+        return fuzzyMatch(self.__filter_pattern, text if self.filterCaseSensitivity() == Qt.CaseSensitive else text.lower())[0]
 
 
 class FontLabelDelegate(QStyledItemDelegate):
