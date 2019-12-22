@@ -487,11 +487,11 @@ class HammerSettingsDialog(QDialog):
         self.section_view.setSection(index.data(Qt.UserRole))
 
     def accept(self):
-        pass
+        super(HammerSettingsDialog, self).accept()
 
     def apply(self, button):
         if QDialogButtonBox.buttonRole(self.buttons, button) == QDialogButtonBox.ApplyRole:
             pass
 
     def reject(self):
-        pass
+        super(HammerSettingsDialog, self).reject()
