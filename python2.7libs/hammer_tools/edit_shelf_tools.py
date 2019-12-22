@@ -231,6 +231,7 @@ class AllToolsModel(QAbstractListModel):
 
         return True
 
+
 class EditShelfTools(QDialog):
     def __init__(self, parent=None):
         super(EditShelfTools, self).__init__(parent, Qt.Window)
@@ -243,6 +244,10 @@ class EditShelfTools(QDialog):
         main_layout.setSpacing(4)
 
         splitter = QSplitter(Qt.Vertical)
+
+        # Filter Field
+        self.filter_field = FilterField()
+        main_layout.addWidget(self.filter_field)
 
         # Shelf tools
         self.shelf_tool_list_model = ShelfToolsModel(self)
@@ -274,10 +279,8 @@ class EditShelfTools(QDialog):
         self.all_tool_list_view.setModel(self.all_tool_list_filter_model)
         splitter.addWidget(self.all_tool_list_view)
 
-        self.filter_field = FilterField()
         self.filter_field.textChanged.connect(self.filter)
 
-        main_layout.addWidget(self.filter_field)
         main_layout.addWidget(splitter)
 
     def filter(self, pattern):
