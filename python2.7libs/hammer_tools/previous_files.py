@@ -171,10 +171,11 @@ class PreviousFilesModel(QAbstractTableModel):
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            return self.__log[index.row()][index.column()]
-        elif role == Qt.UserRole:
             if index.column() == 0:
-                return self.__log[index.row()][3]
+                return self.__log[index.row()][0] + self.__log[index.row()][3]
+            else:
+                return self.__log[index.row()][index.column()]
+        elif role == Qt.UserRole:
             if index.column() == 1:
                 row = index.row()
                 name, location, _, extension = self.__log[row]
@@ -395,8 +396,7 @@ class PreviousFiles(QDialog):
         selection = self.view.selectionModel()
         location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
         name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
-        extension = selection.selectedRows(0)[0].data(Qt.UserRole)
-        self.openFile('{}/{}{}'.format(location, name, extension), manual)
+        self.openFile('{}/{}'.format(location, name), manual)
 
     def mergeSelectedFiles(self):
         self.hide()
@@ -404,9 +404,8 @@ class PreviousFiles(QDialog):
         # todo
         locations = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(1))
         names = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(0))
-        extensions = map(lambda index: index.data(Qt.UserRole), selection.selectedRows(0))
-        for location, name, extension in zip(locations, names, extensions):
-            hou.hipFile.merge('{}/{}{}'.format(location, name, extension))
+        for location, name, extension in zip(locations, names):
+            hou.hipFile.merge('{}/{}'.format(location, name))
 
     def openSelectedLocations(self):
         selection = self.view.selectionModel()
@@ -482,7 +481,7 @@ class PreviousFiles(QDialog):
 
     def filterByName(self):
         selection = self.view.selectionModel()
-        name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
+        name = os.path.splitext(selection.selectedRows(0)[0].data(Qt.DisplayRole))[0]
         self.filter_field.setText(name)
 
     def filterByLocation(self):
