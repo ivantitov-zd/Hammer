@@ -205,11 +205,13 @@ def openTemp():
     os.startfile(hou.getenv('TEMP'))
 
 
-def importFBX(path, suppress_save_prompt=False):
-    hou.hipFile.importFBX(file_name=path, suppress_save_prompt=suppress_save_prompt)
+def importFilmboxScene(path, suppress_save_prompt=False):
+    hou.hipFile.importFBX(file_name=path, suppress_save_prompt=suppress_save_prompt,
+                          override_scene_frame_range=True, unlock_geometry=True,
+                          unlock_deformations=True, import_into_object_subnet=False, convert_into_y_up_coordinate_system=True)
 
 
-def importAlembic(path):
+def importAlembicScene(path):
     location, file = os.path.split(path)
     name, extension = os.path.splitext(file)
     obj_node = hou.node('/obj')
@@ -218,7 +220,7 @@ def importAlembic(path):
     alembic_node.parm('buildHierarchy').pressButton()
 
 
-def importGLTF(path):
+def importGLTFScene(path):
     location, file = os.path.split(path)
     name, extension = os.path.splitext(file)
     obj_node = hou.node('/obj')
@@ -426,11 +428,11 @@ class PreviousFiles(QDialog):
             else:
                 hou.hipFile.clear(suppress_save_prompt=True)
                 if extension.lower() == '.abc':
-                    importAlembic(file)
+                    importAlembicScene(file)
                 elif extension.lower() == '.fbx':
-                    importFBX(file)
+                    importFilmboxScene(file)
                 elif extension.lower().startswith('.gl'):
-                    importGLTF(file)
+                    importGLTFScene(file)
                 hou.session.hammer_session_watcher.logEvent(file, SessionWatcher.EventType.Load)
             if manual:
                 hou.setUpdateMode(hou.updateMode.Manual)
