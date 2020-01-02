@@ -285,8 +285,6 @@ class PreviousFiles(QDialog):
         open_crash_in_manual_mode = QAction('Open in Manual Mode', self)
         open_crash_in_manual_mode.triggered.connect(lambda: self.openLastCrashFile(True))
         self.open_crash_button_menu.addAction(open_crash_in_manual_mode)
-        # Todo: repair crash file action
-        # Todo: remove crash files action
 
         self.open_crash_button = QToolButton()
         self.open_crash_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -347,6 +345,10 @@ class PreviousFiles(QDialog):
         self.filter_by_name_action = QAction('Filter by Name', self)
         self.filter_by_name_action.triggered.connect(self.filterByName)
         self.menu.addAction(self.filter_by_name_action)
+
+        self.filter_by_extension_action = QAction('Filter by Extension', self)
+        self.filter_by_extension_action.triggered.connect(self.filterByExtension)
+        self.menu.addAction(self.filter_by_extension_action)
 
         self.filter_by_location_action = QAction('Filter by Location', self)
         self.filter_by_location_action.triggered.connect(self.filterByLocation)
@@ -483,6 +485,11 @@ class PreviousFiles(QDialog):
         selection = self.view.selectionModel()
         name = os.path.splitext(selection.selectedRows(0)[0].data(Qt.DisplayRole))[0]
         self.filter_field.setText(name)
+
+    def filterByExtension(self):
+        selection = self.view.selectionModel()
+        extension = os.path.splitext(selection.selectedRows(0)[0].data(Qt.DisplayRole))[1]
+        self.filter_field.setText(extension)
 
     def filterByLocation(self):
         selection = self.view.selectionModel()
