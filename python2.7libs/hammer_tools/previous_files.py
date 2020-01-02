@@ -190,6 +190,9 @@ class PreviousFilesModel(QAbstractTableModel):
 
 
 class PreviousFilesView(QTableView):
+    # Signals
+    accepted = Signal()
+
     def __init__(self):
         super(PreviousFilesView, self).__init__()
 
@@ -200,6 +203,13 @@ class PreviousFilesView(QTableView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_Enter or key == Qt.Key_Return:
+            self.accepted.emit()
+        else:
+            super(PreviousFilesView, self).keyPressEvent(event)
 
 
 def openTemp():
@@ -318,7 +328,10 @@ class PreviousFiles(QDialog):
         self.view.sortByColumn(0, Qt.DescendingOrder)
         self.view.doubleClicked.connect(lambda: self.openSelectedFile())
         right_vertical_layout.addWidget(self.view)
+        self.view.accepted.connect(lambda: self.openSelectedFile())
 
+        self.filter_field.accepted.connect(self.openFirstFile)
+        self.filter_field.downPressed.connect(self.switchToList)
         self.filter_field.textChanged.connect(self.filter_model.setFilterPattern)
 
         # File list menu
@@ -377,9 +390,16 @@ class PreviousFiles(QDialog):
         refresh_action.triggered.connect(self.model.updateLogData)
         self.addAction(refresh_action)
 
+    def switchToList(self):
+        self.view.setFocus()
+        selection = self.view.selectionModel()
+        selection.select(self.filter_model.index(0, 0), QItemSelectionModel.ClearAndSelect)
+        selection.select(self.filter_model.index(0, 1), QItemSelectionModel.Select)
+        selection.select(self.filter_model.index(0, 2), QItemSelectionModel.Select)
+
     def showMenu(self):
-        selection_model = self.view.selectionModel()
-        selected_row_count = len(selection_model.selectedRows())
+        selection = self.view.selectionModel()
+        selected_row_count = len(selection.selectedRows())
         if selected_row_count > 0:
             if selected_row_count > 1:
                 self.open_selected_file_action.setEnabled(False)
@@ -399,6 +419,13 @@ class PreviousFiles(QDialog):
         location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
         name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
         self.openFile('{}/{}'.format(location, name), manual)
+
+    def openFirstFile(self):
+        selection = self.view.selectionModel()
+        selection.select(self.filter_model.index(0, 0), QItemSelectionModel.ClearAndSelect)
+        selection.select(self.filter_model.index(0, 1), QItemSelectionModel.Select)
+        selection.select(self.filter_model.index(0, 2), QItemSelectionModel.Select)
+        self.openSelectedFile()
 
     def mergeSelectedFiles(self):
         self.hide()
