@@ -7,11 +7,19 @@
 
   <toolshelf name="hammer_tools" label="Hammer Tools">
     <memberTool name="hammer::merge_objects::1.0"/>
+    <memberTool name="hammer::explore_scene::1.0"/>
   </toolshelf>
 
   <tool name="hammer::merge_objects::1.0" label="Merge Objects" icon="SHELF_combine_objects">
     <script scriptType="python"><![CDATA[from hammer_tools.merge_objects import mergeSelectedObjects
 
 mergeSelectedObjects()]]></script>
+  </tool>
+
+  <tool name="hammer::explore_scene::1.0" label="Explore Scene Alpha" icon="TOP_tracker">
+    <script scriptType="python"><![CDATA[import hammer_tools.explore_scene as explorer
+reload(explorer)
+
+explorer.ExploreSceneDialog.explore()]]></script>
   </tool>
 </shelfDocument>
