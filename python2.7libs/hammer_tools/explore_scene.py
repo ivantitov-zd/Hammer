@@ -17,7 +17,7 @@ import hou
 
 
 def allSceneItems(root):
-    return root.allSubChildren(recurse_in_locked_nodes=True)
+    return root.allSubChildren(recurse_in_locked_nodes=False)
 
 
 class ExploreSceneDialog(QDialog):
