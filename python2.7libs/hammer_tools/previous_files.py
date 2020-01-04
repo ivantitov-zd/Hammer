@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import sqlite3
+import subprocess
 
 try:
     from PyQt5.QtWidgets import *
@@ -342,9 +343,17 @@ class PreviousFiles(QDialog):
         self.open_selected_file_action.triggered.connect(lambda: self.openSelectedFile())
         self.menu.addAction(self.open_selected_file_action)
 
-        self.open_selected_file_in_manual_mode_action = QAction('Open in Manual Mode', self)
+        self.open_selected_file_in_manual_mode_action = QAction('Open [Manual Mode]', self)
         self.open_selected_file_in_manual_mode_action.triggered.connect(lambda: self.openSelectedFile(True))
         self.menu.addAction(self.open_selected_file_in_manual_mode_action)
+
+        self.open_new_session_action = QAction('Open in New Session', self)
+        self.open_new_session_action.triggered.connect(lambda: self.openSelectedFileInNewSession())
+        self.menu.addAction(self.open_new_session_action)
+
+        self.open_new_session_in_manual_action = QAction('Open in New Session [Manual Mode]', self)
+        self.open_new_session_in_manual_action.triggered.connect(lambda: self.openSelectedFileInNewSession(True))
+        self.menu.addAction(self.open_new_session_in_manual_action)
 
         self.merge_selected_files_action = QAction('Merge', self)
         self.merge_selected_files_action.triggered.connect(self.mergeSelectedFiles)
@@ -427,6 +436,17 @@ class PreviousFiles(QDialog):
         selection.select(self.filter_model.index(0, 1), QItemSelectionModel.Select)
         selection.select(self.filter_model.index(0, 2), QItemSelectionModel.Select)
         self.openSelectedFile()
+
+    def openSelectedFileInNewSession(self, manual=False):
+        selection = self.view.selectionModel()
+        location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
+        name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
+        cmd = ''
+        cmd += '{}'.format(hou.expandString('$HFS/bin/houdini'))
+        if manual:
+            cmd += ' -n'
+        cmd += ' {}/{}'.format(location, name)
+        subprocess.Popen(cmd)
 
     def mergeSelectedFiles(self):
         self.hide()
