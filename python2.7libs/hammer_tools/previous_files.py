@@ -92,8 +92,9 @@ class SessionWatcher:
 
 
 def setSessionWatcher():
-    hou.session.hammer_session_watcher = SessionWatcher()
-    hou.hipFile.addEventCallback(hou.session.hammer_session_watcher)
+    if not hasattr(hou.session, 'hammer_session_watcher'):
+        hou.session.hammer_session_watcher = SessionWatcher()
+        hou.hipFile.addEventCallback(hou.session.hammer_session_watcher)
 
 
 class FuzzyFilterProxyModel(QSortFilterProxyModel):
