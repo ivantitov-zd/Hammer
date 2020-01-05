@@ -415,11 +415,13 @@ class PreviousFiles(QDialog):
                 self.open_selected_file_action.setEnabled(False)
                 self.open_selected_file_in_manual_mode_action.setEnabled(False)
                 self.filter_by_name_action.setEnabled(False)
+                self.filter_by_extension_action.setEnabled(False)
                 self.filter_by_location_action.setEnabled(False)
             else:  # Single file
                 self.open_selected_file_action.setEnabled(True)
                 self.open_selected_file_in_manual_mode_action.setEnabled(True)
                 self.filter_by_name_action.setEnabled(True)
+                self.filter_by_extension_action.setEnabled(True)
                 self.filter_by_location_action.setEnabled(True)
             self.menu.exec_(QCursor.pos())
 
