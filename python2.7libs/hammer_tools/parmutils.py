@@ -15,6 +15,8 @@ except ImportError:
 
 import hou
 
+from .utils import openLocation
+
 
 def setRampParmInterpolation(parm, basis):
     """Sets interpolation for all knots."""
@@ -44,10 +46,4 @@ def chooseFileAndSetParm(parm):
 def openFolderFromParm(parm):
     if isinstance(parm, str):
         parm = hou.parm(parm)
-    path = None
-    new_path = os.path.normpath(os.path.dirname(parm.eval()))
-    while not os.path.exists(new_path) and path != new_path:
-        path = new_path
-        new_path = os.path.dirname(path)
-    if os.path.exists(new_path):
-        os.startfile(new_path)
+    openLocation(parm.eval())

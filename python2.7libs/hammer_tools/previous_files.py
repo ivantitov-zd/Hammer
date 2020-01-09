@@ -18,7 +18,7 @@ except ImportError:
 import hou
 
 from .quick_selection import FilterField
-from .utils import fuzzyMatch
+from .utils import fuzzyMatch, openLocation
 
 
 def createDatabase(filepath):
@@ -221,7 +221,8 @@ def openTemp():
 def importFilmboxScene(path, suppress_save_prompt=False):
     hou.hipFile.importFBX(file_name=path, suppress_save_prompt=suppress_save_prompt,
                           override_scene_frame_range=True, unlock_geometry=True,
-                          unlock_deformations=True, import_into_object_subnet=False, convert_into_y_up_coordinate_system=True)
+                          unlock_deformations=True, import_into_object_subnet=False,
+                          convert_into_y_up_coordinate_system=True)
 
 
 def importAlembicScene(path):
@@ -464,7 +465,7 @@ class PreviousFiles(QDialog):
         if len(selection.selectedRows()) > 4:
             return
         for index in selection.selectedRows(1):
-            os.startfile(index.data(Qt.DisplayRole))
+            openLocation(index.data(Qt.DisplayRole))
 
     def createNewHip(self):
         self.hide()

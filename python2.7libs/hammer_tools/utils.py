@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import sys
 
 try:
@@ -48,3 +49,13 @@ def fuzzyMatch(pattern, word):
     if index < len(pattern):
         return False, weight
     return True, weight
+
+
+def openLocation(path):
+    new_path = os.path.normpath(path)
+    path = None
+    while not os.path.exists(new_path) and path != new_path:
+        path = new_path
+        new_path = os.path.dirname(path)
+    if os.path.exists(new_path):
+        os.startfile(new_path)
