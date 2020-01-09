@@ -53,7 +53,7 @@ selectFont(parm)
         </addScriptItem>
 
         <addScriptItem id="h.pane.parms.hammer_open_folder">
-            <label>Open Folder...</label>
+            <label>Open Location...</label>
             <parent>root_menu</parent>
             <insertBefore />
             <context>
