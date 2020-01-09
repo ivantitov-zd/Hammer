@@ -68,10 +68,10 @@ selectFont(parm)
                 </expression>
             </context>
             <scriptCode>
-from hammer_tools.parmutils import openFolderFromParm
+from hammer_tools.parmutils import openLocationFromParm
 
 parm = kwargs['parms'][0]
-openFolderFromParm(parm)
+openLocationFromParm(parm)
             </scriptCode>
         </addScriptItem>
 
