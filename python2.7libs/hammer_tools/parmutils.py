@@ -43,7 +43,7 @@ def chooseFileAndSetParm(parm):
         parm.set(path)
 
 
-def openFolderFromParm(parm):
+def openLocationFromParm(parm):
     if isinstance(parm, str):
         parm = hou.parm(parm)
     openLocation(parm.eval())
