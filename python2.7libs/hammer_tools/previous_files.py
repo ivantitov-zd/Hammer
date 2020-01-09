@@ -294,15 +294,22 @@ class PreviousFiles(QDialog):
         self.open_temp_button.clicked.connect(openTemp)
         left_vertical_layout.addWidget(self.open_temp_button)
 
+        # Crash menu
         self.open_crash_button_menu = QMenu(self)
+
         open_crash_in_manual_mode = QAction('Open in Manual Mode', self)
         open_crash_in_manual_mode.triggered.connect(lambda: self.openLastCrashFile(True))
         self.open_crash_button_menu.addAction(open_crash_in_manual_mode)
 
+        delete_crash_files = QAction('Delete all Crash Files', self)
+        delete_crash_files.triggered.connect(self.deleteAllCrashFiles)
+        self.open_crash_button_menu.addAction(delete_crash_files)
+
         self.open_crash_button = QToolButton()
         self.open_crash_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.open_crash_button.setMenu(self.open_crash_button_menu)
-        self.open_crash_button.setStyleSheet('border-radius: 1; border-style: none; background-color: rgb(165, 70, 70);')
+        self.open_crash_button.setStyleSheet('border-radius: 1; border-style: none;'
+                                             'background-color: rgb(165, 70, 70);')
         self.open_crash_button.setMinimumWidth(100)
         self.open_crash_button.setText('Open Crash')
         self.open_crash_button.setToolTip('Open Last Crash File')
@@ -518,7 +525,8 @@ class PreviousFiles(QDialog):
         last_timestamp = 0
         houdini_temp_path = hou.getenv('TEMP')
         for file in os.listdir(houdini_temp_path):
-            if file.startswith('crash.') and file.endswith('.hip') or file.endswith('.hiplc') or file.endswith('.hipnc'):
+            name, extension = os.path.splitext(file)
+            if name.startswith('crash.') and extension.startswith('.hip'):
                 timestamp = os.stat('{}/{}'.format(houdini_temp_path, file)).st_mtime
                 if timestamp > last_timestamp:
                     last_timestamp = timestamp
@@ -531,6 +539,14 @@ class PreviousFiles(QDialog):
             hou.hipFile.load('{}/{}'.format(houdini_temp_path, last_file))
             if manual:
                 hou.setUpdateMode(hou.updateMode.Manual)
+
+    def deleteAllCrashFiles(self):
+        houdini_temp_path = hou.getenv('TEMP')
+        for file in os.listdir(houdini_temp_path):
+            name, extension = os.path.splitext(file)
+            if name.startswith('crash.') and extension.startswith('.hip'):
+                os.remove(os.path.join(houdini_temp_path, file))
+        self.detectCrashFile()
 
     def filterByName(self):
         selection = self.view.selectionModel()
