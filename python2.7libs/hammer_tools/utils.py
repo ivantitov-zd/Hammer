@@ -54,6 +54,8 @@ def fuzzyMatch(pattern, word):
 def openLocation(path):
     new_path = os.path.normpath(path)
     path = None
+    if os.path.isfile(new_path):
+        new_path = os.path.dirname(new_path)
     while not os.path.exists(new_path) and path != new_path:
         path = new_path
         new_path = os.path.dirname(path)
