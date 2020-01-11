@@ -52,7 +52,7 @@ selectFont(parm)
             </scriptCode>
         </addScriptItem>
 
-        <addScriptItem id="h.pane.parms.hammer_open_folder">
+        <addScriptItem id="h.pane.parms.hammer_open_location">
             <label>Open Location...</label>
             <parent>root_menu</parent>
             <insertBefore />
@@ -75,7 +75,7 @@ openLocationFromParm(parm)
             </scriptCode>
         </addScriptItem>
 
-        <addScriptItem id="h.pane.parms.hammer_pick_image_file">
+        <addScriptItem id="h.pane.parms.hammer_choose_file_or_folder">
             <labelExpression>
                 temp = 'Choose {} with Native Dialog...'
                 parm = kwargs['parms'][0]
