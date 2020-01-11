@@ -76,7 +76,16 @@ openLocationFromParm(parm)
         </addScriptItem>
 
         <addScriptItem id="h.pane.parms.hammer_pick_image_file">
-            <label>Choose File with Native Dialog...</label>
+            <labelExpression>
+                temp = 'Choose {} with Native Dialog...'
+                parm = kwargs['parms'][0]
+                template = parm.parmTemplate()
+                if template.dataType() == hou.parmData.String and \
+                   template.fileType() == hou.fileType.Directory:
+                    return temp.format('Folder')
+                else:
+                    return temp.format('File')
+            </labelExpression>
             <parent>root_menu</parent>
             <insertBefore>h.pane.parms.hammer_open_folder</insertBefore>
             <context>
