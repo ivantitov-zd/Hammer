@@ -18,7 +18,7 @@ is_control_point(const int geometry; const int ptnum)
     if (prim_count != 1)
         warning('Geometry has point shared between two or more curves');
     int prim = prims[0];
-    int type = primintrinsic(geometry, 'type', prim);
+    int type = primintrinsic(geometry, 'typeid', prim);
     if (type == 1 && primintrinsic(geometry, 'closed', prim) == 0)  // Polyline
     {
         return 1;
@@ -66,7 +66,7 @@ control_point(const int geometry; const int ptnum)
     if (prim_count != 1)
         warning('Geometry has point shared between two or more curves');
     int prim = prims[0];
-    int type = primintrinsic(geometry, 'type', prim);
+    int type = primintrinsic(geometry, 'typeid', prim);
     if (type == 1 && primintrinsic(geometry, 'closed', prim) == 0)  // Polyline
     {
         return ptnum;
