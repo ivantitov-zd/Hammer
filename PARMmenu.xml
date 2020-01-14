@@ -87,7 +87,7 @@ openLocationFromParm(parm)
                     return temp.format('File')
             </labelExpression>
             <parent>root_menu</parent>
-            <insertBefore>h.pane.parms.hammer_open_folder</insertBefore>
+            <insertBefore>h.pane.parms.hammer_open_location</insertBefore>
             <context>
                 <expression>
                     parm = kwargs['parms'][0]
