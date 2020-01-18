@@ -182,7 +182,7 @@ def attribMenu(node, input_index=0, attrib_class=AllAttribClasses, attrib_data_t
     return tuple(menu)
 
 
-def attribType(parm='class'):
+def attribClass(parm='class'):
     if isinstance(parm, str):
         parm = hou.parm(parm)
     value = parm.evalAsString().lower()
@@ -196,6 +196,9 @@ def attribType(parm='class'):
         return Vertex
     elif value == 'detail' or value.startswith('global'):
         return Detail
+
+
+attribType = attribClass  # Todo: refactor in HDAs
 
 
 def primitiveCount(node_or_geo):
