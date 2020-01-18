@@ -196,5 +196,48 @@ setRampParmInterpolation(parm, hou.rampBasis.Hermite)
 
         </subMenu>
 
+        <addScriptItem id="h.pane.parms.hammer_toggle_expression">
+            <labelExpression>
+                from hammer_tools.parmutils import isExpressionDisabled
+
+                parm = kwargs['parms'][0]
+                try:
+                    parm.expression()
+                    has_expression = True
+                except hou.OperationFailed:
+                    has_expression = False
+                if has_expression:
+                    return 'Disable Expression'
+                if isExpressionDisabled(parm):
+                    return 'Enable Expression'
+                return ''
+            </labelExpression>
+            <parent>expression_menu</parent>
+            <insertAfter>toggle_expr</insertAfter>
+            <context>
+                <expression>
+                    from hammer_tools.parmutils import isExpressionDisabled
+
+                    parm = kwargs['parms'][0]
+                    try:
+                        parm.expression()
+                        has_expression = True
+                    except hou.OperationFailed:
+                        has_expression = False
+                    if has_expression:
+                        return True
+                    if isExpressionDisabled(parm):
+                        return True
+                    return False
+                </expression>
+            </context>
+            <scriptCode>
+from hammer_tools.parmutils import toggleExpression
+
+parm = kwargs['parms'][0]
+toggleExpression(parm)
+            </scriptCode>
+        </addScriptItem>
+
     </menu>
 </menuDocument>

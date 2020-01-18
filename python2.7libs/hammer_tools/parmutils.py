@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import json
 import os
 
 try:
@@ -47,3 +48,36 @@ def openLocationFromParm(parm):
     if isinstance(parm, str):
         parm = hou.parm(parm)
     openLocation(parm.eval())
+
+
+def isExpressionDisabled(parm):
+    user_data = parm.node().userDataDict()
+    if 'hammer_disabled_expressions' not in user_data:
+        return False
+    if parm.name() not in json.loads(user_data['hammer_disabled_expressions']):
+        return False
+    return True
+
+
+def toggleExpression(parm):
+    languages = {'python': hou.exprLanguage.Python,
+                 'hscript': hou.exprLanguage.Hscript}
+    if isExpressionDisabled(parm):
+        user_data = json.loads(parm.node().userData('hammer_disabled_expressions'))
+        data = user_data[parm.name()]
+        parm.setExpression(data['expression'], languages[data['language']])
+        del user_data[parm.name()]
+        parm.node().setUserData('hammer_disabled_expressions', json.dumps(user_data))
+    else:
+        expression = parm.expression()
+        language = parm.expressionLanguage()
+        data = {'expression': expression,
+                'language': 'python' if language == hou.exprLanguage.Python else 'hscript'}
+        source_data = parm.node().userData('hammer_disabled_expressions')
+        if source_data is not None:
+            source_data = json.loads(source_data)
+        else:
+            source_data = {}
+        source_data[parm.name()] = data
+        parm.node().setUserData('hammer_disabled_expressions', json.dumps(source_data))
+        parm.deleteAllKeyframes()
