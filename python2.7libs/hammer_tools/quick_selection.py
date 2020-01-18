@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-from hammer_tools.utils import fuzzyMatch
-
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
@@ -14,6 +12,8 @@ except ImportError:
     from PySide2.QtCore import *
 
 import hou
+
+from hammer_tools.utils import fuzzyMatch
 
 
 class FilterField(QLineEdit):
