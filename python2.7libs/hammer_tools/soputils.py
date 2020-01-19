@@ -85,7 +85,7 @@ def groupMenu(node, input_index=0, group_types=AllGroupTypes):
     return tuple(menu)
 
 
-def groupType(parm='grouptype'):
+def groupTypeFromParm(parm='grouptype'):
     if isinstance(parm, str):
         parm = hou.parm(parm)
     value = parm.evalAsString().lower()
@@ -99,6 +99,9 @@ def groupType(parm='grouptype'):
         return Edge
     elif value.startswith('vert'):
         return Vertex
+
+
+groupType = groupTypeFromParm  # Todo: refactor in HDAs
 
 
 def supportDataTypeAndSize(attrib_class):
@@ -182,7 +185,7 @@ def attribMenu(node, input_index=0, attrib_class=AllAttribClasses, attrib_data_t
     return tuple(menu)
 
 
-def attribClass(parm='class'):
+def attribClassFromParm(parm='class'):
     if isinstance(parm, str):
         parm = hou.parm(parm)
     value = parm.evalAsString().lower()
@@ -198,7 +201,7 @@ def attribClass(parm='class'):
         return Detail
 
 
-attribType = attribClass  # Todo: refactor in HDAs
+attribType = attribClassFromParm  # Todo: refactor in HDAs
 
 
 def primitiveCount(node_or_geo):
