@@ -2,30 +2,70 @@
 #ifndef _SPLINEUTILS_H_
 #define _SPLINEUTILS_H_
 
+#include <math.h>
+
 int
-is_in_range(const int start, end, step)
+sequence_length(const int start, stop, step)
 {
-    // pass
+    return (stop - start) / step + (((stop - start) % step) != 0);
 }
 
 int
-is_vertex_in_range(const int geometry;
-                   const int vtxnum;
-                   const int start;
-                   const int end;
-                   const int step)
+is_in_sequence(const int value, start, stop, step)
 {
-    // pass
+    int diff = value - start;
+    int quitient = diff / step;
+    int remainder = diff % step;
+    if (remainder == 0 && 0 <= quitient && 
+        quitient < sequence_length(start, stop, step))
+        return 1;
+    return 0;
 }
 
 int
-is_point_in_range(const int geometry;
-                  const int ptnum;
-                  const int start;
-                  const int end;
-                  const int step)
+is_vertex_in_sequence(const int geometry;
+                      const int vtxnum;
+                      const int start;
+                      const int stop;
+                      const int step)
 {
-    // pass
+    int vertex_index = vertexprimindex(geometry, vtxnum);
+    return is_in_sequence(vertex_index, start, stop, step);
+}
+
+int
+is_vertex_in_sequence(const int geometry;
+                      const int vtxnum;
+                      const int start;
+                      const int stop;
+                      const int step;
+                      const int offset)
+{
+    int vertex_index = vertexprimindex(geometry, vtxnum);
+    return is_in_sequence(vertex_index + offset, start, stop, step);
+}
+
+int
+is_point_in_sequence(const int geometry;
+                     const int ptnum;
+                     const int start;
+                     const int stop;
+                     const int step)
+{
+    int vtxnum = pointvertex(geometry, ptnum);
+    return is_vertex_in_sequence(geometry, vtxnum, start, stop, step);
+}
+
+int
+is_point_in_sequence(const int geometry;
+                     const int ptnum;
+                     const int start;
+                     const int stop;
+                     const int step;
+                     const int offset)
+{
+    int vtxnum = pointvertex(geometry, ptnum);
+    return is_vertex_in_sequence(geometry, vtxnum, start, stop, step, offset);
 }
 
 int
@@ -42,21 +82,29 @@ is_start_point(const int geometry; const int ptnum)
 }
 
 int
+is_start_edge(const int geometry;
+              const int elemnum1;
+              const int elemnum2;
+              const string class)
+{
+    int vtxnum1, vtxnum2;
+    if (class == 'point')
+    {
+        vtxnum1 = pointvertex(geometry, elemnum1);
+        vtxnum2 = pointvertex(geometry, elemnum2);
+    } else
+    {
+        vtxnum1 = elemnum1;
+        vtxnum2 = elemnum2;
+    }
+    return is_start_vertex(geometry, vtxnum1) || is_start_vertex(geometry, vtxnum2);
+}
+
+int
 is_start_edge(const int geometry; const int edgenum)
 {
-    // pass
-}
-
-int
-is_start_edge(const int geometry; const int vtxnum1, vtxnum2)
-{
-    // pass
-}
-
-int
-is_start_edge(const int geometry; const int ptnum1, ptnum2)
-{
-    // pass
+    return is_start_vertex(geometry, hedge_srcvertex(geometry, edgenum)) ||
+           is_start_vertex(geometry, hedge_dstvertex(geometry, edgenum));
 }
 
 int
@@ -74,39 +122,89 @@ is_end_point(const int geometry; const int ptnum)
 }
 
 int
-is_end_edge(const int geometry; const int vtxnum1, vtxnum2)
+is_end_edge(const int geometry;
+            const int elemnum1;
+            const int elemnum2;
+            const string class)
 {
-    // pass
-}
-
-int
-is_end_edge(const int geometry; const int ptnum1, ptnum2)
-{
-    // pass
+    int vtxnum1, vtxnum2;
+    if (class == 'point')
+    {
+        vtxnum1 = pointvertex(geometry, elemnum1);
+        vtxnum2 = pointvertex(geometry, elemnum2);
+    } else
+    {
+        vtxnum1 = elemnum1;
+        vtxnum2 = elemnum2;
+    }
+    return is_end_vertex(geometry, vtxnum1) || is_end_vertex(geometry, vtxnum2);
 }
 
 int
 is_end_edge(const int geometry; const int edgenum)
 {
-    // pass
+    return is_end_vertex(geometry, hedge_dstvertex(geometry, edgenum)) ||
+           is_end_vertex(geometry, hedge_srcvertex(geometry, edgenum));
 }
 
-int
-edge_length(const int geometry; const int vtxnum1, vtxnum2)
+float
+edge_length2(const int geometry;
+             const int elemnum1, elemnum2;
+             const string class)
 {
-    // pass
+    vector pos1, pos2;
+    if (class == 'vertex')
+    {
+        int ptnum1 = vertexpoint(geometry, vtxnum1);
+        int ptnum2 = vertexpoint(geometry, vtxnum2);
+        pos1 = point(geometry, 'P', ptnum1);
+        pos2 = point(geometry, 'P', ptnum2);
+    } else  // Point
+    {
+        pos1 = point(geometry, 'P', elemnum1);
+        pos2 = point(geometry, 'P', elemnum2);
+    }
+    return distance2(pos1, pos2);
 }
 
-int
-edge_length(const int geometry; const int ptnum1, ptnum2)
+float
+edge_length(const int geometry;
+            const int elemnum1, elemnum2;
+            const string class)
 {
-    // pass
+    vector pos1, pos2;
+    if (class == 'vertex')
+    {
+        int ptnum1 = vertexpoint(geometry, vtxnum1);
+        int ptnum2 = vertexpoint(geometry, vtxnum2);
+        pos1 = point(geometry, 'P', ptnum1);
+        pos2 = point(geometry, 'P', ptnum2);
+    } else  // Point
+    {
+        pos1 = point(geometry, 'P', elemnum1);
+        pos2 = point(geometry, 'P', elemnum2);
+    }
+    return distance(pos1, pos2);
 }
 
-int
+float
+edge_length2(const int geometry; const int edgenum)
+{
+    if (!hedge_isvalid(geometry, edgenum))
+        return 0;
+    int vtxnum1 = vertexpoint(geometry, vtxnum1);
+    int vtxnum2 = vertexpoint(geometry, vtxnum2);
+    return edge_length2(geometry, vtxnum1, vtxnum2, 'vertex');
+}
+
+float
 edge_length(const int geometry; const int edgenum)
 {
-    // pass
+    if (!hedge_isvalid(geometry, edgenum))
+        return 0;
+    int vtxnum1 = vertexpoint(geometry, vtxnum1);
+    int vtxnum2 = vertexpoint(geometry, vtxnum2);
+    return edge_length(geometry, vtxnum1, vtxnum2, 'vertex');
 }
 
 int
@@ -225,49 +323,59 @@ next_control_point(const int geometry; const int ptnum)
 }
 
 float
-vertex_internal_angle(const int geometry; const int vtxnum)
+angle(const vector vec1, vec2)
+{
+    return acos(dot(vec1, vec2) / sqrt(length2(vec1) * length2(vec2)));
+}
+
+float
+signed_angle(const vector vec1, vec2)
 {
     // pass
 }
 
 float
-point_internal_angle(const int geometry; const int ptnum)
+internal_angle(const int geometry;
+               const int elemnum;
+               const string class)
+{
+    int ptnum0;
+    if (class == 'vertex')
+    {
+        ptnum0 = vertexpoint(geometry, elemnum);
+    }
+    else
+    {
+        ptnum0 = elemnum;
+    }
+    vector pos0 = point(geometry, 'P', ptnum0);
+    vector pos1 = point(geometry, 'P', ptnum1);
+    vector pos2 = point(geometry, 'P', ptnum2);
+    vector dir1 = pos1 - pos0;
+    vector dir2 = pos2 - pos0;
+    return angle(dir1, dir2);
+}
+
+float
+external_angle(const int geometry;
+               const int elemnum;
+               const string class)
+{
+    return M_TWO_PI - internal_angle(geometry, elemnum, class);
+}
+
+float
+forward_angle(const int geometry;
+              const int elemnum;
+              const string class)
 {
     // pass
 }
 
 float
-vertex_external_angle(const int geometry; const int vtxnum)
-{
-    // pass
-}
-
-float
-point_external_angle(const int geometry; const int ptnum)
-{
-    // pass
-}
-
-float
-vertex_forward_angle(const int geometry; const int vtxnum)
-{
-    // pass
-}
-
-float
-point_forward_angle(const int geometry; const int ptnum)
-{
-    // pass
-}
-
-float
-vertex_backward_angle(const int geometry; const int vtxnum)
-{
-    // pass
-}
-
-float
-point_backward_angle(const int geometry; const int ptnum)
+backward_angle(const int geometry;
+               const int elemnum;
+               const string class)
 {
     // pass
 }
