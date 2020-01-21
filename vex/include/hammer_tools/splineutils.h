@@ -61,7 +61,7 @@ is_knot_point(const int geometry; const int ptnum)
     int type = primintrinsic(geometry, 'typeid', prims[0]);
     if (type == 3)  // Bezier
         return is_knot_vertex(geometry, pointvertex(geometry, ptnum));
-    return -1;  // Not curve
+    return -1;  // Not supported
 }
 
 int
@@ -113,7 +113,7 @@ knot_point(const int geometry; const int ptnum)
     int type = primintrinsic(geometry, 'typeid', prims[0]);
     if (type == 3)  // Bezier
         return knot_vertex(geometry, pointvertex(geometry, ptnum));
-    return -1;  // Not curve
+    return -1;  // Not supported
 }
 
 int
