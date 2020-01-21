@@ -189,7 +189,7 @@ def attribClassFromParm(parm='class'):
     if isinstance(parm, str):
         parm = hou.parm(parm)
     value = parm.evalAsString().lower()
-    if value == 'guess':
+    if value == 'guess' or value == 'auto':
         return AllAttribClasses
     elif value.startswith('prim'):
         return Primitive
