@@ -213,7 +213,15 @@ def pointCount(node_or_geo):
 
 
 def edgeCount(node_or_geo):
-    raise NotImplementedError('Impossible')
+    if isinstance(node_or_geo, hou.Node):
+        geo = node_or_geo.geometry()
+        if geo is None:
+            return 0
+        else:
+            return edgeCount(geo)
+    elif isinstance(node_or_geo, hou.Geometry):
+        return node_or_geo.globEdges('*')
+    return 0
 
 
 def vertexCount(node_or_geo):
