@@ -16,6 +16,24 @@ is_start_point(const int geometry; const int ptnum)
 }
 
 int
+is_start_edge(const int geometry; const int edgenum)
+{
+    // pass
+}
+
+int
+is_start_edge(const int geometry; const int vtxnum1, vtxnum2)
+{
+    // pass
+}
+
+int
+is_start_edge(const int geometry; const int ptnum1, ptnum2)
+{
+    // pass
+}
+
+int
 is_end_vertex(const int geometry; const int vtxnum)
 {
     int vertex_index = vertexprimindex(geometry, vtxnum);
@@ -29,10 +47,28 @@ is_end_point(const int geometry; const int ptnum)
 }
 
 int
+is_end_edge(const int geometry; const int edgenum)
+{
+    // pass
+}
+
+int
+is_end_edge(const int geometry; const int vtxnum1, vtxnum2)
+{
+    // pass
+}
+
+int
+is_end_edge(const int geometry; const int ptnum1, ptnum2)
+{
+    // pass
+}
+
+int
 is_valid_spline(const int geometry; const int primnum)
 {
     int type = primintrinsic(geometry, 'typeid', primnum);
-
+    // Todo
     return (primvertexcount(geometry, primnum) - 4) % 3 == 0;
 }
 
@@ -136,6 +172,42 @@ next_control_vertex(const int geometry; const int vtxnum)
 
 int
 next_control_point(const int geometry; const int ptnum)
+{
+    // pass
+}
+
+float
+vertex_internal_angle(const int geometry; const int vtxnum)
+{
+    // pass
+}
+
+float
+point_internal_angle(const int geometry; const int ptnum)
+{
+    // pass
+}
+
+float
+vertex_external_angle(const int geometry; const int vtxnum)
+{
+    // pass
+}
+
+float
+point_external_angle(const int geometry; const int ptnum)
+{
+    // pass
+}
+
+float
+vertex_forward_angle(const int geometry; const int vtxnum)
+{
+    // pass
+}
+
+float
+point_forward_angle(const int geometry; const int ptnum)
 {
     // pass
 }
