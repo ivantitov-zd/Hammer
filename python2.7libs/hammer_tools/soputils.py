@@ -163,13 +163,13 @@ def detailAttribs(node_or_geo):
 def attribs(node_or_geo, attrib_class=AllAttribClasses, attrib_data_types=AllDataTypes, attrib_data_size=AnyDataSize):
     attrib_list = []
     if attrib_class & Primitive:
-        attrib_list.extend(primitiveAttribs(node_or_geo))
+        attrib_list.extend(primitiveAttribs(node_or_geo, attrib_data_types, attrib_data_size))
     if attrib_class & Point:
-        attrib_list.extend(pointAttribs(node_or_geo))
+        attrib_list.extend(pointAttribs(node_or_geo, attrib_data_types, attrib_data_size))
     if attrib_class & Vertex:
-        attrib_list.extend(vertexAttribs(node_or_geo))
+        attrib_list.extend(vertexAttribs(node_or_geo, attrib_data_types, attrib_data_size))
     if attrib_class & Detail:
-        attrib_list.extend(detailAttribs(node_or_geo))
+        attrib_list.extend(detailAttribs(node_or_geo, attrib_data_types, attrib_data_size))
     return tuple(attrib_list)
 
 
@@ -179,7 +179,7 @@ def attribMenu(node, input_index=0, attrib_class=AllAttribClasses, attrib_data_t
         node = hou.node(node)
     inputs = node.inputs()
     if inputs and len(inputs) > input_index and inputs[input_index]:
-        attrib_list = attribs(inputs[input_index], attrib_class)
+        attrib_list = attribs(inputs[input_index], attrib_class, attrib_data_types, attrib_data_size)
         for attrib in attrib_list:
             menu.extend((attrib, attrib))
     return tuple(menu)
