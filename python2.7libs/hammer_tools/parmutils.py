@@ -50,7 +50,7 @@ def openLocationFromParm(parm):
     openLocation(parm.eval())
 
 
-def isExpressionDisabled(parm):
+def isParmExpressionDisabled(parm):
     user_data = parm.node().userDataDict()
     if 'hammer_disabled_expressions' not in user_data:
         return False
@@ -59,7 +59,11 @@ def isExpressionDisabled(parm):
     return True
 
 
-def toggleExpression(parm):
+isExpressionDisabled = isParmExpressionDisabled  # Todo: refactor in xmls
+
+
+def toggleParmExpression(parm):
+    """Turns expression on and off."""
     languages = {'python': hou.exprLanguage.Python,
                  'hscript': hou.exprLanguage.Hscript}
     if isExpressionDisabled(parm):
@@ -81,3 +85,6 @@ def toggleExpression(parm):
         source_data[parm.name()] = data
         parm.node().setUserData('hammer_disabled_expressions', json.dumps(source_data))
         parm.deleteAllKeyframes()
+
+
+toggleExpression = toggleParmExpression  # Todo: refactor in xmls
