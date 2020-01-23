@@ -5,17 +5,17 @@
 int
 merge_group(const int old_value;
             const int new_value;
-            const int mode)
+            const int method)
 {
-    if (mode == 0)  // Replace
+    if (method == 0)  // Replace
         return new_value;
-    else if (mode == 1)  // Union
+    else if (method == 1)  // Union
         return max(old_value, new_value);
-    else if (mode == 2)  // Intersect
+    else if (method == 2)  // Intersect
         return old_value * new_value;
-    else if (mode == 3) // Subtract
+    else if (method == 3)  // Subtract
         return max(old_value - new_value, 0);
-    error('Invalid merge mode');
+    error('Invalid merge method');
     return -1;
 }
 
