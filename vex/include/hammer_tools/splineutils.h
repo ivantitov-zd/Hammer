@@ -388,14 +388,15 @@ is_straight_spline(const int geometry;
     int vertex_count = primvertexcount(geometry, primnum);
     if (vertex_count < 3)
         return 1;
-    vector pos1 = point(geometry, 'P', vertexpoint(geometry, primvertex(geometry, primnum, 0)));
-    vector pos2 = point(geometry, 'P', vertexpoint(geometry, primvertex(geometry, primnum, vertex_count - 1)));
+    int points[] = primpoints(geometry, primnum);
+    vector pos1 = point(geometry, 'P', points[0]);
+    vector pos2 = point(geometry, 'P', points[vertex_count - 1]);
     vector pos = normalize(pos2 - pos1) * 10;
     pos1 -= pos;
     pos2 += pos;
     for (int v = 1; v < vertex_count - 1; ++v)
     {
-        pos = point(geometry, 'P', vertexpoint(geometry, primvertex(geometry, primnum, v)));
+        pos = point(geometry, 'P', points[v]);
         if (ptlined(pos1, pos2, pos) > tolerance)
             return 0;
     }
