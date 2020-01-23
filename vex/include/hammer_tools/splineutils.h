@@ -380,4 +380,49 @@ backward_angle(const int geometry;
     // pass
 }
 
+int
+is_straight_spline(const int geometry;
+                   const int primnum;
+                   const float tolerance)
+{
+    int vertex_count = primvertexcount(geometry, primnum);
+    if (vertex_count < 3)
+        return 1;
+    vector pos1 = point(geometry, 'P', vertexpoint(geometry, primvertex(geometry, primnum, 0)));
+    vector pos2 = point(geometry, 'P', vertexpoint(geometry, primvertex(geometry, primnum, vertex_count - 1)));
+    vector pos = normalize(pos2 - pos1) * 10;
+    pos1 -= pos;
+    pos2 += pos;
+    for (int v = 1; v < vertex_count - 1; ++v)
+    {
+        pos = point(geometry, 'P', vertexpoint(geometry, primvertex(geometry, primnum, v)));
+        if (ptlined(pos1, pos2, pos) > tolerance)
+            return 0;
+    }
+    return 1;
+}
+
+int
+is_flat_spline(const int geometry;
+               const int primnum;
+               const float tolerance)
+{
+    int vertex_count = primvertexcount(geometry, primnum);
+    if (vertex_count < 4)
+        return 1;
+    int points[] = primpoints(geometry, primnum);
+    vector pos0 = point(geometry, 'P', points[0]);
+    vector pos1 = point(geometry, 'P', points[1]);
+    vector pos2 = point(geometry, 'P', points[2]);
+    vector base_plane_dir = normalize(cross(pos0 - pos1, pos0 - pos2));
+    for (int i = 3; i < vertex_count; ++i)
+    {
+        pos1 = pos2;
+        pos2 = point(geometry, 'P', points[i]);
+        if ((1.0 - abs(dot(base_plane_dir, normalize(cross(pos0 - pos1, pos0 - pos2))))) > tolerance)
+            return 0;
+    }
+    return 1;
+}
+
 #endif  // _SPLINEUTILS_H_
