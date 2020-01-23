@@ -263,10 +263,10 @@ class PreviousFiles(QDialog):
         left_vertical_layout.setSpacing(0)
         main_layout.addLayout(left_vertical_layout)
 
-        self.new = QPushButton('New File')
-        self.new.setMinimumWidth(100)
-        self.new.clicked.connect(self.createNewHip)
-        left_vertical_layout.addWidget(self.new)
+        self.new_button = QPushButton('New File')
+        self.new_button.setMinimumWidth(100)
+        self.new_button.clicked.connect(self.createNewHip)
+        left_vertical_layout.addWidget(self.new_button)
 
         self.open_button_menu = QMenu(self)
         open_in_manual_mode = QAction('Open in Manual Mode', self)
@@ -461,10 +461,9 @@ class PreviousFiles(QDialog):
     def mergeSelectedFiles(self):
         self.hide()
         selection = self.view.selectionModel()
-        # todo
-        locations = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(1))
-        names = map(lambda index: index.data(Qt.DisplayRole), selection.selectedRows(0))
-        for location, name, extension in zip(locations, names):
+        locations = (index.data(Qt.DisplayRole) for index in selection.selectedRows(1))
+        names = (index.data(Qt.DisplayRole) for index in selection.selectedRows(0))
+        for location, name in zip(locations, names):
             hou.hipFile.merge('{}/{}'.format(location, name))
 
     def openSelectedLocations(self):
