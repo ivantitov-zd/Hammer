@@ -341,16 +341,15 @@ internal_angle(const int geometry;
 {
     int ptnum0;
     if (class == 'vertex')
-    {
         ptnum0 = vertexpoint(geometry, elemnum);
-    }
     else
-    {
         ptnum0 = elemnum;
-    }
+    int neighbours[] = neighbours(geometry, elemnum);
+    if (len(neighbours) < 2)
+        return 0;
     vector pos0 = point(geometry, 'P', ptnum0);
-    vector pos1 = point(geometry, 'P', ptnum1);
-    vector pos2 = point(geometry, 'P', ptnum2);
+    vector pos1 = point(geometry, 'P', neighbours[0]);
+    vector pos2 = point(geometry, 'P', neighbours[1]);
     vector dir1 = pos1 - pos0;
     vector dir2 = pos2 - pos0;
     return angle(dir1, dir2);
@@ -390,7 +389,7 @@ is_straight_spline(const int geometry;
         return 1;
     int points[] = primpoints(geometry, primnum);
     vector pos1 = point(geometry, 'P', points[0]);
-    vector pos2 = point(geometry, 'P', points[vertex_count - 1]);
+    vector pos2 = point(geometry, 'P', points[-1]);
     vector pos = normalize(pos2 - pos1) * 10;
     pos1 -= pos;
     pos2 += pos;
