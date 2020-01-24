@@ -23,6 +23,18 @@ is_in_sequence(const int value, start, stop, step)
 }
 
 int
+is_in_sequence(const int value, start, stop, step, offset)
+{
+    int diff = value + offset - start;
+    int quitient = diff / step;
+    int remainder = diff % step;
+    if (remainder == 0 && 0 <= quitient && 
+        quitient < sequence_length(start, stop, step))
+        return 1;
+    return 0;
+}
+
+int
 is_vertex_in_sequence(const int geometry;
                       const int vtxnum;
                       const int start;
