@@ -205,11 +205,13 @@ attribType = attribClassFromParm  # Todo: refactor in HDAs
 
 
 def primitiveCount(node_or_geo):
-    return readDetailIntrinsic(node_or_geo, 'primitivecount')
+    count = readDetailIntrinsic(node_or_geo, 'primitivecount')
+    return count if count else 0
 
 
 def pointCount(node_or_geo):
-    return readDetailIntrinsic(node_or_geo, 'pointcount')
+    count = readDetailIntrinsic(node_or_geo, 'pointcount')
+    return count if count else 0
 
 
 def edgeCount(node_or_geo):
@@ -225,4 +227,5 @@ def edgeCount(node_or_geo):
 
 
 def vertexCount(node_or_geo):
-    return readDetailIntrinsic(node_or_geo, 'vertexcount')
+    count = readDetailIntrinsic(node_or_geo, 'vertexcount')
+    return count if count else 0
