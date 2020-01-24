@@ -398,6 +398,15 @@ is_straight_point(const int geometry;
 }
 
 int
+is_straight_vertex(const int geometry;
+                   const int vtxnum;
+                   const float tolerance)
+{
+    int ptnum = vertexpoint(geometry, vtxnum);
+    return is_straight_point(geometry, ptnum, tolerance);
+}
+
+int
 is_straight_spline(const int geometry;
                    const int primnum;
                    const float tolerance)
