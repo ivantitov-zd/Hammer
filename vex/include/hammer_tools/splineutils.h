@@ -211,8 +211,7 @@ int
 is_valid_spline(const int geometry; const int primnum)
 {
     int type = primintrinsic(geometry, 'typeid', primnum);
-    // Todo
-    return (primvertexcount(geometry, primnum) - 4) % 3 == 0;
+    return (primvertexcount(geometry, primnum) - 4) % 3 == 0 && type < 4;
 }
 
 int
@@ -377,6 +376,25 @@ backward_angle(const int geometry;
                const string class)
 {
     // pass
+}
+
+int
+is_straight_point(const int geometry;
+                  const int ptnum;
+                  const float tolerance)
+{
+    int neighbours[] = neighbours(geometry, ptnum);
+    if (len(neighbours) != 2)  // Ends always straight
+        return 1;
+    vector pos1 = point(geometry, 'P', neighbours[0]);
+    vector pos2 = point(geometry, 'P', neighbours[1]);
+    vector pos = normalize(pos2 - pos1) * 10;
+    pos1 -= pos;
+    pos2 += pos;
+    pos = point(geometry, 'P', ptnum);
+    if (ptlined(pos1, pos2, pos) > tolerance)
+        return 0;
+    return 1;
 }
 
 int
