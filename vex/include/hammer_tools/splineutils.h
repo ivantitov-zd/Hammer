@@ -222,8 +222,16 @@ edge_length(const int geometry; const int edgenum)
 int
 is_valid_spline(const int geometry; const int primnum)
 {
+    // Todo: check order?
     int type = primintrinsic(geometry, 'typeid', primnum);
-    return (primvertexcount(geometry, primnum) - 4) % 3 == 0 && type < 4;
+    if (type > 3)
+        return 0;
+    int closed = primintrinsic(geometry, 'closed', primnum);
+    int vertex_count = primvertexcount(geometry, primnum);
+    if (closed)
+        return vertex_count >= 9 && vertex_count % 3 == 0;
+    else
+        return (vertex_count - 4) % 3 == 0;
 }
 
 int
@@ -291,7 +299,9 @@ int
 knot_vertex(const int geometry; const int vtxnum)
 {
     int vertex_index = vertexprimindex(geometry, vtxnum);
-    return (int)rint(ceil((vertex_index - 1) / 3.0) * 3);
+    int prim = vertexprim(geometry, vtxnum);
+    int vertex_count = primvertexcount(geometry, prim);
+    return (int)rint(ceil((vertex_index - 1) / 3.0) * 3) % vertex_count;
 }
 
 int
