@@ -35,68 +35,49 @@ is_in_sequence(const int value, start, stop, step, offset)
 }
 
 int
-is_vertex_in_sequence(const int geometry;
-                      const int vtxnum;
-                      const int start;
-                      const int stop;
-                      const int step)
+is_vertex_in_sequence(const int geometry, vtxnum, start, stop, step)
 {
     int vertex_index = vertexprimindex(geometry, vtxnum);
     return is_in_sequence(vertex_index, start, stop, step);
 }
 
 int
-is_vertex_in_sequence(const int geometry;
-                      const int vtxnum;
-                      const int start;
-                      const int stop;
-                      const int step;
-                      const int offset)
+is_vertex_in_sequence(const int geometry, vtxnum, start, stop, step, offset)
 {
     int vertex_index = vertexprimindex(geometry, vtxnum);
     return is_in_sequence(vertex_index + offset, start, stop, step);
 }
 
 int
-is_point_in_sequence(const int geometry;
-                     const int ptnum;
-                     const int start;
-                     const int stop;
-                     const int step)
+is_point_in_sequence(const int geometry, ptnum, start, stop, step)
 {
     int vtxnum = pointvertex(geometry, ptnum);
     return is_vertex_in_sequence(geometry, vtxnum, start, stop, step);
 }
 
 int
-is_point_in_sequence(const int geometry;
-                     const int ptnum;
-                     const int start;
-                     const int stop;
-                     const int step;
-                     const int offset)
+is_point_in_sequence(const int geometry, ptnum, start, stop, step, offset)
 {
     int vtxnum = pointvertex(geometry, ptnum);
     return is_vertex_in_sequence(geometry, vtxnum, start, stop, step, offset);
 }
 
 int
-is_start_vertex(const int geometry; const int vtxnum)
+is_start_vertex(const int geometry, vtxnum)
 {
     int vertex_index = vertexprimindex(geometry, vtxnum);
     return vertex_index == 0;
 }
 
 int
-is_start_point(const int geometry; const int ptnum)
+is_start_point(const int geometry, ptnum)
 {
     return is_start_vertex(geometry, pointvertex(geometry, ptnum));
 }
 
 int
 is_start_edge(const int geometry;
-              const int elemnum1;
-              const int elemnum2;
+              const int elemnum1, elemnum2;
               const string class)
 {
     int vtxnum1, vtxnum2;
@@ -113,14 +94,14 @@ is_start_edge(const int geometry;
 }
 
 int
-is_start_edge(const int geometry; const int edgenum)
+is_start_edge(const int geometry, edgenum)
 {
     return is_start_vertex(geometry, hedge_srcvertex(geometry, edgenum)) ||
            is_start_vertex(geometry, hedge_dstvertex(geometry, edgenum));
 }
 
 int
-is_end_vertex(const int geometry; const int vtxnum)
+is_end_vertex(const int geometry, vtxnum)
 {
     int vertex_index = vertexprimindex(geometry, vtxnum);
     int prim = vertexprim(geometry, vtxnum);
@@ -128,15 +109,14 @@ is_end_vertex(const int geometry; const int vtxnum)
 }
 
 int
-is_end_point(const int geometry; const int ptnum)
+is_end_point(const int geometry, ptnum)
 {
     return is_end_vertex(geometry, pointvertex(geometry, ptnum));
 }
 
 int
 is_end_edge(const int geometry;
-            const int elemnum1;
-            const int elemnum2;
+            const int elemnum1, elemnum2;
             const string class)
 {
     int vtxnum1, vtxnum2;
@@ -153,7 +133,7 @@ is_end_edge(const int geometry;
 }
 
 int
-is_end_edge(const int geometry; const int edgenum)
+is_end_edge(const int geometry, edgenum)
 {
     return is_end_vertex(geometry, hedge_dstvertex(geometry, edgenum)) ||
            is_end_vertex(geometry, hedge_srcvertex(geometry, edgenum));
@@ -200,7 +180,7 @@ edge_length(const int geometry;
 }
 
 float
-edge_length2(const int geometry; const int edgenum)
+edge_length2(const int geometry, edgenum)
 {
     if (!hedge_isvalid(geometry, edgenum))
         return 0;
@@ -210,7 +190,7 @@ edge_length2(const int geometry; const int edgenum)
 }
 
 float
-edge_length(const int geometry; const int edgenum)
+edge_length(const int geometry, edgenum)
 {
     if (!hedge_isvalid(geometry, edgenum))
         return 0;
@@ -220,7 +200,7 @@ edge_length(const int geometry; const int edgenum)
 }
 
 int
-is_valid_spline(const int geometry; const int primnum)
+is_valid_spline(const int geometry, primnum)
 {
     // Todo: check order?
     int type = primintrinsic(geometry, 'typeid', primnum);
@@ -235,7 +215,7 @@ is_valid_spline(const int geometry; const int primnum)
 }
 
 int
-is_knot_vertex(const int geometry; const int vtxnum)
+is_knot_vertex(const int geometry, vtxnum)
 {
     int prim = vertexprim(geometry, vtxnum);
     int type = primintrinsic(geometry, 'typeid', prim);
@@ -248,7 +228,7 @@ is_knot_vertex(const int geometry; const int vtxnum)
 }
 
 int
-is_knot_point(const int geometry; const int ptnum)
+is_knot_point(const int geometry, ptnum)
 {
     int prims[] = pointprims(geometry, ptnum);
     int prim_count = len(prims);
@@ -260,43 +240,43 @@ is_knot_point(const int geometry; const int ptnum)
 }
 
 int
-is_control_vertex(const int geometry; const int vtxnum)
+is_control_vertex(const int geometry, vtxnum)
 {
     return !is_knot_vertex(geometry, vtxnum);
 }
 
 int
-is_control_point(const int geometry; const int ptnum)
+is_control_point(const int geometry, ptnum)
 {
     return !is_knot_point(geometry, ptnum);
 }
 
 int
-prev_knot_vertex(const int geometry; const int vtxnum)
+prev_knot_vertex(const int geometry, vtxnum)
 {
     // pass
 }
 
 int
-prev_knot_point(const int geometry; const int ptnum)
+prev_knot_point(const int geometry, ptnum)
 {
     // pass
 }
 
 int
-next_knot_vertex(const int geometry; const int vtxnum)
+next_knot_vertex(const int geometry, vtxnum)
 {
     // pass
 }
 
 int
-next_knot_point(const int geometry; const int ptnum)
+next_knot_point(const int geometry, ptnum)
 {
     // pass
 }
 
 int
-knot_vertex(const int geometry; const int vtxnum)
+knot_vertex(const int geometry, vtxnum)
 {
     int vertex_index = vertexprimindex(geometry, vtxnum);
     int prim = vertexprim(geometry, vtxnum);
@@ -305,7 +285,7 @@ knot_vertex(const int geometry; const int vtxnum)
 }
 
 int
-knot_point(const int geometry; const int ptnum)
+knot_point(const int geometry, ptnum)
 {
     int prims[] = pointprims(geometry, ptnum);
     int prim_count = len(prims);
@@ -320,25 +300,25 @@ knot_point(const int geometry; const int ptnum)
 }
 
 int
-prev_control_vertex(const int geometry; const int vtxnum)
+prev_control_vertex(const int geometry, vtxnum)
 {
     // pass
 }
 
 int
-prev_control_point(const int geometry; const int ptnum)
+prev_control_point(const int geometry, ptnum)
 {
     // pass
 }
 
 int
-next_control_vertex(const int geometry; const int vtxnum)
+next_control_vertex(const int geometry, vtxnum)
 {
     // pass
 }
 
 int
-next_control_point(const int geometry; const int ptnum)
+next_control_point(const int geometry, ptnum)
 {
     // pass
 }
