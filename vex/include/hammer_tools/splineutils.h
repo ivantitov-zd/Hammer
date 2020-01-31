@@ -237,7 +237,7 @@ is_knot_point(const int geometry, ptnum)
     if (prim_count == 0)  // Single point
         return 0;
     if (prim_count != 1)
-        warning('Geometry has point shared between two or more curves');
+        warning('Geometry has point shared between two or more splines');
     return is_knot_vertex(geometry, pointvertex(geometry, ptnum));
 }
 
@@ -256,25 +256,44 @@ is_control_point(const int geometry, ptnum)
 int
 prev_knot_vertex(const int geometry, vtxnum)
 {
-    // pass
+    if (!is_knot_vertex(geometry, vtxnum))
+        return -1;
+    int prim = vertexprim(geometry, vtxnum);
+    int index = vertexprimindex(geometry, vtxnum);
+    index = max(index - 3, 0);
+    return primvertex(geometry, prim, index);
 }
 
 int
 prev_knot_point(const int geometry, ptnum)
 {
-    // pass
+    if (!is_knot_point(geometry, ptnum))
+        return -1;
+    int vtxnum = pointvertex(geometry, ptnum);
+    vtxnum = prev_knot_vertex(geometry, vtxnum);
+    return vertexpoint(geometry, vtxnum);
 }
 
 int
 next_knot_vertex(const int geometry, vtxnum)
 {
-    // pass
+    if (!is_knot_vertex(geometry, vtxnum))
+        return -1;
+    int prim = vertexprim(geometry, vtxnum);
+    int count = primvertexcount(geometry, prim);
+    int index = vertexprimindex(geometry, vtxnum);
+    index = min(index + 3, primvertexcount - 1);
+    return primvertex(geometry, prim, index);
 }
 
 int
 next_knot_point(const int geometry, ptnum)
 {
-    // pass
+    if (!is_knot_point(geometry, ptnum))
+        return -1;
+    int vtxnum = pointvertex(geometry, ptnum);
+    vtxnum = next_knot_vertex(geometry, vtxnum);
+    return vertexpoint(geometry, vtxnum);
 }
 
 int
@@ -283,7 +302,7 @@ knot_vertex(const int geometry, vtxnum)
     int index = vertexprimindex(geometry, vtxnum);
     int prim = vertexprim(geometry, vtxnum);
     int vertex_count = primvertexcount(geometry, prim);
-    index = (int)rint(ceil((index - 1) / 3.0) * 3 % vertex_count);
+    index = (int)rint(ceil((index - 1) / 3.0) * 3) % vertex_count;
     return primvertex(geometry, prim, index);
 }
 
@@ -295,7 +314,7 @@ knot_point(const int geometry, ptnum)
     if (prim_count == 0)  // Single point
         return -1;
     if (prim_count != 1)
-        warning('Geometry has point shared between two or more curves');
+        warning('Geometry has point shared between two or more splines');
     int type = primintrinsic(geometry, 'typeid', prims[0]);
     if (type == 3)  // Bezier
     {
