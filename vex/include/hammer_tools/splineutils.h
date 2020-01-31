@@ -365,15 +365,15 @@ internal_angle(const int geometry;
                const int elemnum;
                const string class)
 {
-    int ptnum0;
+    int ptnum;
     if (class == 'vertex')
-        ptnum0 = vertexpoint(geometry, elemnum);
+        ptnum = vertexpoint(geometry, elemnum);
     else
-        ptnum0 = elemnum;
+        ptnum = elemnum;
     int neighbours[] = neighbours(geometry, elemnum);
     if (len(neighbours) < 2)
         return 0;
-    vector pos0 = point(geometry, 'P', ptnum0);
+    vector pos0 = point(geometry, 'P', ptnum);
     vector pos1 = point(geometry, 'P', neighbours[0]);
     vector pos2 = point(geometry, 'P', neighbours[1]);
     vector dir1 = pos1 - pos0;
@@ -394,7 +394,18 @@ forward_angle(const int geometry;
               const int elemnum;
               const string class)
 {
-    // pass
+    int ptnum;
+    if (class == 'vertex')
+        ptnum = vertexpoint(geometry, elemnum);
+    else
+        ptnum = elemnum;
+    int neighbours[] = neighbours(geometry, elemnum);
+    if (len(neighbours) < 2)
+        return 0;
+    vector curr_pos = point(0, 'P', ptnum);
+    vector prev_pos = point(0, 'P', neighbours[0]);
+    vector next_pos = point(0, 'P', neighbours[1]);
+    return angle(curr_pos - prev_pos, next_pos - curr_pos);
 }
 
 float
@@ -411,8 +422,8 @@ is_straight_point(const int geometry;
                   const float tolerance)
 {
     int neighbours[] = neighbours(geometry, ptnum);
-    if (len(neighbours) != 2)  // Ends always straight
-        return 1;
+    if (len(neighbours) != 2)
+        return 0;
     vector pos1 = point(geometry, 'P', neighbours[0]);
     vector pos2 = point(geometry, 'P', neighbours[1]);
     vector pos = normalize(pos2 - pos1) * 10;
