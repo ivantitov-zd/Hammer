@@ -202,7 +202,7 @@ edge_length(const int geometry, edgenum)
 int
 is_valid_spline(const int geometry, primnum)
 {
-    // Todo: check order?
+    // Todo: check order
     int type = primintrinsic(geometry, 'typeid', primnum);
     if (type > 3)
         return 0;
@@ -219,6 +219,8 @@ is_knot_vertex(const int geometry, vtxnum)
 {
     int prim = vertexprim(geometry, vtxnum);
     int type = primintrinsic(geometry, 'typeid', prim);
+    if (type < 3)  // Poly and NURBS
+        return 1;
     if (type == 3)  // Bezier
     {
         int vertex_index = vertexprimindex(geometry, vtxnum);
@@ -232,8 +234,8 @@ is_knot_point(const int geometry, ptnum)
 {
     int prims[] = pointprims(geometry, ptnum);
     int prim_count = len(prims);
-    if (prim_count == 0)
-        return -1;  // Single point
+    if (prim_count == 0)  // Single point
+        return 0;
     if (prim_count != 1)
         warning('Geometry has point shared between two or more curves');
     return is_knot_vertex(geometry, pointvertex(geometry, ptnum));
@@ -278,10 +280,11 @@ next_knot_point(const int geometry, ptnum)
 int
 knot_vertex(const int geometry, vtxnum)
 {
-    int vertex_index = vertexprimindex(geometry, vtxnum);
+    int index = vertexprimindex(geometry, vtxnum);
     int prim = vertexprim(geometry, vtxnum);
     int vertex_count = primvertexcount(geometry, prim);
-    return (int)rint(ceil((vertex_index - 1) / 3.0) * 3) % vertex_count;
+    index = (int)rint(ceil((index - 1) / 3.0) * 3 % vertex_count);
+    return primvertex(geometry, prim, index);
 }
 
 int
@@ -289,13 +292,16 @@ knot_point(const int geometry, ptnum)
 {
     int prims[] = pointprims(geometry, ptnum);
     int prim_count = len(prims);
-    if (prim_count == 0)
-        return -1;  // Single point
+    if (prim_count == 0)  // Single point
+        return -1;
     if (prim_count != 1)
         warning('Geometry has point shared between two or more curves');
     int type = primintrinsic(geometry, 'typeid', prims[0]);
     if (type == 3)  // Bezier
-        return knot_vertex(geometry, pointvertex(geometry, ptnum));
+    {
+        int vtxnum = knot_vertex(geometry, pointvertex(geometry, ptnum));
+        return vertexpoint(geometry, vtxnum);
+    }
     return -1;  // Not supported
 }
 
