@@ -282,7 +282,7 @@ next_knot_vertex(const int geometry, vtxnum)
     int prim = vertexprim(geometry, vtxnum);
     int count = primvertexcount(geometry, prim);
     int index = vertexprimindex(geometry, vtxnum);
-    index = min(index + 3, primvertexcount - 1);
+    index = min(index + 3, count - 1);
     return primvertex(geometry, prim, index);
 }
 
@@ -319,6 +319,34 @@ knot_point(const int geometry, ptnum)
     if (type == 3)  // Bezier
     {
         int vtxnum = knot_vertex(geometry, pointvertex(geometry, ptnum));
+        return vertexpoint(geometry, vtxnum);
+    }
+    return -1;  // Not supported
+}
+
+int
+opposite_knot_vertex(const int geometry, vtxnum)
+{
+    int index = vertexprimindex(geometry, vtxnum);
+    int prim = vertexprim(geometry, vtxnum);
+    int vertex_count = primvertexcount(geometry, prim);
+    index = (((index - 1) % 3 == 0) * 3 + index / 3 * 3) % vertex_count;
+    return primvertex(geometry, prim, index);
+}
+
+int
+opposite_knot_point(const int geometry, ptnum)
+{
+    int prims[] = pointprims(geometry, ptnum);
+    int prim_count = len(prims);
+    if (prim_count == 0)  // Single point
+        return -1;
+    if (prim_count != 1)
+        warning('Geometry has point shared between two or more splines');
+    int type = primintrinsic(geometry, 'typeid', prims[0]);
+    if (type == 3)  // Bezier
+    {
+        int vtxnum = opposite_knot_vertex(geometry, pointvertex(geometry, ptnum));
         return vertexpoint(geometry, vtxnum);
     }
     return -1;  // Not supported
