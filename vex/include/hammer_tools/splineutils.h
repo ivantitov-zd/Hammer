@@ -202,10 +202,25 @@ edge_length(const int geometry, edgenum)
 int
 is_valid_spline(const int geometry, primnum)
 {
-    // Todo: check order
     int type = primintrinsic(geometry, 'typeid', primnum);
     if (type > 3)
         return 0;
+    // Todo: check order
+    int closed = primintrinsic(geometry, 'closed', primnum);
+    int vertex_count = primvertexcount(geometry, primnum);
+    if (closed)
+        return vertex_count >= 9 && vertex_count % 3 == 0;
+    else
+        return (vertex_count - 4) % 3 == 0;
+}
+
+int
+is_valid_spline(const int geometry, primnum, only_bezier)
+{
+    int type = primintrinsic(geometry, 'typeid', primnum);
+    if (type > 3 || type != 3 && only_bezier)
+        return 0;
+    // Todo: check order
     int closed = primintrinsic(geometry, 'closed', primnum);
     int vertex_count = primvertexcount(geometry, primnum);
     if (closed)
@@ -355,7 +370,12 @@ opposite_knot_point(const int geometry, ptnum)
 int
 prev_control_vertex(const int geometry, vtxnum)
 {
-    // pass
+    if (!is_knot_vertex(geometry, vtxnum))
+        return -1;
+    int prim = vertexprim(geometry, vtxnum);
+    int index = vertexprimindex(geometry, vtxnum);
+    index = max(index - 3, 0);
+    return primvertex(geometry, prim, index);
 }
 
 int
