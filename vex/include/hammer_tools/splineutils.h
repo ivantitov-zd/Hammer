@@ -147,8 +147,8 @@ edge_length2(const int geometry;
     vector pos1, pos2;
     if (class == 'vertex')
     {
-        int ptnum1 = vertexpoint(geometry, vtxnum1);
-        int ptnum2 = vertexpoint(geometry, vtxnum2);
+        int ptnum1 = vertexpoint(geometry, elemnum1);
+        int ptnum2 = vertexpoint(geometry, elemnum2);
         pos1 = point(geometry, 'P', ptnum1);
         pos2 = point(geometry, 'P', ptnum2);
     } else  // Point
@@ -370,7 +370,7 @@ opposite_knot_point(const int geometry, ptnum)
 int
 prev_control_vertex(const int geometry, vtxnum)
 {
-    if (!is_knot_vertex(geometry, vtxnum))
+    if (!is_control_vertex(geometry, vtxnum))
         return -1;
     int prim = vertexprim(geometry, vtxnum);
     int index = vertexprimindex(geometry, vtxnum);
