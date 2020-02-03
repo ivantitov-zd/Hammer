@@ -230,6 +230,12 @@ is_valid_spline(const int geometry, primnum, only_bezier)
 }
 
 int
+is_closed(const int geometry, primnum)
+{
+    return primintrinsic(geometry, 'closed', primnum);
+}
+
+int
 is_knot_vertex(const int geometry, vtxnum)
 {
     int prim = vertexprim(geometry, vtxnum);
