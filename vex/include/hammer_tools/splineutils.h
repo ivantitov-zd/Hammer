@@ -396,7 +396,7 @@ next_control_vertex(const int geometry, vtxnum)
     int prim = vertexprim(geometry, vtxnum);
     int count = primvertexcount(geometry, prim);
     int index = vertexprimindex(geometry, vtxnum);
-    index = min(index + 3, count - 2);
+    index = min(index + 1, count - 2);
     return primvertex(geometry, prim, index);
 }
 
