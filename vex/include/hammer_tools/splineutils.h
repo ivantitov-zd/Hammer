@@ -370,30 +370,44 @@ opposite_knot_point(const int geometry, ptnum)
 int
 prev_control_vertex(const int geometry, vtxnum)
 {
-    if (!is_control_vertex(geometry, vtxnum))
+    if (!is_knot_vertex(geometry, vtxnum))
         return -1;
     int prim = vertexprim(geometry, vtxnum);
     int index = vertexprimindex(geometry, vtxnum);
-    index = max(index - 3, 0);
+    index = max(index - 1, 1);
     return primvertex(geometry, prim, index);
 }
 
 int
 prev_control_point(const int geometry, ptnum)
 {
-    // pass
+    if (!is_knot_point(geometry, ptnum))
+        return -1;
+    int vtxnum = pointvertex(geometry, ptnum);
+    vtxnum = prev_control_vertex(geometry, vtxnum);
+    return vertexpoint(geometry, vtxnum);
 }
 
 int
 next_control_vertex(const int geometry, vtxnum)
 {
-    // pass
+    if (!is_knot_vertex(geometry, vtxnum))
+        return -1;
+    int prim = vertexprim(geometry, vtxnum);
+    int count = primvertexcount(geometry, prim);
+    int index = vertexprimindex(geometry, vtxnum);
+    index = min(index + 3, count - 2);
+    return primvertex(geometry, prim, index);
 }
 
 int
 next_control_point(const int geometry, ptnum)
 {
-    // pass
+    if (!is_knot_point(geometry, ptnum))
+        return -1;
+    int vtxnum = pointvertex(geometry, ptnum);
+    vtxnum = next_control_vertex(geometry, vtxnum);
+    return vertexpoint(geometry, vtxnum);
 }
 
 float
