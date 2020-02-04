@@ -204,6 +204,21 @@ def attribClassFromParm(parm='class'):
 attribType = attribClassFromParm  # Todo: refactor in HDAs
 
 
+def inputNumFromParm(parm='source', start_index=0):
+    if isinstance(parm, str):
+        parm = hou.parm(parm)
+    value = parm.evalAsString().lower()
+    if value.startswith(str(start_index)) or value.endswith(str(start_index)):
+        return start_index
+    elif value.startswith(str(start_index + 1)) or value.endswith(str(start_index + 1)):
+        return start_index + 1
+    elif value.startswith(str(start_index + 2)) or value.endswith(str(start_index + 2)):
+        return start_index + 2
+    elif value.startswith(str(start_index + 3)) or value.endswith(str(start_index + 3)):
+        return start_index + 3
+    return 0
+
+
 def primitiveCount(node_or_geo):
     count = readDetailIntrinsic(node_or_geo, 'primitivecount')
     return count if count else 0
