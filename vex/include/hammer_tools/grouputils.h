@@ -95,6 +95,27 @@ group_pattern_type(const int geometry; const string group_name)
     // pass
 }
 
+int
+in_group(const int geometry;
+         const string group_type;
+         const string group_name;
+         const int elemnum1, elemnum2)
+{
+    if (group_type == 'edge')
+        return inedgegroup(geometry, group_name, elemnum1, elemnum2);
+    else if (group_type == 'vertex')
+    {
+        int vtxnum;
+        if (elemnum1 != -1)
+            vtxnum = vertexindex(geometry, elemnum1, elemnum2);
+        else
+            vtxnum = elemnum2;
+        return attrib(geometry, group_type + 'group', group_name, vtxnum);
+    }
+    else
+        return attrib(geometry, group_type + 'group', group_name, elemnum1);
+}
+
 void
 set_group(const int geohandle;
           const string group_type;
@@ -105,7 +126,7 @@ set_group(const int geohandle;
     if (group_type == 'edge')
         setedgegroup(geohandle, group_name, elemnum1, elemnum2, value);
     else
-        setattrib(geohandle, group_type + 'group', elemnum1, elemnum2, value);
+        setattrib(geohandle, group_type + 'group', group_name, elemnum1, elemnum2, value);
 }
 
 void
@@ -115,7 +136,8 @@ copy_group(const int geometry, geohandle;
            const int src_elemnum1, src_elemnum2;
            const int dst_elemnum1, dst_elemnum2)
 {
-    // pass
+    int state = in_group(geometry, src_group_type, src_group_name, src_elemnum1, src_elemnum2);
+    set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, state);
 }
 
 #endif  // _GROUPUTILS_H_
