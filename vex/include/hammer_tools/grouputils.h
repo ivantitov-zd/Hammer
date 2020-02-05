@@ -46,25 +46,25 @@ vertex_groups(const int geometry)
 int
 has_prim_group(const int geometry; const string group_name)
 {
-    find(prim_groups(geometry), group_name) >= 0;
+    return find(prim_groups(geometry), group_name) >= 0;
 }
 
 int
 has_point_group(const int geometry; const string group_name)
 {
-    find(point_groups(geometry), group_name) >= 0;
+    return find(point_groups(geometry), group_name) >= 0;
 }
 
 int
 has_edge_group(const int geometry; const string group_name)
 {
-    find(edge_groups(geometry), group_name) >= 0;
+    return find(edge_groups(geometry), group_name) >= 0;
 }
 
 int
 has_vertex_group(const int geometry; const string group_name)
 {
-    find(vertex_groups(geometry), group_name) >= 0;
+    return find(vertex_groups(geometry), group_name) >= 0;
 }
 
 int
