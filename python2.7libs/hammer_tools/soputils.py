@@ -8,6 +8,7 @@ Detail = 4
 AllAttribClasses = Primitive | Point | Vertex | Detail
 AllGroupTypes = Primitive | Point | Edge | Vertex
 Int = 1
+Integer = Int
 Float = 2
 String = 4
 DataTypes = {hou.attribData.Int: Int,
@@ -17,8 +18,11 @@ AllDataTypes = Int | Float | String
 AnyDataSize = range(0, 65)
 
 
-def readDetailIntrinsic(node_or_geo, name):
+def readDetailIntrinsic(node_or_geo, name, input_index=None):
     if isinstance(node_or_geo, hou.Node):
+        inputs = node_or_geo.inputs()
+        if input_index is not None and inputs and len(inputs) > input_index and inputs[input_index]:
+            node_or_geo = inputs[input_index]
         geo = node_or_geo.geometry()
         if geo is None:
             return ()
@@ -73,15 +77,16 @@ def groups(node_or_geo, group_types=AllGroupTypes):
     return tuple(group_list)
 
 
-def groupMenu(node, input_index=0, group_types=AllGroupTypes):
+def groupMenu(node, input_index=None, group_types=AllGroupTypes):
     menu = []
     if isinstance(node, str):
         node = hou.node(node)
     inputs = node.inputs()
-    if inputs and len(inputs) > input_index and inputs[input_index]:
-        group_list = groups(inputs[input_index], group_types)
-        for group in group_list:
-            menu.extend((group, group))
+    if input_index is not None and inputs and len(inputs) > input_index and inputs[input_index]:
+        node = inputs[input_index]
+    group_list = groups(node, group_types)
+    for group in group_list:
+        menu.extend((group, group))
     return tuple(menu)
 
 
@@ -173,15 +178,16 @@ def attribs(node_or_geo, attrib_class=AllAttribClasses, attrib_data_types=AllDat
     return tuple(attrib_list)
 
 
-def attribMenu(node, input_index=0, attrib_class=AllAttribClasses, attrib_data_types=AllDataTypes, attrib_data_size=AnyDataSize):
+def attribMenu(node, input_index=None, attrib_class=AllAttribClasses, attrib_data_types=AllDataTypes, attrib_data_size=AnyDataSize):
     menu = []
     if isinstance(node, str):
         node = hou.node(node)
     inputs = node.inputs()
-    if inputs and len(inputs) > input_index and inputs[input_index]:
-        attrib_list = attribs(inputs[input_index], attrib_class, attrib_data_types, attrib_data_size)
-        for attrib in attrib_list:
-            menu.extend((attrib, attrib))
+    if input_index is not None and inputs and len(inputs) > input_index and inputs[input_index]:
+        node = inputs[input_index]
+    attrib_list = attribs(node, attrib_class, attrib_data_types, attrib_data_size)
+    for attrib in attrib_list:
+        menu.extend((attrib, attrib))
     return tuple(menu)
 
 
@@ -219,18 +225,21 @@ def inputNumFromParm(parm='source', start_index=0):
     return 0
 
 
-def primitiveCount(node_or_geo):
-    count = readDetailIntrinsic(node_or_geo, 'primitivecount')
+def primitiveCount(node_or_geo, input_index=None):
+    count = readDetailIntrinsic(node_or_geo, 'primitivecount', input_index)
     return count if count else 0
 
 
-def pointCount(node_or_geo):
-    count = readDetailIntrinsic(node_or_geo, 'pointcount')
+def pointCount(node_or_geo, input_index=None):
+    count = readDetailIntrinsic(node_or_geo, 'pointcount', input_index)
     return count if count else 0
 
 
-def edgeCount(node_or_geo):
+def edgeCount(node_or_geo, input_index=None):
     if isinstance(node_or_geo, hou.Node):
+        inputs = node_or_geo.inputs()
+        if input_index is not None and inputs and len(inputs) > input_index and inputs[input_index]:
+            node_or_geo = inputs[input_index]
         geo = node_or_geo.geometry()
         if geo is None:
             return 0
@@ -241,6 +250,6 @@ def edgeCount(node_or_geo):
     return 0
 
 
-def vertexCount(node_or_geo):
-    count = readDetailIntrinsic(node_or_geo, 'vertexcount')
+def vertexCount(node_or_geo, input_index=None):
+    count = readDetailIntrinsic(node_or_geo, 'vertexcount', input_index)
     return count if count else 0
