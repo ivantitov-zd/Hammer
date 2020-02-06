@@ -139,12 +139,12 @@ class SelectListView(QListView):
 class SelectDialog(QDialog):
     def __init__(self, parent):
         super(SelectDialog, self).__init__(parent, Qt.Window)
+        # Data
         self.parm = None
         self.previous_value = None
 
         self.setWindowTitle('Select')
         self.resize(300, 600)
-        self.setProperty('houdiniStyle', True)
         self.setStyleSheet(hou.qt.styleSheet())
 
         # List
