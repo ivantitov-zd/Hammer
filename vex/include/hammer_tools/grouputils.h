@@ -140,4 +140,17 @@ copy_group(const int geometry, geohandle;
     set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, state);
 }
 
+void
+copy_group(const int geometry, geohandle;
+           const string src_group_type, dst_group_type;
+           const string src_group_name, dst_group_name;
+           const int src_elemnum1, src_elemnum2;
+           const int dst_elemnum1, dst_elemnum2;
+           const int mode)
+{
+    int src_state = in_group(geometry, src_group_type, src_group_name, src_elemnum1, src_elemnum2);
+    int dst_state = in_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2);
+    set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, merge_group(dst_state, src_state, mode));
+}
+
 #endif  // _GROUPUTILS_H_
