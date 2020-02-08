@@ -153,4 +153,40 @@ copy_group(const int geometry, geohandle;
     set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, merge_group(dst_state, src_state, mode));
 }
 
+int
+is_valid_group_name(const string group_name)
+{
+    if (!isalpha(group_name[0]) && group_name[0] != '_')
+        return 0;
+    for (string c : group_name)
+        if (c != '_' && !isalpha(c) && !isdigit(c))
+            return 0;
+    return 1;
+}
+
+string
+fix_group_name(const string group_name)
+{
+    string new_group_name;
+    if (!isalpha(group_name[0]) && group_name[0] != '_')
+        new_group_name = '_';
+    for (string c : group_name)
+    {
+        if (c != '_' && !isalpha(c) && !isdigit(c))
+            new_group_name += '_';
+        else
+            new_group_name += c;
+    }
+    return new_group_name;
+}
+
+string
+fix_group_name(const string group_name; const int strip)
+{
+    if (strip)
+        return fix_group_name(strip(group_name));
+    else
+        return fix_group_name(group_name);
+}
+
 #endif  // _GROUPUTILS_H_
