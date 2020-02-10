@@ -6,6 +6,8 @@
  a single file. -->
 
   <toolshelf name="hammer_tools" label="Hammer Tools">
+    <readOnly/>
+    <memberTool name="hammer::settings::1.0"/>
     <memberTool name="hammer::merge_objects::1.0"/>
     <memberTool name="hammer::explore_scene::1.0"/>
   </toolshelf>
@@ -21,5 +23,13 @@ mergeSelectedObjects()]]></script>
 reload(explorer)
 
 explorer.ExploreSceneDialog.explore()]]></script>
+  </tool>
+
+  <tool name="hammer::settings::1.0" label="Settings" icon="LOP_rendersettings">
+    <script scriptType="python"><![CDATA[from hammer_tools.settings import HammerSettingsDialog
+
+window = HammerSettingsDialog(hou.qt.mainWindow())
+window.show()
+]]></script>
   </tool>
 </shelfDocument>
