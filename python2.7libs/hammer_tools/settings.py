@@ -16,22 +16,20 @@ except ImportError:
 
 import hou
 
-
-def clearLayout(layout):
-    while layout.count():
-        child = layout.takeAt(0)
-        if child.widget():
-            child.widget().setParent(None)
-
+from .utils import clearLayout
 
 DEFAULT_SETTINGS = {
     'hammer.previous_files.enable': True,
     'hammer.previous_files.startup': True,
     'hammer.previous_files.check_file_existence': True,
     'hammer.previous_files.db_location': '$HOUDINI_USER_PREF_DIR',
+    'hammer.previous_files.silent.manual_update': True,
+    'hammer.previous_files.silent.disable_sims': False,
+
     'hammer.parms.open_folder.enable': True,
     'hammer.parms.open_folder.use_custom_explorer': False,
     'hammer.parms.open_folder.custom_explorer_path': '',
+
     'hammer.nodes.play_sound.enable': True,
     'hammer.nodes.play_sound.use_external_player': True
 }
@@ -103,15 +101,18 @@ class SettingsManager:
         self.__data = DEFAULT_SETTINGS
 
     def load(self, settings_file=None, update=True):
-        with open(self.__settings_file if settings_file is None else settings_file, 'r') as file:
-            try:
-                data = json.load(file)
-                if update:
-                    self.__data.update(data)
-                else:
-                    self.__data = data
-            except ValueError:
-                pass
+        try:
+            with open(self.__settings_file if settings_file is None else settings_file, 'r') as file:
+                try:
+                    data = json.load(file)
+                    if update:
+                        self.__data.update(data)
+                    else:
+                        self.__data = data
+                except ValueError:
+                    pass
+        except IOError:
+            pass
 
     def isSynced(self):
         raise NotImplementedError
@@ -301,7 +302,7 @@ class Section(QWidget):
         # Layout
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(2)
+        main_layout.setSpacing(4)
 
     def name(self):
         return self.__name
@@ -348,6 +349,22 @@ SETTINGS_SCHEME = {
                     'name': 'Check File Existence',
                     'type': 'toggle',
                     'key': 'hammer.previous_files.check_file_existence'
+                },
+                {
+                    'name': 'Silent Mode',
+                    'type': 'group',
+                    'settings': [
+                        {
+                            'name': 'Manual Update',
+                            'type': 'toggle',
+                            'key': 'hammer.previous_files.silent.manual_update'
+                        },
+                        {
+                            'name': 'Disable Simulations',
+                            'type': 'toggle',
+                            'key': 'hammer.previous_files.silent.disable_sims'
+                        }
+                    ]
                 },
                 {
                     'name': 'Database Location',

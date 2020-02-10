@@ -8,10 +8,17 @@
             <label>Open Previous Files...</label>
             <parent>file_menu</parent>
             <insertAfter>recent_files</insertAfter>
-            <scriptCode>
-from hammer_tools.previous_files import show
+            <context>
+                <expression>
+                    from hammer_tools.settings import SettingsManager
 
-show()
+                    return SettingsManager.instance().value('hammer.previous_files.enable')
+                </expression>
+            </context>
+            <scriptCode>
+from hammer_tools.previous_files import showPreviousFiles
+
+showPreviousFiles()
             </scriptCode>
         </addScriptItem>
 

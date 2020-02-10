@@ -19,21 +19,24 @@ import hou
 
 from .quick_selection import FilterField
 from .utils import fuzzyMatch, openLocation
+from .settings import SettingsManager
+
+settings = SettingsManager.instance()
 
 
 def createDatabase(filepath):
     db = sqlite3.connect(filepath)
 
     cursor = db.cursor()
-    cursor.execute('CREATE TABLE IF NOT EXISTS `folder` ('
+    cursor.execute('CREATE TABLE `folder` ('
                    '`id` INTEGER PRIMARY KEY,'
                    '`path` TEXT UNIQUE);')
-    cursor.execute('CREATE TABLE IF NOT EXISTS `file` ('
+    cursor.execute('CREATE TABLE `file` ('
                    '`id` INTEGER PRIMARY KEY,'
                    '`folder_id` INTEGER NOT NULL,'
                    '`name` TEXT NOT NULL,'
                    '`extension` TEXT NOT NULL);')
-    cursor.execute('CREATE TABLE IF NOT EXISTS `log` ('
+    cursor.execute('CREATE TABLE `log` ('
                    '`id` INTEGER PRIMARY KEY,'
                    '`file_id` INTEGER,'
                    '`event` INTEGER,'
@@ -50,7 +53,8 @@ class SessionWatcher:
 
     def __init__(self):
         # Database
-        db_file = os.path.abspath(os.path.join(hou.homeHoudiniDirectory(), 'hammer_previous_files.db'))
+        db_file = os.path.abspath(os.path.join(hou.expandString(settings.value('hammer.previous_files.db_location')),
+                                               'hammer_previous_files.db'))
         if not os.path.exists(db_file):
             self.db = createDatabase(db_file)
         else:
@@ -93,6 +97,8 @@ class SessionWatcher:
 
 
 def setSessionWatcher():
+    if not settings.value('hammer.previous_files.enable'):
+        return
     if not hasattr(hou.session, 'hammer_session_watcher'):
         hou.session.hammer_session_watcher = SessionWatcher()
         hou.hipFile.addEventCallback(hou.session.hammer_session_watcher)
@@ -138,7 +144,8 @@ class PreviousFilesModel(QAbstractTableModel):
         self.__file_not_exists_icon = hou.qt.Icon('TOP_status_error', 20, 20)
 
         # Database
-        db_file = os.path.abspath(os.path.join(hou.homeHoudiniDirectory(), 'hammer_previous_files.db'))
+        db_file = os.path.abspath(os.path.join(hou.expandString(settings.value('hammer.previous_files.db_location')),
+                                               'hammer_previous_files.db'))
         if not os.path.exists(db_file):
             self.db = createDatabase(db_file)
         else:
@@ -183,7 +190,7 @@ class PreviousFilesModel(QAbstractTableModel):
                 name, location, _, extension = self.__log[row]
                 return os.path.normpath(os.path.join(location, name + extension)).replace('\\', '/')
         elif role == Qt.DecorationRole:
-            if index.column() == 0:
+            if index.column() == 0 and settings.value('hammer.previous_files.check_file_existence'):
                 name, location, _, extension = self.__log[index.row()]
                 if os.path.exists(os.path.join(location, name + extension)):
                     return self.__file_exists_icon
@@ -246,6 +253,13 @@ def importGLTFScene(path):
     gltf_node.parm('buildscene').pressButton()
 
 
+def switchToSilentMode():
+    if settings.value('hammer.previous_files.silent.manual_update'):
+        hou.setUpdateMode(hou.updateMode.Manual)
+    if settings.value('hammer.previous_files.silent.disable_sims'):
+        hou.setSimulationEnabled(False)
+
+
 class PreviousFiles(QDialog):
     def __init__(self, parent=None):
         super(PreviousFiles, self).__init__(parent, Qt.Window)
@@ -269,9 +283,9 @@ class PreviousFiles(QDialog):
         left_vertical_layout.addWidget(self.new_button)
 
         self.open_button_menu = QMenu(self)
-        open_in_manual_mode = QAction('Open in Manual Mode', self)
-        open_in_manual_mode.triggered.connect(lambda: self.chooseAndOpenFile(True))
-        self.open_button_menu.addAction(open_in_manual_mode)
+        open_silently = QAction('Open Silently', self)
+        open_silently.triggered.connect(lambda: self.chooseAndOpenFile(True))
+        self.open_button_menu.addAction(open_silently)
 
         self.open_button = QToolButton()
         self.open_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -297,9 +311,9 @@ class PreviousFiles(QDialog):
         # Crash menu
         self.open_crash_button_menu = QMenu(self)
 
-        open_crash_in_manual_mode = QAction('Open in Manual Mode', self)
-        open_crash_in_manual_mode.triggered.connect(lambda: self.openLastCrashFile(True))
-        self.open_crash_button_menu.addAction(open_crash_in_manual_mode)
+        open_crash_silently = QAction('Open Silently', self)
+        open_crash_silently.triggered.connect(lambda: self.openLastCrashFile(True))
+        self.open_crash_button_menu.addAction(open_crash_silently)
 
         delete_crash_files = QAction('Delete all Crash Files', self)
         delete_crash_files.triggered.connect(self.deleteAllCrashFiles)
@@ -351,17 +365,17 @@ class PreviousFiles(QDialog):
         self.open_selected_file_action.triggered.connect(lambda: self.openSelectedFile())
         self.menu.addAction(self.open_selected_file_action)
 
-        self.open_selected_file_in_manual_mode_action = QAction('Open [Manual Mode]', self)
-        self.open_selected_file_in_manual_mode_action.triggered.connect(lambda: self.openSelectedFile(True))
-        self.menu.addAction(self.open_selected_file_in_manual_mode_action)
+        self.open_selected_file_silently_action = QAction('Open Silently', self)
+        self.open_selected_file_silently_action.triggered.connect(lambda: self.openSelectedFile(True))
+        self.menu.addAction(self.open_selected_file_silently_action)
 
         self.open_new_session_action = QAction('Open in New Session', self)
         self.open_new_session_action.triggered.connect(lambda: self.openSelectedFileInNewSession())
         self.menu.addAction(self.open_new_session_action)
 
-        self.open_new_session_in_manual_action = QAction('Open in New Session [Manual Mode]', self)
-        self.open_new_session_in_manual_action.triggered.connect(lambda: self.openSelectedFileInNewSession(True))
-        self.menu.addAction(self.open_new_session_in_manual_action)
+        self.open_new_session_silently_action = QAction('Open in New Session Silently', self)
+        self.open_new_session_silently_action.triggered.connect(lambda: self.openSelectedFileInNewSession(True))
+        self.menu.addAction(self.open_new_session_silently_action)
 
         self.merge_selected_files_action = QAction('Merge', self)
         self.merge_selected_files_action.triggered.connect(self.mergeSelectedFiles)
@@ -421,24 +435,24 @@ class PreviousFiles(QDialog):
         if selected_row_count > 0:
             if selected_row_count > 1:
                 self.open_selected_file_action.setEnabled(False)
-                self.open_selected_file_in_manual_mode_action.setEnabled(False)
+                self.open_selected_file_silently_action.setEnabled(False)
                 self.filter_by_name_action.setEnabled(False)
                 self.filter_by_extension_action.setEnabled(False)
                 self.filter_by_location_action.setEnabled(False)
             else:  # Single file
                 self.open_selected_file_action.setEnabled(True)
-                self.open_selected_file_in_manual_mode_action.setEnabled(True)
+                self.open_selected_file_silently_action.setEnabled(True)
                 self.filter_by_name_action.setEnabled(True)
                 self.filter_by_extension_action.setEnabled(True)
                 self.filter_by_location_action.setEnabled(True)
             self.menu.exec_(QCursor.pos())
 
-    def openSelectedFile(self, manual=False):
+    def openSelectedFile(self, silent=False):
         self.hide()
         selection = self.view.selectionModel()
         location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
         name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
-        self.openFile('{}/{}'.format(location, name), manual)
+        self.openFile('{}/{}'.format(location, name), silent)
 
     def openFirstFile(self):
         selection = self.view.selectionModel()
@@ -447,13 +461,13 @@ class PreviousFiles(QDialog):
         selection.select(self.filter_model.index(0, 2), QItemSelectionModel.Select)
         self.openSelectedFile()
 
-    def openSelectedFileInNewSession(self, manual=False):
+    def openSelectedFileInNewSession(self, silent=False):
         selection = self.view.selectionModel()
         location = selection.selectedRows(1)[0].data(Qt.DisplayRole)
         name = selection.selectedRows(0)[0].data(Qt.DisplayRole)
         cmd = ''
         cmd += '{}'.format(hou.expandString('$HFS/bin/houdini'))
-        if manual:
+        if silent:
             cmd += ' -n'
         cmd += ' {}/{}'.format(location, name)
         subprocess.Popen(cmd)
@@ -477,7 +491,7 @@ class PreviousFiles(QDialog):
         self.hide()
         hou.hipFile.clear()
 
-    def openFile(self, file, manual=False):
+    def openFile(self, file, silent=False):
         file = hou.expandString(file)
         _, extension = os.path.splitext(file)
         try:
@@ -492,16 +506,16 @@ class PreviousFiles(QDialog):
                 elif extension.lower().startswith('.gl'):
                     importGLTFScene(file)
                 hou.session.hammer_session_watcher.logEvent(file, SessionWatcher.EventType.Load)
-            if manual:
-                hou.setUpdateMode(hou.updateMode.Manual)
+            if silent:
+                switchToSilentMode()
             self.hide()
         except hou.OperationFailed:
             self.show()
 
-    def chooseAndOpenFile(self, manual=False):
+    def chooseAndOpenFile(self, silent=False):
         files = hou.ui.selectFile(title='Open', pattern='*.hip, *.hipnc, *.hiplc, *.hip*, *.abc, *.fbx, *.gltf, *.glb', chooser_mode=hou.fileChooserMode.Read).split(' ; ')
         if files and files[0]:
-            self.openFile(files[0], manual)
+            self.openFile(files[0], silent)
 
     def mergeFiles(self):
         files = hou.ui.selectFile(title='Merge', file_type=hou.fileType.Hip, multiple_select=True, chooser_mode=hou.fileChooserMode.Read).split(' ; ')
@@ -519,7 +533,7 @@ class PreviousFiles(QDialog):
                 return
         self.open_crash_button.setVisible(False)
 
-    def openLastCrashFile(self, manual=False):
+    def openLastCrashFile(self, silent=False):
         last_file = None
         last_timestamp = 0
         houdini_temp_path = hou.getenv('TEMP')
@@ -536,8 +550,8 @@ class PreviousFiles(QDialog):
         else:
             self.hide()
             hou.hipFile.load('{}/{}'.format(houdini_temp_path, last_file))
-            if manual:
-                hou.setUpdateMode(hou.updateMode.Manual)
+            if silent:
+                switchToSilentMode()
 
     def deleteAllCrashFiles(self):
         houdini_temp_path = hou.getenv('TEMP')
@@ -591,7 +605,9 @@ class PreviousFiles(QDialog):
         super(PreviousFiles, self).showEvent(event)
 
 
-def show():
+def showPreviousFiles():
+    if not settings.value('hammer.previous_files.enable'):
+        return
     if not hasattr(hou.session, 'hammer_previous_files'):
         hou.session.hammer_previous_files = PreviousFiles(hou.qt.mainWindow())
     hou.session.hammer_previous_files.show()

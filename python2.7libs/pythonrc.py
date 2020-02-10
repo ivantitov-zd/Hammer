@@ -3,7 +3,10 @@ from __future__ import print_function
 import hdefereval
 import hou
 
-from hammer_tools.previous_files import setSessionWatcher, show
+from hammer_tools.previous_files import setSessionWatcher, showPreviousFiles
+from hammer_tools.settings import SettingsManager
+
+settings = SettingsManager.instance()
 
 
 def instant():
@@ -14,7 +17,8 @@ instant()
 
 
 def afterUserInterface():
-    show()
+    if settings.value('hammer.previous_files.startup'):
+        showPreviousFiles()
 
 
 if hou.isUIAvailable():
