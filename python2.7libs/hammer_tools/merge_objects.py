@@ -24,7 +24,8 @@ def mergeObjects(nodes, name=None, stash=False, add_groups=False, add_name_attri
         for node in nodes:
             new_node = geo.createNode('object_merge')
             object_merge = new_node
-            new_node.parm('objpath1').set(node.path())
+            object_merge.parm('objpath1').set(node.path())
+            object_merge.parm('xformtype').set(1)
             if add_groups:
                 new_node = new_node.createOutputNode('groupcreate')
                 new_node.parm('groupname').set(node.name())
