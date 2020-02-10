@@ -58,6 +58,12 @@ selectFont(parm)
             <insertBefore />
             <context>
                 <expression>
+                    from hammer_tools.settings import SettingsManager
+
+                    settings = SettingsManager.instance()
+                    if not settings.value('hammer.open_location.enable'):
+                        return 0
+
                     parm = kwargs['parms'][0]
                     template = parm.parmTemplate()
                     if template.type() == hou.parmTemplateType.String and \

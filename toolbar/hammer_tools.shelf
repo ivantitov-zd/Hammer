@@ -26,7 +26,7 @@ explorer.ExploreSceneDialog.explore()]]></script>
   </tool>
 
   <tool name="hammer::settings::1.0" label="Settings" icon="LOP_rendersettings">
-    <script scriptType="python"><![CDATA[from hammer_tools.settings import HammerSettingsDialog
+    <script scriptType="python"><![CDATA[from hammer_tools.settings_ui import HammerSettingsDialog
 
 window = HammerSettingsDialog(hou.qt.mainWindow())
 window.show()

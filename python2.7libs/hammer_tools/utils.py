@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import subprocess
 import sys
 
 try:
@@ -9,6 +10,12 @@ try:
 except ImportError:
     from PySide2.QtWidgets import QAction
     from PySide2.QtGui import QKeySequence
+
+import hou
+
+from .settings import SettingsManager
+
+settings = SettingsManager.instance()
 
 isWindowsOS = sys.platform.startswith('win')
 isLinuxOS = sys.platform.startswith('linux')
@@ -67,4 +74,9 @@ def openLocation(path):
         path = new_path
         new_path = os.path.dirname(path)
     if os.path.exists(new_path):
-        os.startfile(new_path)
+        if settings.value('hammer.open_location.use_custom_explorer') and \
+                settings.value('hammer.open_location.custom_explorer_path'):
+            exe = hou.expandString(settings.value('hammer.open_location.custom_explorer_path'))
+            subprocess.Popen('{} "{}"'.format(exe, new_path))
+        else:
+            os.startfile(new_path)
