@@ -28,6 +28,13 @@ def createAction(parent, label, callback=None, help=None, icon=None, shortcut=No
     return action
 
 
+def clearLayout(layout):
+    while layout.count():
+        child = layout.takeAt(0)
+        if child.widget():
+            child.widget().setParent(None)
+
+
 def fuzzyMatch(pattern, word):
     if pattern == word:
         return True, 999999
