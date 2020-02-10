@@ -124,7 +124,7 @@ def importRecentFiles(watcher):
                     path = hou.expandString(line.strip(' \n'))
                     watcher.logEvent(path, SessionWatcher.EventType.Save)
                 else:
-                    return
+                    in_block = False
     except IOError:
         pass
 
