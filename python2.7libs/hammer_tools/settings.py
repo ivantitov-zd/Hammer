@@ -25,6 +25,7 @@ DEFAULT_SETTINGS = {
     'hammer.previous_files.db_location': '$HOUDINI_USER_PREF_DIR',
     'hammer.previous_files.silent.manual_update': True,
     'hammer.previous_files.silent.disable_sims': False,
+    'hammer.previous_files.first_start': True,
 
     'hammer.parms.open_folder.enable': True,
     'hammer.parms.open_folder.use_custom_explorer': False,

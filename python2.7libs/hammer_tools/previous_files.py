@@ -60,6 +60,11 @@ class SessionWatcher:
         else:
             self.db = sqlite3.connect(db_file)
 
+        # First Start
+        if settings.value('hammer.previous_files.first_start'):
+            importRecentFiles(self)
+            settings.setValue('hammer.previous_files.first_start', False)
+
     def logEvent(self, filepath, event):
         query = self.db.cursor()
         location, fullname = os.path.split(filepath)
@@ -102,6 +107,24 @@ def setSessionWatcher():
     if not hasattr(hou.session, 'hammer_session_watcher'):
         hou.session.hammer_session_watcher = SessionWatcher()
         hou.hipFile.addEventCallback(hou.session.hammer_session_watcher)
+
+
+def importRecentFiles(watcher):
+    try:
+        with open(os.path.join(hou.homeHoudiniDirectory(), 'file.history')) as file:
+            on_hip = False
+            in_block = False
+            for line in file:
+                if not on_hip and not in_block and line.startswith('HIP'):
+                    on_hip = True
+                elif on_hip:
+                    on_hip = False
+                    in_block = True
+                elif in_block and not line.startswith('}'):
+                    path = hou.expandString(line.strip(' \n'))
+                    watcher.logEvent(path, SessionWatcher.EventType.Save)
+    except IOError:
+        pass
 
 
 class FuzzyFilterProxyModel(QSortFilterProxyModel):
