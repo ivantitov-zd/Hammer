@@ -123,6 +123,8 @@ def importRecentFiles(watcher):
                 elif in_block and not line.startswith('}'):
                     path = hou.expandString(line.strip(' \n'))
                     watcher.logEvent(path, SessionWatcher.EventType.Save)
+                else:
+                    return
     except IOError:
         pass
 
