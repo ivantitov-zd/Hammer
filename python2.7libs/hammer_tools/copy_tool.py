@@ -13,7 +13,7 @@ except ImportError:
 
 import hou
 
-from .quick_selection import FilterField, FuzzyFilterProxyModel
+from .quick_selection import FilterField, FuzzyListProxyModel
 
 
 class ShelfListModel(QAbstractListModel):
@@ -59,8 +59,7 @@ class CopyShelfTool(QDialog):
         # Shelf list
         self.shelf_list_model = ShelfListModel(self)
 
-        self.shelf_list_filter_model = FuzzyFilterProxyModel(self)
-        self.shelf_list_filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.shelf_list_filter_model = FuzzyListProxyModel(self)
         self.shelf_list_filter_model.setSourceModel(self.shelf_list_model)
 
         self.shelf_list_view = QListView()

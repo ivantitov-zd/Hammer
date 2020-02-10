@@ -13,7 +13,7 @@ except ImportError:
 
 import hou
 
-from .quick_selection import FilterField, FuzzyFilterProxyModel
+from .quick_selection import FilterField, FuzzyListProxyModel
 
 
 class EmprtTool:
@@ -251,8 +251,7 @@ class EditShelfTools(QDialog):
 
         # Shelf tools
         self.shelf_tool_list_model = ShelfToolsModel(self)
-        self.shelf_tool_list_filter_model = FuzzyFilterProxyModel(self)
-        self.shelf_tool_list_filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.shelf_tool_list_filter_model = FuzzyListProxyModel(self)
         self.shelf_tool_list_filter_model.setSourceModel(self.shelf_tool_list_model)
         self.shelf_tool_list_view = QListView()
         self.shelf_tool_list_view.setAlternatingRowColors(True)
@@ -266,8 +265,7 @@ class EditShelfTools(QDialog):
 
         # All tools
         self.all_tool_list_model = AllToolsModel(self)
-        self.all_tool_list_filter_model = FuzzyFilterProxyModel(self)
-        self.all_tool_list_filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.all_tool_list_filter_model = FuzzyListProxyModel(self)
         self.all_tool_list_filter_model.setSourceModel(self.all_tool_list_model)
         self.all_tool_list_view = QListView()
         self.all_tool_list_view.setAlternatingRowColors(True)

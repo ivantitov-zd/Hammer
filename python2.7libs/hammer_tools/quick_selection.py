@@ -43,11 +43,12 @@ class FilterField(QLineEdit):
         super(FilterField, self).mousePressEvent(event)
 
 
-class FuzzyFilterProxyModel(QSortFilterProxyModel):
+class FuzzyListProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
-        super(FuzzyFilterProxyModel, self).__init__(parent)
+        super(FuzzyListProxyModel, self).__init__(parent)
 
         self.__filter_pattern = ''
+        self.setFilterCaseSensitivity(Qt.CaseInsensitive)
 
     def setFilterPattern(self, pattern):
         self.beginResetModel()
@@ -149,8 +150,7 @@ class SelectDialog(QDialog):
 
         # List
         self.list_model = QStringListModel(self)
-        self.list_filter_model = FuzzyFilterProxyModel(self)
-        self.list_filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.list_filter_model = FuzzyListProxyModel(self)
         self.list_filter_model.setSourceModel(self.list_model)
 
         self.list_view = SelectListView()
