@@ -45,7 +45,7 @@ showPreviousFiles()
             <parent>preferences_submenu</parent>
             <insertAfter/>
             <scriptCode>
-from hammer_tools.settings import HammerSettingsDialog
+from hammer_tools.settings_ui import HammerSettingsDialog
 
 window = HammerSettingsDialog(hou.qt.mainWindow())
 window.show()
