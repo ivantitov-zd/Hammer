@@ -19,12 +19,16 @@ CreatePresetDialog.createPresetFromNode(kwargs['node'])
             </scriptCode>
         </addScriptItem>
 
-        <addScriptItem id="opmenu.hammer_play_sound">
-            <label>Play Sound</label>
+        <addScriptItem id="opmenu.hammer_play_audio">
+            <label>Play Audio</label>
             <parent>opmenu.actions_menu</parent>
             <insertBefore />
             <context>
                 <expression>
+                    from hammer_tools.settings import SettingsManager
+                    if not SettingsManager.instance().value('hammer.audio.play.enable'):
+                        return 0
+
                     node_type = kwargs['node'].type()
                     return node_type.category() in (hou.chopNodeTypeCategory(), hou.chopNetNodeTypeCategory()) or node_type.name() == 'chopnet'
                 </expression>
@@ -39,9 +43,13 @@ playChopAudio(kwargs['node'])
         <addScriptItem id="opmenu.hammer_set_scene_audio">
             <label>Use as Scene Audio</label>
             <parent>opmenu.actions_menu</parent>
-            <insertAfter>opmenu.hammer_play_sound</insertAfter>
+            <insertAfter>opmenu.hammer_play_audio</insertAfter>
             <context>
                 <expression>
+                    from hammer_tools.settings import SettingsManager
+                    if not SettingsManager.instance().value('hammer.audio.set_scene_audio.enable'):
+                        return 0
+
                     node_type = kwargs['node'].type()
                     return node_type.category() in (hou.chopNodeTypeCategory(), hou.chopNetNodeTypeCategory()) or node_type.name() == 'chopnet'
                 </expression>

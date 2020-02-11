@@ -29,8 +29,9 @@ DEFAULT_SETTINGS = {
     'hammer.open_location.use_custom_explorer': False,
     'hammer.open_location.custom_explorer_path': '',
 
-    'hammer.play_sound.enable': True,
-    'hammer.play_sound.use_external_player': True
+    'hammer.audio.play.enable': True,
+    'hammer.audio.play.use_external_player': True,
+    'hammer.audio.set_scene_audio.enable': True
 }
 
 

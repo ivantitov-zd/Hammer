@@ -286,18 +286,23 @@ SETTINGS_SCHEME = {
                     ]
                 },
                 {
-                    'name': 'Play Sound',
+                    'name': 'Audio',
                     'type': 'group',
                     'settings': [
                         {
-                            'name': 'Enable',
+                            'name': 'Enable "Play Audio"',
                             'type': 'toggle',
-                            'key': 'hammer.play_sound.enable'
+                            'key': 'hammer.audio.play.enable'
                         },
                         {
                             'name': 'Use External Player',
                             'type': 'toggle',
-                            'key': 'hammer.play_sound.use_external_player'
+                            'key': 'hammer.audio.play.use_external_player'
+                        },
+                        {
+                            'name': 'Enable "Set as Scene Audio"',
+                            'type': 'toggle',
+                            'key': 'hammer.audio.set_scene_audio.enable'
                         }
                     ]
                 }

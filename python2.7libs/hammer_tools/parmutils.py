@@ -95,7 +95,7 @@ toggleExpression = toggleParmExpression  # Todo: refactor in xmls
 
 
 def playChopAudio(node):
-    if settings.value('hammer.play_sound.use_external_player'):
+    if settings.value('hammer.audio.play.use_external_player'):
         if node.type().name() == 'chopnet':
             nodes = node.glob('*')
             for node in nodes:
