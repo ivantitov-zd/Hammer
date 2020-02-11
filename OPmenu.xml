@@ -30,10 +30,9 @@ CreatePresetDialog.createPresetFromNode(kwargs['node'])
                 </expression>
             </context>
             <scriptCode>
-hou.audio.useTestMode()
-hou.audio.useChops()
-hou.audio.setChopPath(kwargs['node'].path())
-hou.audio.play()
+from hammer_tools.parmutils import playChopAudio
+
+playChopAudio(kwargs['node'])
             </scriptCode>
         </addScriptItem>
 
@@ -48,9 +47,9 @@ hou.audio.play()
                 </expression>
             </context>
             <scriptCode>
-hou.audio.useTimeLineMode()
-hou.audio.useChops()
-hou.audio.setChopPath(kwargs['node'].path())
+from hammer_tools.parmutils import setSceneChopAudio
+
+setSceneChopAudio(kwargs['node'])
             </scriptCode>
         </addScriptItem>
 
