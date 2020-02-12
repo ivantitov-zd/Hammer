@@ -34,7 +34,7 @@ window.show()
 ]]></script>
   </tool>
 
-  <tool name="hammer::undo_history::1.0" label="Undo History" icon="BUTTONS_history">
+  <tool name="hammer::undo_history::1.0" label="Undo History (Beta)" icon="BUTTONS_history">
     <script scriptType="python"><![CDATA[from hammer_tools.undo_history import showUndoHistory
 
 showUndoHistory()]]></script>
