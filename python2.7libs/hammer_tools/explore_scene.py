@@ -24,7 +24,7 @@ class ExploreSceneDialog(QDialog):
     def __init__(self, parent=None):
         super(ExploreSceneDialog, self).__init__(parent, Qt.Window)
 
-        self.setWindowTitle('Hammer: Explore Scene Alpha')
+        self.setWindowTitle('Hammer: Explore Scene (Beta)')
         self.setStyleSheet(hou.qt.styleSheet())
         self.resize(300, 200)
 
