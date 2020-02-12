@@ -19,7 +19,7 @@
 mergeSelectedObjects()]]></script>
   </tool>
 
-  <tool name="hammer::explore_scene::1.0" label="Explore Scene Alpha" icon="TOP_tracker">
+  <tool name="hammer::explore_scene::1.0" label="Explore Scene (Beta)" icon="TOP_tracker">
     <script scriptType="python"><![CDATA[import hammer_tools.explore_scene as explorer
 reload(explorer)
 
