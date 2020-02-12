@@ -22,12 +22,12 @@ isLinuxOS = sys.platform.startswith('linux')
 isMacOS = sys.platform == 'darwin'
 
 
-def createAction(parent, label, callback=None, help=None, icon=None, shortcut=None):
+def createAction(parent, label, callback=None, tip=None, icon=None, shortcut=None):
     action = QAction(label, parent)
     if callback is not None:
         action.triggered.connect(callback)
-    if help is not None:
-        action.setToolTip(help)
+    if tip is not None:
+        action.setToolTip(tip)
     if icon is not None:
         action.setIcon(icon)
     if shortcut is not None:
