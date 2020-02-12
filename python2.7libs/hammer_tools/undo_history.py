@@ -24,7 +24,7 @@ class UndoHistoryDialog(QDialog):
         # self.__history = ()
 
         # UI
-        self.setWindowTitle('Undo History')
+        self.setWindowTitle('Undo History (Beta)')
         self.setStyleSheet(hou.qt.styleSheet())
 
         main_layout = QHBoxLayout(self)
@@ -64,7 +64,7 @@ class UndoHistoryDialog(QDialog):
         # self.__history = undo_list + ('Original',) + redo_list
 
 
-def show():
+def showUndoHistory():
     if not hasattr(hou.session, 'hammer_undo_history'):
         hou.session.hammer_undo_history = UndoHistoryDialog(hou.qt.mainWindow())
     hou.session.hammer_undo_history.updateHistory()
