@@ -130,6 +130,23 @@ set_group(const int geohandle;
 }
 
 void
+set_group(const int geohandle;
+          const string group_type;
+          const string group_name;
+          const int elemnum1, elemnum2;
+          const int value;
+          const string mode)
+{
+    if (group_type == 'edge')
+    {
+        int state = in_group(geohandle, group_type, group_name, elemnum1, elemnum2);
+        setedgegroup(geohandle, group_name, elemnum1, elemnum2, merge_group(state, 1, find({'set', 'max', 'min', 'sum'}, mode)));
+    }
+    else
+        setattrib(geohandle, group_type + 'group', group_name, elemnum1, elemnum2, value, mode);
+}
+
+void
 copy_group(const int geometry, geohandle;
            const string src_group_type, dst_group_type;
            const string src_group_name, dst_group_name;
@@ -151,6 +168,18 @@ copy_group(const int geometry, geohandle;
     int src_state = in_group(geometry, src_group_type, src_group_name, src_elemnum1, src_elemnum2);
     int dst_state = in_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2);
     set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, merge_group(dst_state, src_state, mode));
+}
+
+void
+copy_group(const int geometry, geohandle;
+           const string src_group_type, dst_group_type;
+           const string src_group_name, dst_group_name;
+           const int src_elemnum1, src_elemnum2;
+           const int dst_elemnum1, dst_elemnum2;
+           const string mode)
+{
+    int src_state = in_group(geometry, src_group_type, src_group_name, src_elemnum1, src_elemnum2);
+    set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, src_state, mode);
 }
 
 int
