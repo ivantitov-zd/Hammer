@@ -140,7 +140,7 @@ set_group(const int geohandle;
     if (group_type == 'edge')
     {
         int state = in_group(geohandle, group_type, group_name, elemnum1, elemnum2);
-        setedgegroup(geohandle, group_name, elemnum1, elemnum2, merge_group(state, 1, find({'set', 'max', 'min', 'sum'}, mode)));
+        setedgegroup(geohandle, group_name, elemnum1, elemnum2, merge_group(state, 1, find({'set', 'max', 'min', 'sub'}, mode)));
     }
     else
         setattrib(geohandle, group_type + 'group', group_name, elemnum1, elemnum2, value, mode);
