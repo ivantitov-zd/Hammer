@@ -10,6 +10,7 @@
     <memberTool name="hammer::settings::1.0"/>
     <memberTool name="hammer::merge_objects::1.0"/>
     <memberTool name="hammer::explore_scene::1.0"/>
+    <memberTool name="hammer::undo_history::1.0"/>
   </toolshelf>
 
   <tool name="hammer::merge_objects::1.0" label="Merge Objects" icon="SHELF_combine_objects">
@@ -31,5 +32,11 @@ explorer.ExploreSceneDialog.explore()]]></script>
 window = HammerSettingsDialog(hou.qt.mainWindow())
 window.show()
 ]]></script>
+  </tool>
+
+  <tool name="hammer::undo_history::1.0" label="Undo History" icon="BUTTONS_history">
+    <script scriptType="python"><![CDATA[from hammer_tools.undo_history import showUndoHistory
+
+showUndoHistory()]]></script>
   </tool>
 </shelfDocument>
