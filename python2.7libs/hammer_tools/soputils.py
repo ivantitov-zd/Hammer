@@ -112,8 +112,10 @@ groupType = groupTypeFromParm  # Todo: refactor in HDAs
 def fixGroupName(group_name, strip=False):
     if strip:
         group_name = group_name.strip()
+    if not group_name:
+        return ''
     new_group_name = ''
-    if not group_name[0].isalpha() and group_name[0] != '_':
+    if group_name[0].isdigit():
         new_group_name = '_'
     for c in group_name:
         if c != '_' and not c.isalpha() and not c.isdigit():

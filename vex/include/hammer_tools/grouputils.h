@@ -196,8 +196,8 @@ is_valid_group_name(const string group_name)
 string
 fix_group_name(const string group_name)
 {
-    string new_group_name;
-    if (!isalpha(group_name[0]) && group_name[0] != '_')
+    string new_group_name = '';
+    if (isdigit(group_name[0]))
         new_group_name = '_';
     for (string c : group_name)
     {
