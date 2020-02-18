@@ -85,7 +85,8 @@ is_start_edge(const int geometry;
     {
         vtxnum1 = pointvertex(geometry, elemnum1);
         vtxnum2 = pointvertex(geometry, elemnum2);
-    } else
+    }
+    else
     {
         vtxnum1 = elemnum1;
         vtxnum2 = elemnum2;
@@ -124,7 +125,8 @@ is_end_edge(const int geometry;
     {
         vtxnum1 = pointvertex(geometry, elemnum1);
         vtxnum2 = pointvertex(geometry, elemnum2);
-    } else
+    }
+    else
     {
         vtxnum1 = elemnum1;
         vtxnum2 = elemnum2;
@@ -151,7 +153,8 @@ edge_length2(const int geometry;
         int ptnum2 = vertexpoint(geometry, elemnum2);
         pos1 = point(geometry, 'P', ptnum1);
         pos2 = point(geometry, 'P', ptnum2);
-    } else  // Point
+    }
+    else  // Point
     {
         pos1 = point(geometry, 'P', elemnum1);
         pos2 = point(geometry, 'P', elemnum2);
@@ -167,11 +170,12 @@ edge_length(const int geometry;
     vector pos1, pos2;
     if (class == 'vertex')
     {
-        int ptnum1 = vertexpoint(geometry, vtxnum1);
-        int ptnum2 = vertexpoint(geometry, vtxnum2);
+        int ptnum1 = vertexpoint(geometry, elemnum1);
+        int ptnum2 = vertexpoint(geometry, elemnum2);
         pos1 = point(geometry, 'P', ptnum1);
         pos2 = point(geometry, 'P', ptnum2);
-    } else  // Point
+    }
+    else  // Point
     {
         pos1 = point(geometry, 'P', elemnum1);
         pos2 = point(geometry, 'P', elemnum2);
@@ -184,9 +188,9 @@ edge_length2(const int geometry, edgenum)
 {
     if (!hedge_isvalid(geometry, edgenum))
         return 0;
-    int vtxnum1 = vertexpoint(geometry, vtxnum1);
-    int vtxnum2 = vertexpoint(geometry, vtxnum2);
-    return edge_length2(geometry, vtxnum1, vtxnum2, 'vertex');
+    int ptnum1 = vertexpoint(geometry, hedge_srcvertex(geometry, edgenum));
+    int ptnum2 = vertexpoint(geometry, hedge_dstvertex(geometry, edgenum));
+    return edge_length2(geometry, ptnum1, ptnum2, 'point');
 }
 
 float
@@ -194,9 +198,9 @@ edge_length(const int geometry, edgenum)
 {
     if (!hedge_isvalid(geometry, edgenum))
         return 0;
-    int vtxnum1 = vertexpoint(geometry, vtxnum1);
-    int vtxnum2 = vertexpoint(geometry, vtxnum2);
-    return edge_length(geometry, vtxnum1, vtxnum2, 'vertex');
+    int ptnum1 = vertexpoint(geometry, hedge_srcvertex(geometry, edgenum));
+    int ptnum2 = vertexpoint(geometry, hedge_dstvertex(geometry, edgenum));
+    return edge_length(geometry, ptnum1, ptnum2, 'point');
 }
 
 int
@@ -417,15 +421,63 @@ next_control_point(const int geometry, ptnum)
 }
 
 float
-angle(const vector vec1, vec2)
+signed_angle(const vector2 vec1, vec2)
+{
+    float dot = dot(vec1, vec2);
+    float exterior_product = vec1.x * vec2.y - vec1.y * vec2.x;
+    return atan2(exterior_product, dot);
+}
+
+float
+unsigned_angle(const vector2 vec1, vec2)
+{
+    return abs(signed_angle(vec1, vec2));
+}
+
+float
+unsigned_angle(const vector vec1, vec2)
 {
     return acos(dot(vec1, vec2) / sqrt(length2(vec1) * length2(vec2)));
 }
 
 float
+signed_angle(const vector vec1, vec2; const vector ref)
+{
+    float angle = unsigned_angle(vec1, vec2);
+    int sign = (int)sign(dot(cross(vec1, vec2), ref));
+    return sign * angle;
+}
+
+float
 signed_angle(const vector vec1, vec2)
 {
-    // pass
+    return signed_angle(vec1, vec2, /*ref=*/{0, 1, 0});
+}
+
+float
+angle(const vector vec1, vec2; const int signed)
+{
+    if (signed)
+        return signed_angle(vec1, vec2);
+    else
+        return unsigned_angle(vec1, vec2);
+}
+
+float
+angle(const vector vec1, vec2)
+{
+    return angle(vec1, vec2, /*signed=*/0);
+}
+
+float
+angle(const vector vec1, vec2;
+      const int signed;
+      const vector ref)
+{
+    if (signed)
+        return signed_angle(vec1, vec2, ref);
+    else
+        return unsigned_angle(vec1, vec2);
 }
 
 float
@@ -460,20 +512,55 @@ external_angle(const int geometry;
 float
 forward_angle(const int geometry;
               const int elemnum;
-              const string class)
+              const string class;
+              const int signed;
+              const vector ref)
 {
     int ptnum;
     if (class == 'vertex')
         ptnum = vertexpoint(geometry, elemnum);
+    else if (class == 'edge')
+        ptnum = hedge_dstpoint(geometry, elemnum);
+    else
+        ptnum = elemnum;
+    int neighbours[] = neighbours(geometry, ptnum);
+    if (len(neighbours) < 2)
+        return 0;
+    vector curr_pos = point(geometry, 'P', ptnum);
+    vector prev_pos = point(geometry, 'P', neighbours[0]);
+    vector next_pos = point(geometry, 'P', neighbours[1]);
+    return angle(curr_pos - prev_pos, next_pos - curr_pos, signed, ref);
+}
+
+float
+forward_angle(const int geometry;
+              const int elemnum;
+              const string class)
+{
+    return forward_angle(geometry, elemnum, class, /*signed=*/0, /*ref=*/0);
+}
+
+float
+backward_angle(const int geometry;
+               const int elemnum;
+               const string class;
+               const int signed;
+               const vector ref)
+{
+    int ptnum;
+    if (class == 'vertex')
+        ptnum = vertexpoint(geometry, elemnum);
+    else if (class == 'edge')
+        ptnum = hedge_srcpoint(geometry, elemnum);
     else
         ptnum = elemnum;
     int neighbours[] = neighbours(geometry, elemnum);
     if (len(neighbours) < 2)
         return 0;
-    vector curr_pos = point(0, 'P', ptnum);
-    vector prev_pos = point(0, 'P', neighbours[0]);
-    vector next_pos = point(0, 'P', neighbours[1]);
-    return angle(curr_pos - prev_pos, next_pos - curr_pos);
+    vector curr_pos = point(geometry, 'P', ptnum);
+    vector prev_pos = point(geometry, 'P', neighbours[0]);
+    vector next_pos = point(geometry, 'P', neighbours[1]);
+    return angle(curr_pos - next_pos, prev_pos - curr_pos, signed, ref);
 }
 
 float
@@ -481,7 +568,7 @@ backward_angle(const int geometry;
                const int elemnum;
                const string class)
 {
-    // pass
+    return backward_angle(geometry, elemnum, class, /*signed=*/0, /*ref=*/0);
 }
 
 int
@@ -498,9 +585,7 @@ is_straight_point(const int geometry;
     pos1 -= pos;
     pos2 += pos;
     pos = point(geometry, 'P', ptnum);
-    if (ptlined(pos1, pos2, pos) > tolerance)
-        return 0;
-    return 1;
+    return ptlined(pos1, pos2, pos) <= tolerance;
 }
 
 int
@@ -510,6 +595,37 @@ is_straight_vertex(const int geometry;
 {
     int ptnum = vertexpoint(geometry, vtxnum);
     return is_straight_point(geometry, ptnum, tolerance);
+}
+
+int
+is_straight_edge(const int geometry;
+                 const int elemnum1, elemnum2;
+                 const string class;
+                 const float tolerance)
+{
+    int ptnum1, ptnum2;
+    if (class == 'vertex')
+    {
+        ptnum1 = vertexpoint(geometry, elemnum1);
+        ptnum2 = vertexpoint(geometry, elemnum2);
+    }
+    else
+    {
+        ptnum1 = elemnum1;
+        ptnum2 = elemnum2;
+    }
+    return is_straight_point(geometry, ptnum1, tolerance) &&
+           is_straight_point(geometry, ptnum2, tolerance);
+}
+
+int
+is_straight_edge(const int geometry;
+                 const int edgenum;
+                 const float tolerance)
+{
+    int ptnum1 = hedge_srcpoint(geometry, edgenum);
+    int ptnum2 = hedge_dstpoint(geometry, edgenum);
+    return is_straight_edge(geometry, ptnum1, ptnum2, 'point', tolerance);
 }
 
 int
@@ -533,6 +649,27 @@ is_straight_spline(const int geometry;
             return 0;
     }
     return 1;
+}
+
+int
+is_flat_edge(const int geometry;
+             const int edgenum;
+             const float tolerance)
+{
+    int src_point = hedge_srcpoint(geometry, edgenum);
+    int dst_point = hedge_dstpoint(geometry, edgenum);
+    if (neighbourcount(geometry, src_point) != 2 ||
+        neighbourcount(geometry, dst_point) != 2)
+        return 0;
+    int prev_point = neighbour(geometry, src_point, 0);
+    int next_point = neighbour(geometry, dst_point, 1);
+    vector prev_pos = point(geometry, 'P', prev_point);
+    vector src_pos = point(geometry, 'P', src_point);
+    vector dst_pos = point(geometry, 'P', dst_point);
+    vector next_pos = point(geometry, 'P', next_point);
+    vector normal1 = normalize(cross(prev_pos - src_pos, prev_pos - dst_pos));
+    vector normal2 = normalize(cross(prev_pos - next_pos, prev_pos - dst_pos));
+    return (1.0 - abs(dot(normal1, normal2))) <= tolerance;
 }
 
 int
