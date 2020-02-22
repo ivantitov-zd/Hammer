@@ -210,8 +210,10 @@ is_valid_spline(const int geometry, primnum)
     if (type > 3)
         return 0;
     // Todo: check order
-    int closed = primintrinsic(geometry, 'closed', primnum);
     int vertex_count = primvertexcount(geometry, primnum);
+    if (type != 3)
+        return vertex_count > 1;
+    int closed = primintrinsic(geometry, 'closed', primnum);
     if (closed)
         return vertex_count >= 9 && vertex_count % 3 == 0;
     else
@@ -225,8 +227,10 @@ is_valid_spline(const int geometry, primnum, only_bezier)
     if (type > 3 || type != 3 && only_bezier)
         return 0;
     // Todo: check order
-    int closed = primintrinsic(geometry, 'closed', primnum);
     int vertex_count = primvertexcount(geometry, primnum);
+    if (type != 3)
+        return vertex_count > 1;
+    int closed = primintrinsic(geometry, 'closed', primnum);
     if (closed)
         return vertex_count >= 9 && vertex_count % 3 == 0;
     else
