@@ -134,7 +134,6 @@ def supportDataTypeAndSize(attrib_class):
                 geo = node_or_geo.geometry()
 
             def check(attrib_name):
-                attrib = None
                 if attrib_class == Primitive:
                     attrib = geo.findPrimAttrib(attrib_name)
                 elif attrib_class == Point:
@@ -229,7 +228,7 @@ attribType = attribClassFromParm  # Todo: refactor in HDAs
 def inputNumFromParm(parm='source', start_index=0):
     if isinstance(parm, str):
         parm = hou.parm(parm)
-    value = parm.evalAsString().lower()
+    value = parm.evalAsString()
     if value.startswith(str(start_index)) or value.endswith(str(start_index)):
         return start_index
     elif value.startswith(str(start_index + 1)) or value.endswith(str(start_index + 1)):
