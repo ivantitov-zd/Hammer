@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="hammer::group_visualize_sop::1.0" label="Group Visualize SOP" icon="CHANNELS_dope_deselect_all" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hammer_tools.group_visualize_sop_parms import GroupListParms
+
+group_list = None
+
+def onNodePathChanged(node):
+    global group_list
+    group_list.setSourceNode(node)
+
+def onCreateInterface():
+    global group_list
+    group_list = GroupListParms()
+    return group_list
+
+def onDestroyInterface():
+    global group_list
+    group_list = None
+
+def onActivateInterface():
+    global group_list
+    group_list.activate()
+
+def onDeactivateInterface():
+    global group_list
+    group_list.deactivate()
+]]></script>
+    <includeInToolbarMenu menu_position="412" create_separator="false"/>
+    <showInParametersPane optype="hammer::Sop/group_visualize::1.0"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
