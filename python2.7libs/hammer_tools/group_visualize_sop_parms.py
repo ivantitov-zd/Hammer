@@ -16,14 +16,12 @@ import hou
 from .quick_selection import FilterField, FuzzyListProxyModel
 from .soputils import edgeGroups, Primitive, Point, Edge, Vertex
 
-GROUP_TYPE_NAME = {1: 'Primitive', 2: 'Point', 4: 'Edge', 8: 'Vertex'}
-
 
 class GroupItem:
     def __init__(self, group, group_type, count):
         self.group = group
         self.group_type = group_type
-        self.label = '{} ({}: {})'.format(group.name(), GROUP_TYPE_NAME[group_type], count)
+        self.label = '{}   ({})'.format(group.name(), count)
 
 
 class GroupListModel(QAbstractListModel):
