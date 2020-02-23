@@ -18,10 +18,10 @@ from .soputils import edgeGroups, Primitive, Point, Edge, Vertex, groupTypeFromP
 
 
 class GroupItem:
-    def __init__(self, group, group_type, count):
+    def __init__(self, group, group_type, group_size):
         self.group = group
         self.group_type = group_type
-        self.label = '{}   ({})'.format(group.name(), count)
+        self.label = '{}   ({})'.format(group.name(), group_size)
 
 
 class GroupListModel(QAbstractListModel):
