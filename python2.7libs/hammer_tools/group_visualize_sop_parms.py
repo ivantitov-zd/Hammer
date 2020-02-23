@@ -14,7 +14,7 @@ except ImportError:
 import hou
 
 from .quick_selection import FilterField, FuzzyListProxyModel
-from .soputils import edgeGroups, Primitive, Point, Edge, Vertex
+from .soputils import edgeGroups, Primitive, Point, Edge, Vertex, groupTypeFromParm
 
 
 class GroupItem:
@@ -82,6 +82,12 @@ class GroupListView(QListView):
         self.setAlternatingRowColors(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
+    def selectGroup(self, group, group_type, group_size):
+        model = self.model()
+        indices = model.match(model.index(0, 0), Qt.DisplayRole, GroupItem(group, group_type, group_size).label)
+        if indices:
+            self.setCurrentIndex(indices[0])
+
 
 class GroupListParms(QWidget):
     def __init__(self):
@@ -112,15 +118,41 @@ class GroupListParms(QWidget):
         selection.currentRowChanged.connect(self._setCurrentGroup)
         layout.addWidget(self.list_view)
 
+    def updateGroupList(self, node=None, **kwargs):
+        if node is not None:
+            self.__node = node
+        if self.__node is None:
+            return
+        self.list_model.updateDataFromNode(self.__node)
+        group_name = self.__node.parm('group').evalAsString()
+        group_type = groupTypeFromParm(self.__node.parm('grouptype'))
+        geo = self.__node.geometry()
+        try:
+            if group_type == Primitive:
+                group = geo.findPrimGroup(group_name)
+                group_size = len(group.iterPrims())
+            elif group_type == Point:
+                group = geo.findPointGroup(group_name)
+                group_size = len(group.iterPoints())
+            elif group_type == Edge:
+                group = geo.findEdgeGroup(group_name)
+                group_size = len(group.iterEdges())
+            elif group_type == Vertex:
+                group = geo.findVertexGroup(group_name)
+                group_size = len(group.iterVertices())
+            else:  # group_type == Auto
+                return
+            self.list_view.selectGroup(group, group_type, group_size)
+        except AttributeError:
+            pass
+
     def _registerNodeCallbacks(self):
-        pass
+        self.__node.addEventCallback((hou.nodeEventType.InputRewired,
+                                      hou.nodeEventType.InputDataChanged), self.updateGroupList)
 
     def _unregisterNodeCallbacks(self):
-        pass
-
-    def updateGroupList(self):
-        if self.__node is not None:
-            self.list_model.updateDataFromNode(self.__node)
+        self.__node.removeEventCallback((hou.nodeEventType.InputRewired,
+                                         hou.nodeEventType.InputDataChanged), self.updateGroupList)
 
     def activate(self):
         self._registerNodeCallbacks()
