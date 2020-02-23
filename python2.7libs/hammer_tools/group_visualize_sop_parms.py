@@ -168,7 +168,8 @@ class GroupListParms(QWidget):
     def _setCurrentGroup(self):
         item = self.list_view.currentIndex().data(Qt.UserRole)
         try:
-            self.__node.parm('group').set(item.group.name())
-            self.__node.parm('grouptype').set((-1, Primitive, Point, Edge, Vertex).index(item.group_type))
+            with hou.undos.group('Parameter Change'):
+                self.__node.parm('group').set(item.group.name())
+                self.__node.parm('grouptype').set((-1, Primitive, Point, Edge, Vertex).index(item.group_type))
         except hou.ObjectWasDeleted:
             self.list_model.updateDataFromNode(node)
