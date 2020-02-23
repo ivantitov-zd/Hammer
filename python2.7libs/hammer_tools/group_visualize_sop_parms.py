@@ -48,6 +48,8 @@ class GroupListModel(QAbstractListModel):
         if inputs and inputs[0]:
             group_items = []
             geo = inputs[0].geometry()
+            if geo is None:
+                return
             group_items.extend(GroupItem(group, Primitive, len(group.iterPrims())) for group in geo.primGroups())
             group_items.extend(GroupItem(group, Point, len(group.iterPoints())) for group in geo.pointGroups())
             group_items.extend(GroupItem(group, Vertex, len(group.iterVertices())) for group in geo.vertexGroups())
