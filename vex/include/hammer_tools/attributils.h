@@ -2,11 +2,11 @@
 #ifndef _ATTRIBUTILS_H_
 #define _ATTRIBUTILS_H_
 
-// Attrib Type
-#define ATTRIB_TYPE_PRIM 1
-#define ATTRIB_TYPE_POINT 2
-#define ATTRIB_TYPE_VERTEX 8
-#define ATTRIB_TYPE_DETAIL 4
+// Attrib Class
+#define ATTRIB_CLASS_PRIM 1
+#define ATTRIB_CLASS_POINT 2
+#define ATTRIB_CLASS_VERTEX 8
+#define ATTRIB_CLASS_DETAIL 4
 
 string[]
 prim_attribs(const int geometry)
@@ -33,31 +33,31 @@ detail_attribs(const int geometry)
 }
 
 string[]
-attribs(const int geometry; const int attrib_types)
+attribs(const int geometry; const int attrib_classes)
 {
     string attrib_list[];
-    if (attrib_types & ATTRIB_TYPE_PRIM)
+    if (attrib_classes & ATTRIB_CLASS_PRIM)
         push(attrib_list, prim_attribs(geometry));
-    if (attrib_types & ATTRIB_TYPE_POINT)
+    if (attrib_classes & ATTRIB_CLASS_POINT)
         push(attrib_list, point_attribs(geometry));
-    if (attrib_types & ATTRIB_TYPE_VERTEX)
+    if (attrib_classes & ATTRIB_CLASS_VERTEX)
         push(attrib_list, vertex_attribs(geometry));
-    if (attrib_types & ATTRIB_TYPE_DETAIL)
+    if (attrib_classes & ATTRIB_CLASS_DETAIL)
         push(attrib_list, detail_attribs(geometry));
     return attrib_list;
 }
 
 string[]
-attribs(const int geometry; const string attrib_type)
+attribs(const int geometry; const string attrib_class)
 {
     string attrib_list[];
-    if (startswith(attrib_type, 'prim'))
+    if (startswith(attrib_class, 'prim'))
         push(attrib_list, prim_attribs(geometry));
-    if (startswith(attrib_type, 'point'))
+    if (startswith(attrib_class, 'point'))
         push(attrib_list, point_attribs(geometry));
-    if (startswith(attrib_type, 'vert'))
+    if (startswith(attrib_class, 'vert'))
         push(attrib_list, vertex_attribs(geometry));
-    if (startswith(attrib_type, 'detail') || startswith(attrib_type, 'global'))
+    if (startswith(attrib_class, 'detail') || startswith(attrib_type, 'global'))
         push(attrib_list, detail_attribs(geometry));
     return attrib_list;
 }
