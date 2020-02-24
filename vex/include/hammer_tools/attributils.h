@@ -57,7 +57,7 @@ attribs(const int geometry; const string attrib_class)
         push(attrib_list, point_attribs(geometry));
     if (startswith(attrib_class, 'vert'))
         push(attrib_list, vertex_attribs(geometry));
-    if (startswith(attrib_class, 'detail') || startswith(attrib_type, 'global'))
+    if (startswith(attrib_class, 'detail') || startswith(attrib_class, 'global'))
         push(attrib_list, detail_attribs(geometry));
     return attrib_list;
 }
