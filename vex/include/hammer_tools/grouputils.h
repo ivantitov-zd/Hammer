@@ -2,6 +2,12 @@
 #ifndef _GROUPUTILS_H_
 #define _GROUPUTILS_H_
 
+// Group Type
+#define GROUP_TYPE_PRIM 1
+#define GROUP_TYPE_POINT 2
+#define GROUP_TYPE_EDGE 4
+#define GROUP_TYPE_VERTEX 8
+
 int
 merge_group(const int old_value;
             const int new_value;
@@ -41,6 +47,36 @@ string[]
 vertex_groups(const int geometry)
 {
     return detailintrinsic(geometry, 'vertexgroups');
+}
+
+string[]
+groups(const int geometry; const int group_types)
+{
+    string group_list[];
+    if (group_types & GROUP_TYPE_PRIM)
+        push(group_list, prim_groups(geometry));
+    if (group_types & GROUP_TYPE_POINT)
+        push(group_list, point_groups(geometry));
+    if (group_types & GROUP_TYPE_EDGE)
+        push(group_list, edge_groups(geometry));
+    if (group_types & GROUP_TYPE_VERTEX)
+        push(group_list, vertex_groups(geometry));
+    return group_list;
+}
+
+string[]
+groups(const int geometry; const string group_type)
+{
+    string group_list[];
+    if (startswith(group_type, 'prim'))
+        push(group_list, prim_groups(geometry));
+    if (startswith(group_type, 'point'))
+        push(group_list, point_groups(geometry));
+    if (startswith(group_type, 'edge'))
+        push(group_list, edge_groups(geometry));
+    if (startswith(group_type, 'vert'))
+        push(group_list, vertex_groups(geometry));
+    return group_list;
 }
 
 int
