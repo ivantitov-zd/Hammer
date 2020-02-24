@@ -125,6 +125,9 @@ def fixGroupName(group_name, strip=False):
     return new_group_name
 
 
+fixAttribName = fixGroupName
+
+
 def supportDataTypeAndSize(attrib_class):
     def decorator(func, attrib_class=attrib_class):
         def wrapper(node_or_geo, attrib_data_types=AllDataTypes, attrib_data_size=AnyDataSize, attrib_class=attrib_class):
@@ -220,6 +223,7 @@ def attribClassFromParm(parm='class'):
         return Vertex
     elif value == 'detail' or value.startswith('global'):
         return Detail
+    return AllAttribClasses
 
 
 attribType = attribClassFromParm  # Todo: refactor in HDAs
