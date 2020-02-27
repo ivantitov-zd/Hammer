@@ -218,6 +218,19 @@ copy_group(const int geometry, geohandle;
     set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, src_state, mode);
 }
 
+void
+copy_group(const int geometry, geohandle;
+           const string src_group_type, dst_group_type;
+           const string src_group_name, dst_group_name;
+           const int src_elemnum1, src_elemnum2;
+           const int dst_elemnum1, dst_elemnum2;
+           const string mode;
+           const int invert)
+{
+    int src_state = invert - in_group(geometry, src_group_type, src_group_name, src_elemnum1, src_elemnum2);
+    set_group(geohandle, dst_group_type, dst_group_name, dst_elemnum1, dst_elemnum2, src_state, mode);
+}
+
 int
 is_valid_group_name(const string group_name)
 {
