@@ -5,6 +5,13 @@
         <scriptItem id="h.shelf.menu.hammer_edit_shelf_tools">
             <label>Edit Shelf Tools...</label>
             <insertAfter>edit_shelf</insertAfter>
+            <context>
+                <expression>
+                    from hammer_tools.settings import SettingsManager
+
+                    return SettingsManager.instance().value('hammer.shelf.edit_shelf_tools.enable')
+                </expression>
+            </context>
             <scriptCode>
 from hammer_tools.edit_shelf_tools import editShelf
 

@@ -31,7 +31,15 @@ DEFAULT_SETTINGS = {
 
     'hammer.audio.play.enable': True,
     'hammer.audio.play.use_external_player': True,
-    'hammer.audio.set_scene_audio.enable': True
+    'hammer.audio.set_scene_audio.enable': True,
+
+    'hammer.set_interpolation.enable': True,
+
+    'hammer.select_parm_value.select.enable': True,
+    'hammer.select_parm_value.select_font.enable': True,
+
+    'hammer.shelf.copy_tool.enable': True,
+    'hammer.shelf.edit_shelf_tools.enable': True
 }
 
 

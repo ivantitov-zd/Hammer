@@ -8,6 +8,11 @@
             <insertBefore />
             <context>
                 <expression>
+                    from hammer_tools.settings import SettingsManager
+
+                    if not SettingsManager.instance().value('hammer.select_parm_value.select.enable'):
+                        return 0
+
                     parm = kwargs['parms'][0]
                     template = parm.parmTemplate()
                     try:
@@ -37,6 +42,11 @@ selectAny(parm)
             <context>
                 <networkCategory>Sop,Cop2</networkCategory>
                 <expression>
+                    from hammer_tools.settings import SettingsManager
+
+                    if not SettingsManager.instance().value('hammer.select_parm_value.select_font.enable'):
+                        return 0
+
                     parm = kwargs['parms'][0]
                     if parm.name().lower() == 'font' or \
                        parm.description().lower() == 'font':
@@ -121,6 +131,11 @@ pu.chooseFileAndSetParm(parm)
             <insertBefore />
             <context>
                 <expression>
+                    from hammer_tools.settings import SettingsManager
+
+                    if not SettingsManager.instance().value('hammer.set_interpolation.enable'):
+                        return 0
+
                     parm = kwargs['parms'][0]
                     template = parm.parmTemplate()
                     if template.type() == hou.parmTemplateType.Ramp and \

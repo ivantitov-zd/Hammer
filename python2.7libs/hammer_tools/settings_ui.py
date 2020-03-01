@@ -261,6 +261,21 @@ SETTINGS_SCHEME = {
             ]
         },
         {
+            'name': 'Shelf',
+            'settings': [
+                {
+                    'name': 'Enable "Copy Tool"',
+                    'type': 'toggle',
+                    'key': 'hammer.shelf.copy_tool.enable'
+                },
+                {
+                    'name': 'Enable "Edit Shelf Tools"',
+                    'type': 'toggle',
+                    'key': 'hammer.shelf.edit_shelf_tools.enable'
+                }
+            ]
+        },
+        {
             'name': 'Misc',
             'settings': [
                 {
@@ -305,6 +320,21 @@ SETTINGS_SCHEME = {
                             'key': 'hammer.audio.set_scene_audio.enable'
                         }
                     ]
+                },
+                {
+                    'name': 'Enable "Set Interpolation"',
+                    'type': 'toggle',
+                    'key': 'hammer.set_interpolation.enable'
+                },
+                {
+                    'name': 'Enable "Select"',
+                    'type': 'toggle',
+                    'key': 'hammer.select_parm_value.select.enable'
+                },
+                {
+                    'name': 'Enable "Select Font"',
+                    'type': 'toggle',
+                    'key': 'hammer.select_parm_value.select_font.enable'
                 }
             ]
         }

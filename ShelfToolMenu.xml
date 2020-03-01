@@ -5,6 +5,13 @@
         <scriptItem id="h.shelf.menu.hammer_copy_shelf_tool">
             <label>Copy Tool to another Shelf...</label>
             <insertAfter>edit_tool</insertAfter>
+            <context>
+                <expression>
+                    from hammer_tools.settings import SettingsManager
+
+                    return SettingsManager.instance().value('hammer.shelf.copy_tool.enable')
+                </expression>
+            </context>
             <scriptCode>
 from hammer_tools.copy_tool import copyTool
 
