@@ -14,7 +14,7 @@ except ImportError:
 import hou
 
 from .quick_selection import FilterField, FuzzyListProxyModel
-from .soputils import edgeGroups, Primitive, Point, Edge, Vertex, groupTypeFromParm
+from .soputils import edgeGroupNames, Primitive, Point, Edge, Vertex, groupTypeFromParm
 
 
 class GroupItem:
@@ -53,7 +53,7 @@ class GroupListModel(QAbstractListModel):
             group_items.extend(GroupItem(group, Primitive, len(group.iterPrims())) for group in geo.primGroups())
             group_items.extend(GroupItem(group, Point, len(group.iterPoints())) for group in geo.pointGroups())
             group_items.extend(GroupItem(group, Vertex, len(group.iterVertices())) for group in geo.vertexGroups())
-            for edge_group_name in edgeGroups(geo):
+            for edge_group_name in edgeGroupNames(geo):
                 edge_group = geo.findEdgeGroup(edge_group_name)
                 group_items.append(GroupItem(edge_group, Edge, len(edge_group.iterEdges())))
             self.__data = tuple(group_items)
