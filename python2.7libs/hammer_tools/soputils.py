@@ -45,35 +45,47 @@ def forceTuple(func):
 
 
 @forceTuple
-def primitiveGroups(node_or_geo):
+def primitiveGroupNames(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'primitivegroups')
 
 
+primitiveGroups = primitiveGroupNames  # Todo: refactor in HDAs
+
+
 @forceTuple
-def pointGroups(node_or_geo):
+def pointGroupNames(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'pointgroups')
 
 
+pointGroups = pointGroupNames  # Todo: refactor in HDAs
+
+
 @forceTuple
-def edgeGroups(node_or_geo):
+def edgeGroupNames(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'edgegroups')
 
 
+edgeGroups = edgeGroupNames  # Todo: refactor in HDAs
+
+
 @forceTuple
-def vertexGroups(node_or_geo):
+def vertexGroupNames(node_or_geo):
     return readDetailIntrinsic(node_or_geo, 'vertexgroups')
+
+
+vertexGroups = vertexGroupNames  # Todo: refactor in HDAs
 
 
 def groups(node_or_geo, group_types=AllGroupTypes):
     group_list = []
     if group_types & Primitive:
-        group_list.extend(primitiveGroups(node_or_geo))
+        group_list.extend(primitiveGroupNames(node_or_geo))
     if group_types & Point:
-        group_list.extend(pointGroups(node_or_geo))
+        group_list.extend(pointGroupNames(node_or_geo))
     if group_types & Edge:
-        group_list.extend(edgeGroups(node_or_geo))
+        group_list.extend(edgeGroupNames(node_or_geo))
     if group_types & Vertex:
-        group_list.extend(vertexGroups(node_or_geo))
+        group_list.extend(vertexGroupNames(node_or_geo))
     return tuple(group_list)
 
 
