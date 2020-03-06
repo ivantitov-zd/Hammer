@@ -62,64 +62,68 @@ class ExploreSceneDialog(QDialog):
         main_layout.addSpacerItem(spacer)
 
     def saveOriginalSettingsToScene(self):
-        for item in allSceneItems(hou.root()):
-            if isinstance(item, hou.Node):
-                if not item.parent().isEditable():
-                    continue
-                if 'hammer_explore' in item.userDataDict():
-                    continue
-                data = {}
-                if item.isFlagWritable(hou.nodeFlag.Expose):
-                    data['expose'] = item.isGenericFlagSet(hou.nodeFlag.Expose)
-                if item.isFlagWritable(hou.nodeFlag.Display):
-                    data['display'] = item.isGenericFlagSet(hou.nodeFlag.Display)
-                if item.isFlagWritable(hou.nodeFlag.Template):
-                    data['template'] = item.isGenericFlagSet(hou.nodeFlag.Template)
-                if item.isFlagWritable(hou.nodeFlag.DisplayComment):
-                    data['display_comment'] = item.isGenericFlagSet(hou.nodeFlag.DisplayComment)
-                if item.isFlagWritable(hou.nodeFlag.DisplayDescriptiveName):
-                    data['display_descriptive_name'] = item.isGenericFlagSet(hou.nodeFlag.DisplayDescriptiveName)
-                item.setUserData('hammer_explore', json.dumps(data))
+        with hou.undos.disabler():
+            for item in allSceneItems(hou.root()):
+                if isinstance(item, hou.Node):
+                    if not item.parent().isEditable():
+                        continue
+                    if 'hammer_explore' in item.userDataDict():
+                        continue
+                    data = {}
+                    if item.isFlagWritable(hou.nodeFlag.Expose):
+                        data['expose'] = item.isGenericFlagSet(hou.nodeFlag.Expose)
+                    if item.isFlagWritable(hou.nodeFlag.Display):
+                        data['display'] = item.isGenericFlagSet(hou.nodeFlag.Display)
+                    if item.isFlagWritable(hou.nodeFlag.Template):
+                        data['template'] = item.isGenericFlagSet(hou.nodeFlag.Template)
+                    if item.isFlagWritable(hou.nodeFlag.DisplayComment):
+                        data['display_comment'] = item.isGenericFlagSet(hou.nodeFlag.DisplayComment)
+                    if item.isFlagWritable(hou.nodeFlag.DisplayDescriptiveName):
+                        data['display_descriptive_name'] = item.isGenericFlagSet(hou.nodeFlag.DisplayDescriptiveName)
+                    item.setUserData('hammer_explore', json.dumps(data))
 
     def restoreOriginalSettingsFromScene(self, remove_data=True):
-        for item in allSceneItems(hou.root()):
-            if isinstance(item, hou.Node):
-                if 'hammer_explore' not in item.userDataDict():
-                    continue
-                data = json.loads(item.userData('hammer_explore'))
-                if 'expose' in data:
-                    item.setGenericFlag(hou.nodeFlag.Expose, data.get('expose'))
-                if data.get('display'):
-                    item.setGenericFlag(hou.nodeFlag.Display, True)
-                if 'template' in data:
-                    item.setGenericFlag(hou.nodeFlag.Template, data.get('template'))
-                if 'display_comment' in data:
-                    item.setGenericFlag(hou.nodeFlag.DisplayComment, data.get('display_comment'))
-                if 'display_descriptive_name' in data:
-                    item.setGenericFlag(hou.nodeFlag.DisplayDescriptiveName, data.get('display_descriptive_name'))
+        with hou.undos.disabler():
+            for item in allSceneItems(hou.root()):
+                if isinstance(item, hou.Node):
+                    if 'hammer_explore' not in item.userDataDict():
+                        continue
+                    data = json.loads(item.userData('hammer_explore'))
+                    if 'expose' in data:
+                        item.setGenericFlag(hou.nodeFlag.Expose, data.get('expose'))
+                    if data.get('display'):
+                        item.setGenericFlag(hou.nodeFlag.Display, True)
+                    if 'template' in data:
+                        item.setGenericFlag(hou.nodeFlag.Template, data.get('template'))
+                    if 'display_comment' in data:
+                        item.setGenericFlag(hou.nodeFlag.DisplayComment, data.get('display_comment'))
+                    if 'display_descriptive_name' in data:
+                        item.setGenericFlag(hou.nodeFlag.DisplayDescriptiveName, data.get('display_descriptive_name'))
 
-                if remove_data:
-                    item.destroyUserData('hammer_explore')
+                    if remove_data:
+                        item.destroyUserData('hammer_explore')
 
     def applyCurrentSettings(self):
-        for item in allSceneItems(hou.root()):
-            if isinstance(item, hou.Node):
-                if item.isFlagWritable(hou.nodeFlag.DisplayComment):
-                    item.setGenericFlag(hou.nodeFlag.DisplayComment, self.show_all_comments_toggle.isChecked())
-            if item.isFlagWritable(hou.nodeFlag.DisplayDescriptiveName):
-                item.setGenericFlag(hou.nodeFlag.DisplayDescriptiveName, self.show_all_text_badges_toggle.isChecked())
+        with hou.undos.disabler():
+            for item in allSceneItems(hou.root()):
+                if isinstance(item, hou.Node):
+                    if item.isFlagWritable(hou.nodeFlag.DisplayComment):
+                        item.setGenericFlag(hou.nodeFlag.DisplayComment, self.show_all_comments_toggle.isChecked())
+                if item.isFlagWritable(hou.nodeFlag.DisplayDescriptiveName):
+                    item.setGenericFlag(hou.nodeFlag.DisplayDescriptiveName, self.show_all_text_badges_toggle.isChecked())
 
     def activateExploreMode(self, enable=True):
-        if enable:
-            self.saveOriginalSettingsToScene()
-            self.applyCurrentSettings()
-        else:
-            self.restoreOriginalSettingsFromScene()
-        self.activate_button.setDisabled(enable)
-        self.reset_button.setEnabled(enable)
-        self.show_all_comments_toggle.setEnabled(enable)
-        self.show_all_text_badges_toggle.setEnabled(enable)
-        self.hide_useless_nodes.setEnabled(enable)
+        with hou.undos.disabler():
+            if enable:
+                self.saveOriginalSettingsToScene()
+                self.applyCurrentSettings()
+            else:
+                self.restoreOriginalSettingsFromScene()
+            self.activate_button.setDisabled(enable)
+            self.reset_button.setEnabled(enable)
+            self.show_all_comments_toggle.setEnabled(enable)
+            self.show_all_text_badges_toggle.setEnabled(enable)
+            self.hide_useless_nodes.setEnabled(enable)
 
     @classmethod
     def explore(cls):
