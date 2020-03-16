@@ -385,6 +385,7 @@ class PreviousFiles(QDialog):
 
         # File list menu
         self.menu = QMenu()
+        self.menu.setStyleSheet(hou.qt.styleSheet())
 
         self.open_selected_file_action = QAction('Open', self)
         self.open_selected_file_action.triggered.connect(lambda: self.openSelectedFile())
