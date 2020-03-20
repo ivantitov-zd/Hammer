@@ -11,9 +11,11 @@ Int = 1
 Integer = Int
 Float = 2
 String = 4
-DataTypes = {hou.attribData.Int: Int,
-             hou.attribData.Float: Float,
-             hou.attribData.String: String}
+DataTypes = {
+    hou.attribData.Int: Int,
+    hou.attribData.Float: Float,
+    hou.attribData.String: String
+}
 AllDataTypes = Int | Float | String
 AnyDataSize = range(0, 65)
 
@@ -139,9 +141,11 @@ def fixGroupName(group_name, strip=False):
 
 fixAttribName = fixGroupName
 
+fixNodeName = fixGroupName
+
 
 def supportDataTypeAndSize(attrib_class):
-    def decorator(func, attrib_class=attrib_class):
+    def decorator(func):
         def wrapper(node_or_geo, attrib_data_types=AllDataTypes, attrib_data_size=AnyDataSize, attrib_class=attrib_class):
             attrib_names = func(node_or_geo)
             geo = node_or_geo
