@@ -18,7 +18,7 @@ instant()
 
 def afterUserInterface():
     if settings.value('hammer.previous_files.startup') and \
-            hou.hipFile.basename() == 'untitled.hip':
+            hou.hipFile.basename().startswith('untitled.hip'):
         showPreviousFiles()
 
 
