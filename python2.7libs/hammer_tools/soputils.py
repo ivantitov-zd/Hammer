@@ -123,6 +123,27 @@ def groupTypeFromParm(parm='grouptype'):
 groupType = groupTypeFromParm  # Todo: refactor in HDAs
 
 
+def groupTypeFromGeo(node_or_geo, name, input_index=None):
+    if isinstance(node_or_geo, hou.Node):
+        inputs = node_or_geo.inputs()
+        if input_index is not None and inputs and len(inputs) > input_index and inputs[input_index]:
+            node_or_geo = inputs[input_index]
+        geo = node_or_geo.geometry()
+        if geo:
+            return groupTypeFromGeo(geo, name)
+        else:
+            return
+    elif isinstance(node_or_geo, hou.Geometry):
+        if node_or_geo.findPrimGroup(name) is not None:
+            return Primitive
+        elif node_or_geo.findPointGroup(name) is not None:
+            return Point
+        elif node_or_geo.findEdgeGroup(name) is not None:
+            return Edge
+        elif node_or_geo.findVertexGroup(name) is not None:
+            return Vertex
+
+
 def fixGroupName(group_name, strip=False):
     if strip:
         group_name = group_name.strip()

@@ -14,7 +14,8 @@ except ImportError:
 import hou
 
 from .quick_selection import FilterField, FuzzyListProxyModel
-from .soputils import edgeGroupNames, Primitive, Point, Edge, Vertex, groupTypeFromParm
+from .soputils import (edgeGroupNames, Primitive, Point, Edge, Vertex,
+                       groupTypeFromParm, groupTypeFromGeo, AllGroupTypes)
 
 
 class GroupItem:
@@ -85,10 +86,12 @@ class GroupListView(QListView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
     def selectGroup(self, group, group_type, group_size):
+        self.selectionModel().blockSignals(True)
         model = self.model()
         indices = model.match(model.index(0, 0), Qt.DisplayRole, GroupItem(group, group_type, group_size).label)
         if indices:
             self.setCurrentIndex(indices[0])
+        self.selectionModel().blockSignals(False)
 
 
 class GroupListParms(QWidget):
@@ -128,6 +131,8 @@ class GroupListParms(QWidget):
         self.list_model.updateDataFromNode(self.__node)
         group_name = self.__node.parm('group').evalAsString()
         group_type = groupTypeFromParm(self.__node.parm('grouptype'))
+        if group_type == AllGroupTypes:
+            group_type = groupTypeFromGeo(self.__node, group_name)
         geo = self.__node.geometry()
         try:
             if group_type == Primitive:
