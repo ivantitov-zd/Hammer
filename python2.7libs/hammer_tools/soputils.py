@@ -302,10 +302,18 @@ def edgeCount(node_or_geo, input_index=None):
         else:
             return edgeCount(geo)
     elif isinstance(node_or_geo, hou.Geometry):
-        return node_or_geo.globEdges('*')
+        return len(node_or_geo.globEdges('*'))
     return 0
 
 
 def vertexCount(node_or_geo, input_index=None):
     count = readDetailIntrinsic(node_or_geo, 'vertexcount', input_index)
     return count if count else 0
+
+
+def elementCount(node_or_geo, input_index=None):
+    count = primitiveCount(node_or_geo, input_index)
+    count += pointCount(node_or_geo, input_index)
+    count += edgeCount(node_or_geo, input_index)
+    count += vertexCount(node_or_geo, input_index)
+    return count
