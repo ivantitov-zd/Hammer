@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import hdefereval
 import hou
 
 from hammer_tools.previous_files import setSessionWatcher, showPreviousFiles
@@ -23,4 +22,6 @@ def afterUserInterface():
 
 
 if hou.isUIAvailable():
+    import hdefereval
+
     hdefereval.executeDeferred(afterUserInterface)
