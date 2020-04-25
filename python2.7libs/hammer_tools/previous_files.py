@@ -62,7 +62,13 @@ class SessionWatcher:
 
         # First Start
         if settings.value('hammer.previous_files.first_start'):
-            importRecentFiles(self)
+            # noinspection PyTypeChecker
+            reply = QMessageBox.question(None, 'Hammer: Previous Files',
+                                         'Import recent files?',
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                importRecentFiles(self)
+
             settings.setValue('hammer.previous_files.first_start', False)
 
     def logEvent(self, filepath, event):
