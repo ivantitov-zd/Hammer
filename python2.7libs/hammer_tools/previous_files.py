@@ -24,6 +24,67 @@ from .settings import SettingsManager
 settings = SettingsManager.instance()
 
 
+def importRecentFiles(watcher):
+    try:
+        with open(os.path.join(hou.homeHoudiniDirectory(), 'file.history')) as file:
+            on_hip = False
+            in_block = False
+            for line in file:
+                if not on_hip and not in_block and line.startswith('HIP'):
+                    on_hip = True
+                elif on_hip:
+                    on_hip = False
+                    in_block = True
+                elif in_block and not line.startswith('}'):
+                    path = hou.expandString(line.strip(' \n'))
+                    watcher.logEvent(path, SessionWatcher.EventType.Save)
+                else:
+                    in_block = False
+    except IOError:
+        pass
+
+
+def importFromPreviousVersion(watcher):
+    import sys
+    import re
+
+    if sys.platform.startswith('win'):
+        DOC_PATH = os.path.expandvars(r'$HomePath\Documents')
+    else:
+        DOC_PATH = os.path.expandvars('$HOME')
+
+    houdini_folders = []
+    for item in os.listdir(DOC_PATH):
+        if re.match('houdini\d*\.\d*', item) and os.path.isdir(os.path.join(DOC_PATH, item)):
+            houdini_folders.append(item)
+    houdini_folders = tuple(reversed(sorted(houdini_folders)))
+
+    current_houdini_folder = os.path.basename(hou.getenv('HOUDINI_USER_PREF_DIR'))
+    try:
+        index = houdini_folders.index(current_houdini_folder)
+        houdini_folders = houdini_folders[index + 1:]
+        prev_houdini_folder = houdini_folders[0]
+    except ValueError:  # Non-default HOUDINI_USER_PREF_DIR
+        return
+    except IndexError:  # No previous Houdini folders found
+        return
+
+    prev_db_file_path = os.path.join(DOC_PATH, prev_houdini_folder, 'hammer_previous_files.db')
+    if not os.path.exists(prev_db_file_path):
+        return
+
+    prev_db = sqlite3.connect(prev_db_file_path)
+    prev_log = prev_db.cursor().execute('SELECT (folder.path || "/" || file.name || file.extension),'
+                                        ' log.event, log.timestamp FROM `log` '
+                                        'JOIN `file` ON log.file_id = file.id '
+                                        'JOIN `folder` ON file.folder_id = folder.id '
+                                        'GROUP BY log.file_id '
+                                        'ORDER BY log.id DESC;').fetchall()
+
+    for file_path, event, timestamp in prev_log:
+        watcher.logEvent(path, event, timestamp)
+
+
 def createDatabase(filepath):
     db = sqlite3.connect(filepath)
 
@@ -64,6 +125,13 @@ class SessionWatcher:
         if settings.value('hammer.previous_files.first_start'):
             # noinspection PyTypeChecker
             reply = QMessageBox.question(None, 'Hammer: Previous Files',
+                                         'Import database from previous version?',
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                importFromPreviousVersion(self)
+
+            # noinspection PyTypeChecker
+            reply = QMessageBox.question(None, 'Hammer: Previous Files',
                                          'Import recent files?',
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
@@ -71,7 +139,7 @@ class SessionWatcher:
 
             settings.setValue('hammer.previous_files.first_start', False)
 
-    def logEvent(self, filepath, event):
+    def logEvent(self, filepath, event, timestamp=None):
         query = self.db.cursor()
         location, fullname = os.path.split(filepath)
         name, extension = os.path.splitext(fullname)
@@ -96,8 +164,12 @@ class SessionWatcher:
         else:
             rowid = r[0]
         # Add event to log
-        query.execute('INSERT INTO `log` (`file_id`, `event`, `timestamp`) VALUES (?, ?, datetime("now", "localtime"));',
-                      (rowid, event))
+        if timestamp:
+            query.execute('INSERT INTO `log` (`file_id`, `event`, `timestamp`) VALUES (?, ?, ?);',
+                          (rowid, event, timestamp))
+        else:
+            query.execute('INSERT INTO `log` (`file_id`, `event`, `timestamp`) VALUES (?, ?, datetime("now", "localtime"));',
+                          (rowid, event))
         self.db.commit()
 
     def __call__(self, event_type):
@@ -113,26 +185,6 @@ def setSessionWatcher():
     if not hasattr(hou.session, 'hammer_session_watcher'):
         hou.session.hammer_session_watcher = SessionWatcher()
         hou.hipFile.addEventCallback(hou.session.hammer_session_watcher)
-
-
-def importRecentFiles(watcher):
-    try:
-        with open(os.path.join(hou.homeHoudiniDirectory(), 'file.history')) as file:
-            on_hip = False
-            in_block = False
-            for line in file:
-                if not on_hip and not in_block and line.startswith('HIP'):
-                    on_hip = True
-                elif on_hip:
-                    on_hip = False
-                    in_block = True
-                elif in_block and not line.startswith('}'):
-                    path = hou.expandString(line.strip(' \n'))
-                    watcher.logEvent(path, SessionWatcher.EventType.Save)
-                else:
-                    in_block = False
-    except IOError:
-        pass
 
 
 class FuzzyFilterProxyModel(QSortFilterProxyModel):
