@@ -2,23 +2,6 @@
 <menuDocument>
     <menu>
 
-        <addScriptItem id="opmenu.hammer_save_to_presets">
-            <label>To Presets...</label>
-            <parent>opmenu.save_menu</parent>
-            <insertAfter />
-            <context>
-                <expression>
-                    node = kwargs['node']
-                    return node.parent().isEditable() and len(node.parms()) > 0
-                </expression>
-            </context>
-            <scriptCode>
-from hammer_tools.presets import CreatePresetDialog
-
-CreatePresetDialog.createPresetFromNode(kwargs['node'])
-            </scriptCode>
-        </addScriptItem>
-
         <addScriptItem id="opmenu.hammer_play_audio">
             <label>Play Audio</label>
             <parent>opmenu.actions_menu</parent>
