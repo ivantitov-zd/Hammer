@@ -49,9 +49,9 @@ def importFromPreviousVersion(watcher):
     import re
 
     if sys.platform.startswith('win'):
-        DOC_PATH = os.path.expandvars(r'$HomePath\Documents')
+        DOC_PATH = os.path.dirname(hou.expandString('$HOUDINI_USER_PREF_DIR'))
     else:
-        DOC_PATH = os.path.expandvars('$HOME')
+        DOC_PATH = hou.expandString('$HOME')
 
     houdini_folders = []
     for item in os.listdir(DOC_PATH):
