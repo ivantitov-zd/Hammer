@@ -48,10 +48,7 @@ def importFromPreviousVersion(watcher):
     import sys
     import re
 
-    if sys.platform.startswith('win'):
-        DOC_PATH = os.path.dirname(hou.expandString('$HOUDINI_USER_PREF_DIR'))
-    else:
-        DOC_PATH = hou.expandString('$HOME')
+    DOC_PATH = os.path.dirname(hou.expandString('$HOUDINI_USER_PREF_DIR'))
 
     houdini_folders = []
     for item in os.listdir(DOC_PATH):
@@ -125,7 +122,7 @@ class SessionWatcher:
         if settings.value('hammer.previous_files.first_start'):
             # noinspection PyTypeChecker
             reply = QMessageBox.question(None, 'Hammer: Previous Files',
-                                         'Import database from previous version?',
+                                         'Import database from previous Houdini version?',
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 importFromPreviousVersion(self)
