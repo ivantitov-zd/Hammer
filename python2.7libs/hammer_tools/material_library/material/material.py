@@ -128,6 +128,25 @@ class Material(object):
     def isFavorite(self):
         return self._favorite
 
+    def markAsFavorite(self, state=True, external_connection=None):
+        if self._id is None:
+            self._favorite = state
+            return
+
+        if external_connection is None:
+            connection = connect()
+        else:
+            connection = external_connection
+
+        connection.execute('UPDATE material SET favorite = :state WHERE id = :material_id',
+                           {'state': state, 'material_id': self._id})
+
+        self._favorite = state
+
+        if external_connection is None:
+            connection.commit()
+            connection.close()
+
     def thumbnail(self):
         if self._thumbnail:
             return self._thumbnail

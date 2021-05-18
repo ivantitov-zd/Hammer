@@ -141,7 +141,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.set_custom_material_thumbnail_action = None
         self.open_material_location_action = None
         self.material_textures_action = None
-        self.add_to_favorites_action = None
+        self.mark_material_as_favorite_action = None
         self.edit_material_action = None
         self.remove_material_action = None
         self.material_menu = None
@@ -200,7 +200,8 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_textures_action = QAction('Textures...', self)
         self.material_textures_action.triggered.connect(self.onMaterialTextures)
 
-        self.add_to_favorites_action = QAction('Add to favorites...', self)
+        self.mark_material_as_favorite_action = QAction('Mark as favorite...', self)
+        self.mark_material_as_favorite_action.triggered.connect(self.onMarkMaterialAsFavorite)
 
         self.edit_material_action = QAction('Edit...', self)
 
@@ -266,7 +267,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_menu.addAction(self.open_material_location_action)
         self.material_menu.addAction(self.material_textures_action)
         self.material_menu.addSeparator()
-        self.material_menu.addAction(self.add_to_favorites_action)
+        self.material_menu.addAction(self.mark_material_as_favorite_action)
         self.material_menu.addAction(self.edit_material_action)
         self.material_menu.addAction(self.remove_material_action)
 
@@ -381,6 +382,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
         library.remove(remove_materials=window.removeMaterials(),
                        only_single_bound_materials=window.onlySingleBoundMaterials())
 
+        self.updateContent()
+
+    def onMarkMaterialAsFavorite(self):
+        index = self.library_browser.view.currentIndex()
+        material = index.data(InternalDataRole)
+        material.markAsFavorite(not material.isFavorite())
         self.updateContent()
 
     def onRemoveMaterial(self):
