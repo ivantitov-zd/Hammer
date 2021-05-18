@@ -200,7 +200,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_textures_action = QAction('Textures...', self)
         self.material_textures_action.triggered.connect(self.onMaterialTextures)
 
-        self.mark_material_as_favorite_action = QAction('Mark as favorite...', self)
+        self.mark_material_as_favorite_action = QAction('Mark as favorite', self)
         self.mark_material_as_favorite_action.triggered.connect(self.onMarkMaterialAsFavorite)
 
         self.edit_material_action = QAction('Edit...', self)
