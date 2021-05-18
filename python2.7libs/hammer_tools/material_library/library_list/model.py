@@ -5,6 +5,7 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
+from ..data_roles import InternalDataRole
 from ..library import Library, AllLibrary, UnboundLibrary
 
 
@@ -33,7 +34,7 @@ class LibraryListModel(QAbstractListModel):
         if not index.isValid():
             return
 
-        if role == Qt.UserRole:
+        if role == InternalDataRole:
             return index.internalPointer()
 
         if role == Qt.DisplayRole:

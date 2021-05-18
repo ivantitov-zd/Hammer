@@ -38,5 +38,8 @@ class LibraryBrowser(QWidget):
     def updateContent(self):
         self.model.updateMaterialList()
 
+    def library(self):
+        return self.view.library()
+
     def setLibrary(self, library):
         self.view.setLibrary(library)

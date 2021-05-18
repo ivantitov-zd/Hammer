@@ -5,7 +5,7 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
-from .library_browser.model import FavoriteRole
+from .data_roles import FavoriteRole
 
 
 class MaterialLibraryListProxyModel(QSortFilterProxyModel):

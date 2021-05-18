@@ -12,12 +12,15 @@ except ImportError:
 import hou
 
 from ..utils import openLocation
+from .data_roles import InternalDataRole
 from .engine_connector import EngineConnector
 from .library_list import LibraryListBrowser
 from .library_browser import LibraryBrowser
 from .add_library_window import AddLibraryDialog
 from .add_materials_window import AddMaterialsDialog
 from .texture_list import TextureListBrowser
+from .remove_library_window import RemoveLibraryWindow
+from .remove_material_window import RemoveMaterialWindow
 
 FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 16, 16)
 FAVORITE_DISABLED_ICON = hou.qt.Icon('BUTTONS_not_favorites', 16, 16)
@@ -129,7 +132,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.open_library_location_action = None
         self.assemble_library_action = None
         self.edit_library_action = None
-        self.delete_library_action = None
+        self.remove_library_action = None
         self.library_menu = None
 
         self.create_material_action = None
@@ -140,7 +143,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_textures_action = None
         self.add_to_favorites_action = None
         self.edit_material_action = None
-        self.delete_material_action = None
+        self.remove_material_action = None
         self.material_menu = None
 
         self.createActions()
@@ -179,7 +182,8 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
         self.edit_library_action = QAction('Edit...', self)
 
-        self.delete_library_action = QAction('Delete...', self)
+        self.remove_library_action = QAction('Remove...', self)
+        self.remove_library_action.triggered.connect(self.onRemoveLibrary)
 
         self.create_material_action = QAction('Create material', self)
         self.create_material_action.triggered.connect(self.createMaterial)
@@ -200,7 +204,8 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
         self.edit_material_action = QAction('Edit...', self)
 
-        self.delete_material_action = QAction('Delete...', self)
+        self.remove_material_action = QAction('Remove...', self)
+        self.remove_material_action.triggered.connect(self.onRemoveMaterial)
 
     def createMainMenu(self):
         self.main_menu = QMenu('Main', self)
@@ -235,13 +240,13 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.library_menu.addAction(self.assemble_library_action)
         self.library_menu.addSeparator()
         self.library_menu.addAction(self.edit_library_action)
-        self.library_menu.addAction(self.delete_library_action)
+        self.library_menu.addAction(self.remove_library_action)
 
     def updateLibraryContextMenu(self):
         pass
 
     def onLibraryContextMenuRequested(self):
-        if not self.library_list_browser.view.selectedIndexes():
+        if len(self.library_list_browser.view.selectedIndexes()) != 1:
             return
 
         self.updateLibraryContextMenu()
@@ -263,13 +268,13 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.add_to_favorites_action)
         self.material_menu.addAction(self.edit_material_action)
-        self.material_menu.addAction(self.delete_material_action)
+        self.material_menu.addAction(self.remove_material_action)
 
     def updateMaterialContextMenu(self):
         pass
 
     def onMaterialContextMenuRequested(self):
-        if not self.library_browser.view.selectedIndexes():
+        if len(self.library_browser.view.selectedIndexes()) != 1:
             return
 
         self.updateMaterialContextMenu()
@@ -343,30 +348,53 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.library_browser.view.setIconSize(QSize(size, size))
 
     def openCurrentLibraryLocation(self):
-        library = self.library_list_browser.view.currentIndex().data(Qt.UserRole)
+        library = self.library_list_browser.view.currentIndex().data(InternalDataRole)
         if library.path():
             openLocation(library.path())
 
     def createMaterial(self):
-        material = self.library_browser.view.currentIndex().data(Qt.UserRole)
+        material = self.library_browser.view.currentIndex().data(InternalDataRole)
         builder = self.target_builder_combo.currentData(Qt.UserRole)
         root = self.target_network_combo.currentData(Qt.UserRole)
         material_node = builder.build(material, root)
         material_node.moveToGoodPosition()
 
     def openCurrentMaterialLocation(self):
-        material = self.library_browser.view.currentIndex().data(Qt.UserRole)
+        material = self.library_browser.view.currentIndex().data(InternalDataRole)
         if material.source().path():
             openLocation(material.source().path())
 
     def onMaterialTextures(self):
-        material = self.library_browser.view.currentIndex().data(Qt.UserRole)
+        material = self.library_browser.view.currentIndex().data(InternalDataRole)
         window = TextureListBrowser(self)
         window.model.setTextureList(material.textures())
         window.show()
 
-    def onDeleteLibrary(self):
-        pass
+    def onRemoveLibrary(self):
+        library = self.library_list_browser.view.currentIndex().data(InternalDataRole)
 
-    def onDeleteMaterial(self):
-        pass
+        window = RemoveLibraryWindow(library)
+
+        if not window.exec_():
+            return
+
+        library.remove(remove_materials=window.removeMaterials(),
+                       only_single_bound_materials=window.onlySingleBoundMaterials())
+
+        self.updateContent()
+
+    def onRemoveMaterial(self):
+        material = self.library_browser.view.currentIndex().data(InternalDataRole)
+        library = self.library_browser.library()
+
+        window = RemoveMaterialWindow(material, library)
+
+        if not window.exec_():
+            return
+
+        if window.onlyFromLibrary():
+            library.removeMaterial(material)
+        else:
+            material.remove()
+
+        self.updateContent()

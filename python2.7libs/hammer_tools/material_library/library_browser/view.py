@@ -28,6 +28,9 @@ class LibraryView(QListView):
 
         self.setItemDelegate(MaterialDelegate())
 
+    def library(self):
+        return self.model().library()
+
     def setLibrary(self, library):
         self.model().setLibrary(library)
 

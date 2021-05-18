@@ -20,4 +20,5 @@ def connect():
     connection = sqlite3.connect(DB_FILE_PATH,
                                  detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     connection.row_factory = RowFactory
+    connection.execute('PRAGMA foreign_keys = ON')
     return connection

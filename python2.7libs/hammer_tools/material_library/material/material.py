@@ -166,7 +166,7 @@ class Material(object):
     def textures(self):
         return self.source().textures()
 
-    def delete(self, external_connection=None):
+    def remove(self, external_connection=None):
         if self._id is None:
             return
 
@@ -176,8 +176,10 @@ class Material(object):
             connection = external_connection
 
         connection.execute('DELETE FROM material '
-                           'WHERE material_id = :material_id',
+                           'WHERE id = :material_id',
                            {'material_id': self._id})
+
+        self._id = None
 
         if external_connection is None:
             connection.commit()

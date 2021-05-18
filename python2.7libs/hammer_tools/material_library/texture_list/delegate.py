@@ -7,6 +7,7 @@ except ImportError:
     from PySide2.QtCore import Qt, QSize, QRect, QPoint
     from PySide2.QtGui import QColor
 
+from ..data_roles import InternalDataRole
 from ..texture_map import MapType
 
 MARGIN_SIZE = 4
@@ -22,7 +23,7 @@ class TextureDelegate(QStyledItemDelegate):
         # option: QStyleOptionViewItem
         # index: QModelIndex
 
-        texture = index.data(Qt.UserRole)
+        texture = index.data(InternalDataRole)
 
         selected = option.state & QStyle.State_Selected
         if selected or option.state & QStyle.State_HasFocus:

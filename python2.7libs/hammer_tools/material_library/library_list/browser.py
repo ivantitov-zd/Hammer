@@ -7,6 +7,7 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
+from ..data_roles import InternalDataRole
 from ..library import Library
 from .model import LibraryListModel
 from .view import LibraryListView
@@ -34,4 +35,4 @@ class LibraryListBrowser(QWidget):
         self.model.updateLibraryList()
 
     def emitCurrentLibraryChanged(self, index):
-        self.currentLibraryChanged.emit(index.data(Qt.UserRole))
+        self.currentLibraryChanged.emit(index.data(InternalDataRole))

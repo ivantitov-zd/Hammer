@@ -5,7 +5,7 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
-FavoriteRole = Qt.UserRole + 1
+from ..data_roles import InternalDataRole, FavoriteRole
 
 
 class MaterialLibraryModel(QAbstractListModel):
@@ -45,7 +45,7 @@ class MaterialLibraryModel(QAbstractListModel):
 
         material = index.internalPointer()
 
-        if role == Qt.UserRole:
+        if role == InternalDataRole:
             return material
 
         if role == Qt.DisplayRole:
@@ -60,4 +60,3 @@ class MaterialLibraryModel(QAbstractListModel):
             return
 
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled
-

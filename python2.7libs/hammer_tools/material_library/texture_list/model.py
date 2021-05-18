@@ -5,6 +5,8 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
+from ..data_roles import InternalDataRole
+
 
 class TextureListModel(QAbstractListModel):
     def __init__(self):
@@ -32,7 +34,7 @@ class TextureListModel(QAbstractListModel):
 
         texture = index.internalPointer()
 
-        if role == Qt.UserRole:
+        if role == InternalDataRole:
             return texture
 
         if role == Qt.DisplayRole:

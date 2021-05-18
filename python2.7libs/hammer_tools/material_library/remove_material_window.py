@@ -1,20 +1,21 @@
 try:
     from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QCheckBox, QFrame, QHBoxLayout, QSpacerItem, QSizePolicy,
-                                 QPushButton, QApplication)
+                                 QPushButton, QDialog)
     from PyQt5.QtCore import Qt
 except ImportError:
     from PySide2.QtWidgets import (QWidget, QVBoxLayout, QCheckBox, QFrame, QHBoxLayout, QSpacerItem, QSizePolicy,
-                                   QPushButton, QApplication)
+                                   QPushButton, QDialog)
     from PySide2.QtCore import Qt
 
 import hou
 
 
-class RemoveMaterialWindow(QWidget):
-    def __init__(self, library=None):
+class RemoveMaterialWindow(QDialog):
+    def __init__(self, material, library=None):
         super(RemoveMaterialWindow, self).__init__()
 
-        self.library = library
+        self._material = material
+        self._library = library
 
         self.updateWindowTitle()
         self.setWindowIcon(hou.qt.Icon('BUTTONS_material_exclude', 32, 32))
@@ -25,7 +26,11 @@ class RemoveMaterialWindow(QWidget):
         layout.setSpacing(4)
 
         self.remove_only_from_this_library_toggle = QCheckBox('Remove only from this library')
+        self.remove_only_from_this_library_toggle.setVisible(library is not None)
         layout.addWidget(self.remove_only_from_this_library_toggle)
+
+        spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
+        layout.addSpacerItem(spacer)
 
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -45,6 +50,10 @@ class RemoveMaterialWindow(QWidget):
 
     def updateWindowTitle(self):
         title = 'Hammer: Remove material'
-        if self.library is not None:
-            title += ' {}'.format(self.library.name())
+        title += ' "{}"'.format(self._material.name())
+        if self._library is not None:
+            title += ' from "{}"'.format(self._library.name())
         self.setWindowTitle(title)
+
+    def onlyFromLibrary(self):
+        return self.remove_only_from_this_library_toggle.isChecked()

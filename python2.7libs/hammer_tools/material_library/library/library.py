@@ -115,3 +115,31 @@ class Library(object):
         if external_connection is None:
             connection.commit()
             connection.close()
+
+    def remove(self, remove_materials=False, only_single_bound_materials=True, external_connection=None):
+        if self._id is None:
+            return
+
+        if external_connection is None:
+            connection = connect()
+        else:
+            connection = external_connection
+
+        if remove_materials:
+            if not only_single_bound_materials:
+                connection.execute('DELETE FROM material WHERE library_id = :library_id',
+                                   {'library_id': self._id})
+            else:
+                connection.execute('DELETE FROM material WHERE material.id IN ('
+                                   'SELECT material_id FROM material_library '
+                                   'GROUP BY material_id HAVING count(*) = 1 AND library_id = :library_id)',
+                                   {'library_id': self._id})
+
+        connection.execute('DELETE FROM library WHERE library.id = :library_id',
+                           {'library_id': self._id})
+
+        self._id = None
+
+        if external_connection is None:
+            connection.commit()
+            connection.close()

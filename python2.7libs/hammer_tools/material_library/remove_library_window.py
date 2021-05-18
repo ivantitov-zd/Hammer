@@ -1,20 +1,20 @@
 try:
     from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QCheckBox, QFrame, QHBoxLayout, QSpacerItem, QSizePolicy,
-                                 QPushButton, QApplication)
+                                 QPushButton, QDialog)
     from PyQt5.QtCore import Qt
 except ImportError:
     from PySide2.QtWidgets import (QWidget, QVBoxLayout, QCheckBox, QFrame, QHBoxLayout, QSpacerItem, QSizePolicy,
-                                   QPushButton, QApplication)
+                                   QPushButton, QDialog)
     from PySide2.QtCore import Qt
 
 import hou
 
 
-class RemoveLibraryWindow(QWidget):
+class RemoveLibraryWindow(QDialog):
     def __init__(self, library=None):
         super(RemoveLibraryWindow, self).__init__()
 
-        self.library = library
+        self._library = library
 
         self.updateWindowTitle()
         self.setWindowIcon(hou.qt.Icon('BUTTONS_material_exclude', 32, 32))
@@ -24,11 +24,17 @@ class RemoveLibraryWindow(QWidget):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
 
-        self.remove_bound_materials_toggle = QCheckBox('Remove bound materials')
-        layout.addWidget(self.remove_bound_materials_toggle)
+        self._remove_materials_toggle = QCheckBox('Remove bound materials')
+        layout.addWidget(self._remove_materials_toggle)
 
-        self.exclude_materials_bound_to_other_libraries_toggle = QCheckBox('Exclude materials bound to other libraries')
-        layout.addWidget(self.exclude_materials_bound_to_other_libraries_toggle)
+        self._remove_bound_only_to_current_toggle = QCheckBox('Single-bound materials only')
+        self._remove_bound_only_to_current_toggle.setDisabled(True)
+        self._remove_bound_only_to_current_toggle.setChecked(True)
+        self._remove_materials_toggle.toggled.connect(self._remove_bound_only_to_current_toggle.setEnabled)
+        layout.addWidget(self._remove_bound_only_to_current_toggle)
+
+        spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
+        layout.addSpacerItem(spacer)
 
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -42,12 +48,18 @@ class RemoveLibraryWindow(QWidget):
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Ignored)
         button_layout.addSpacerItem(spacer)
 
-        self.add_library_button = QPushButton('Remove')
-        self.add_library_button.clicked.connect(self.accept)
-        button_layout.addWidget(self.add_library_button)
+        self._add_library_button = QPushButton('Remove')
+        self._add_library_button.clicked.connect(self.accept)
+        button_layout.addWidget(self._add_library_button)
 
     def updateWindowTitle(self):
         title = 'Hammer: Remove material library'
-        if self.library is not None:
-            title += ' {}'.format(self.library.name())
+        if self._library is not None:
+            title += ' "{}"'.format(self._library.name())
         self.setWindowTitle(title)
+
+    def removeMaterials(self):
+        return self._remove_materials_toggle.isChecked()
+
+    def onlySingleBoundMaterials(self):
+        return self._remove_bound_only_to_current_toggle.isChecked()
