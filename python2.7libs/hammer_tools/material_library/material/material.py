@@ -79,14 +79,15 @@ class Material(object):
         return material
 
     @staticmethod
-    def addMaterialsFromFolder(path, naming_mode, library=None, comment=None, favorite=False, options=None):
-
+    def addMaterialsFromFolder(path, naming_mode, library=None, favorite=False, options=None):
         materials = []
         for root, _, files in os.walk(path):
             for file in files:
                 if TextureMap.mapType(file) not in (MapType.Unknown, MapType.Thumbnail):
                     mat = Material.fromData({
                         'name': os.path.basename(root),
+                        'favorite': favorite,
+                        'options': options,
                         'source_path': root
                     })
                     materials.append(mat)
