@@ -189,6 +189,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.create_material_action.triggered.connect(self.createMaterial)
 
         self.create_material_and_assign_action = QAction('Create material and assign', self)
+        self.create_material_and_assign_action.triggered.connect(self.createMaterialAndAssign)
 
         self.generate_material_thumbnail_action = QAction('Generate thumbnail...', self)
 
@@ -357,8 +358,20 @@ class MaterialLibraryViewerDialog(QMainWindow):
         material = self.library_browser.view.currentIndex().data(InternalDataRole)
         builder = self.target_builder_combo.currentData(Qt.UserRole)
         root = self.target_network_combo.currentData(Qt.UserRole)
+
         material_node = builder.build(material, root)
         material_node.moveToGoodPosition()
+
+        return material_node
+
+    def createMaterialAndAssign(self):
+        material_node = self.createMaterial()
+        selected_nodes = hou.selectedNodes()
+
+        if len(selected_nodes) != 1:
+            return
+
+        selected_nodes[0].parm('shop_materialpath').set(material_node.path())
 
     def openCurrentMaterialLocation(self):
         material = self.library_browser.view.currentIndex().data(InternalDataRole)
