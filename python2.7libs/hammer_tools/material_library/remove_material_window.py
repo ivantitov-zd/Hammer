@@ -26,6 +26,7 @@ class RemoveMaterialWindow(QDialog):
         layout.setSpacing(4)
 
         self.remove_only_from_this_library_toggle = QCheckBox('Remove only from this library')
+        self.remove_only_from_this_library_toggle.setChecked(True)
         self.remove_only_from_this_library_toggle.setVisible(library is not None)
         layout.addWidget(self.remove_only_from_this_library_toggle)
 
