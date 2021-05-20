@@ -61,9 +61,6 @@ class MaterialBuilder(object):
 
         return self.network_node or self.shader_node
 
-    def isAvailable(self):
-        return True
-
     def id(self):
         raise NotImplementedError
 

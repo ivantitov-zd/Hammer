@@ -30,6 +30,10 @@ class AddLibraryDialog(QDialog):
         self.library_name_field = QLineEdit()
         form_layout.addRow('Library name', self.library_name_field)
 
+        self.comment_edit = QTextEdit()
+        self.comment_edit.setAutoFillBackground(False)
+        form_layout.addRow('Comment', self.comment_edit)
+
         self.favorite_toggle = QCheckBox('Favorite')
         form_layout.addWidget(self.favorite_toggle)
 
@@ -59,6 +63,7 @@ class AddLibraryDialog(QDialog):
         if r:
             Library.addLibrary({
                 'name': window.library_name_field.text(),
+                'comment': window.comment_edit.toPlainText(),
                 'favorite': window.favorite_toggle.isChecked()
             })
         return r

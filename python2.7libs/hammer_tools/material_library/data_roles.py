@@ -5,3 +5,4 @@ except ImportError:
 
 InternalDataRole = Qt.UserRole + 10
 FavoriteRole = Qt.UserRole + 11
+CommentRole = Qt.UserRole + 12

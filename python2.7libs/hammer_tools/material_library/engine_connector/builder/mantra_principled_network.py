@@ -2,9 +2,6 @@ from .builder import MaterialBuilder
 
 
 class MantraPrincipledNetworkBuilder(MaterialBuilder):
-    def isAvailable(self):
-        return False
-
     def id(self):
         return 'mantra::principled_network'
 

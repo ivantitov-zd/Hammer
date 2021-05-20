@@ -23,19 +23,18 @@ class EngineConnector(object):
     def currentEngine():
         if EngineConnector.__current_engine is not None:
             return EngineConnector.__current_engine
-        else:
-            ipr_pane_tab = hou.ui.paneTabOfType(hou.paneTabType.IPRViewer)
 
-            if not ipr_pane_tab:
-                return
+        ipr_pane_tab = hou.ui.paneTabOfType(hou.paneTabType.IPRViewer)
+        if not ipr_pane_tab:
+            return
 
-            rop_node = ipr_pane_tab.ropNode()
-            if rop_node is None:
-                return
+        rop_node = ipr_pane_tab.ropNode()
+        if rop_node is None:
+            return
 
-            for engine in EngineConnector.__engines:
-                if engine.nodeTypeAssociatedWithEngine(rop_node.type()):
-                    return engine
+        for engine in EngineConnector.__engines:
+            if engine.isAvailable() and engine.nodeTypeAssociatedWithEngine(rop_node.type()):
+                return engine
 
     def isAvailable(self):
         raise NotImplementedError

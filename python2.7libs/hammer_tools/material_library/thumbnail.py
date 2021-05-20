@@ -9,16 +9,18 @@ except ImportError:
 import hou
 
 from .db.connect import connect
-from .material import Material
 from .engine_connector.builder import MantraPrincipledBuilder
 
-TEMP_THUMB_PATH = r'D:\opengl_thumbnails'
 
+class MaterialPreviewScene(object):
+    def __init__(self, engine=None):
+        self.engine = engine
 
-class ShadingScene(object):
-    def __init__(self):
         with hou.undos.disabler():
             self.obj_node = hou.node('/obj/')
+
+            self.env_node = self.obj_node.createNode('envlight')
+            self.env_node.parm('envmap').set('photo_studio_01_2k.rat')
 
             self.cam_node = self.obj_node.createNode('cam')
             self.cam_node.parmTuple('t').set((-0.4, 0, 0.7))
@@ -31,60 +33,74 @@ class ShadingScene(object):
             self.sphere_node.parm('type').set(5)  # Bezier prim type used for UV
             self.sphere_node.parm('scale').set(0.27)
 
-            self.output_node = self.sphere_node.createOutputNode('output')
-
             self.out_node = hou.node('/out/')
 
-            self.opengl_node = self.out_node.createNode('opengl')
-            # Scene tab
-            self.opengl_node.parm('camera').set(self.cam_node.path())
-            self.opengl_node.parm('tres').set(True)
-            self.opengl_node.parmTuple('res').set((256, 256))
-            # Output tab
-            self.opengl_node.parm('colorcorrect').set('lut_gamma')
-            self.opengl_node.parm('gamma').set(2.2)
-            # Display Options tab
-            self.opengl_node.parm('aamode').set('aa8')
-            self.opengl_node.parm('usehdr').set('fp32')
-            self.opengl_node.parm('hqlighting').set(True)
-            self.opengl_node.parm('lightsamples').set(64)
-            self.opengl_node.parm('shadows').set(False)
-            self.opengl_node.parm('reflection').set(True)
+            if self.engine is None:
+                self.render_node = self.out_node.createNode('opengl')
+                # Scene tab
+                self.render_node.parm('camera').set(self.cam_node.path())
+                self.render_node.parm('tres').set(True)
+                self.render_node.parmTuple('res').set((256, 256))
+                # Output tab
+                self.render_node.parm('colorcorrect').set('lut_gamma')
+                self.render_node.parm('gamma').set(2.2)
+                # Display Options tab
+                self.render_node.parm('aamode').set('aa8')
+                self.render_node.parm('usehdr').set('fp32')
+                self.render_node.parm('hqlighting').set(True)
+                self.render_node.parm('lightsamples').set(64)
+                self.render_node.parm('shadows').set(False)
+                self.render_node.parm('reflection').set(True)
+            else:
+                self.render_node = self.engine.createThumbnailRenderNode(self)
+
+    def setEnvironmentMap(self):
+        pass
+
+    def setGeometry(self):
+        pass
 
     def render(self, material):
         with hou.undos.disabler():
-            node = MantraPrincipledBuilder().build(material, '/mat/')
-            self.geo_node.parm('shop_materialpath').set(node.path())
             path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_mat_lib_thumb.png').replace('\\', '/')
-            self.opengl_node.parm('picture').set(path)
-            self.opengl_node.parm('hqlighting').set(node.parm('metallic_useTexture').eval())
-            self.opengl_node.parm('execute').pressButton()
+
+            if self.engine is None:
+                material_node = MantraPrincipledBuilder().build(material, '/mat/')
+                self.geo_node.parm('shop_materialpath').set(material_node.path())
+                self.render_node.parm('picture').set(path)
+                self.render_node.parm('hqlighting').set(material_node.parm('metallic_useTexture').eval())
+            else:
+                material_node = self.engine.builders()[0]().build(material, '/mat/')
+            self.render_node.parm('execute').pressButton()
             image = QImage(path)
-            node.destroy()
+            material_node.destroy()
             os.unlink(path)
         return image
 
     def destroy(self):
         try:
             with hou.undos.disabler():
-                self.opengl_node.destroy()
+                self.render_node.destroy()
+                self.env_node.destroy()
                 self.cam_node.destroy()
                 self.geo_node.destroy()
         except hou.ObjectWasDeleted:
             return
 
 
-def updateMaterialThumbnails():
-    scene = ShadingScene()
-    materials = Material.allMaterials()
-    connection = connect()
-    connection.execute('BEGIN')
-    for index, material in enumerate(materials):
+def updateMaterialThumbnails(materials, engine=None, external_connection=None):
+    scene = MaterialPreviewScene(engine)
+    if external_connection is None:
+        connection = connect()
+        connection.execute('BEGIN')
+    else:
+        connection = external_connection
+
+    for material in materials:
         material.addThumbnail(scene.render(material), None, connection)
-        if index % 20 == 0:
-            hou.hscript('glcache -c')
-        print(int((index + 1) / float(len(materials)) * 100))
+        hou.hscript('glcache -c')
     scene.destroy()
-    hou.hscript('glcache -c')
-    connection.commit()
-    connection.close()
+
+    if external_connection is None:
+        connection.commit()
+        connection.close()

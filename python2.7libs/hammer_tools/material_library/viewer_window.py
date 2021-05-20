@@ -21,6 +21,7 @@ from .add_materials_window import AddMaterialsDialog
 from .texture_list import TextureListBrowser
 from .remove_library_window import RemoveLibraryWindow
 from .remove_material_window import RemoveMaterialWindow
+from .generate_thumbnail_window import GenerateThumbnailWindow
 
 FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 16, 16)
 FAVORITE_DISABLED_ICON = hou.qt.Icon('BUTTONS_not_favorites', 16, 16)
@@ -192,6 +193,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.create_material_and_assign_action.triggered.connect(self.createMaterialAndAssign)
 
         self.generate_material_thumbnail_action = QAction('Generate thumbnail...', self)
+        self.generate_material_thumbnail_action.triggered.connect(self.generateMaterialThumbnail)
 
         self.set_custom_material_thumbnail_action = QAction('Set custom thumbnail...', self)
 
@@ -291,9 +293,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
             return
 
         for builder in engine.builders():
-            builder = builder()
-            if builder.isAvailable():
-                self.target_builder_combo.addItem(builder.name(), builder)
+            self.target_builder_combo.addItem(builder.name(), builder())
 
     def updateTargetNetworkList(self):
         self.target_network_combo.clear()
@@ -356,8 +356,26 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
     def createMaterial(self):
         material = self.library_browser.view.currentIndex().data(InternalDataRole)
+
         builder = self.target_builder_combo.currentData(Qt.UserRole)
+        if builder is None:
+            engine = EngineConnector.currentEngine()
+            if engine is None:
+                return
+
+            builder = engine.builders()[0]()
+        if builder is None:
+            return
+
         root = self.target_network_combo.currentData(Qt.UserRole)
+        if root is None:
+            selected_nodes = hou.selectedNodes()
+            if selected_nodes:
+                node = selected_nodes[0]
+                if node.childTypeCategory() == hou.vopNodeTypeCategory():
+                    root = node
+        if root is None:
+            root = hou.root().node('mat')
 
         material_node = builder.build(material, root)
         material_node.moveToGoodPosition()
@@ -373,6 +391,16 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
         selected_nodes[0].parm('shop_materialpath').set(material_node.path())
 
+    def generateMaterialThumbnail(self):
+        material = self.library_browser.view.currentIndex().data(InternalDataRole)
+
+        window = GenerateThumbnailWindow(material)
+
+        if not window.exec_():
+            return
+
+        # Todo
+
     def openCurrentMaterialLocation(self):
         material = self.library_browser.view.currentIndex().data(InternalDataRole)
         if material.source().path():
@@ -380,6 +408,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
     def onMaterialTextures(self):
         material = self.library_browser.view.currentIndex().data(InternalDataRole)
+
         window = TextureListBrowser(self)
         window.model.setTextureList(material.textures())
         window.show()
