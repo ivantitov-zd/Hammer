@@ -47,7 +47,8 @@ class Material(object):
             'favorite': self.isFavorite(),
             'options': self._options,
             'source_path': self._source_path,
-            'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail)) if self._thumbnail else None
+            'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail))
+            if self._thumbnail and self._thumbnail != MISSING_THUMBNAIL_ICON else None
         }
 
     @staticmethod
@@ -167,7 +168,7 @@ class Material(object):
                                   'WHERE id = :material_id',
                                   {'material_id': self.id()}).fetchone()
         connection.close()
-        if data is not None:
+        if data['image']:
             self._thumbnail = QIcon(QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png')))
         else:
             self._thumbnail = MISSING_THUMBNAIL_ICON
