@@ -1,5 +1,6 @@
 from ..db.connect import connect
 from ..material import Material, MaterialOptions
+from ..texture_map import TextureMap
 
 
 class Library(object):
@@ -144,11 +145,30 @@ class Library(object):
             connection.commit()
             connection.close()
 
-    def removeTexture(self, item, external_connection=None):
-        pass
+    def removeTexture(self, texture, external_connection=None):
+        if texture.id() is None:
+            return
+
+        if external_connection is None:
+            connection = connect()
+        else:
+            connection = external_connection
+
+        connection.execute('DELETE FROM texture_library '
+                           'WHERE texture_id = :texture_id AND library_id = :library_id',
+                           {'texture_id': texture.id(), 'library_id': self.id()})
+
+        if external_connection is None:
+            connection.commit()
+            connection.close()
 
     def removeItem(self, item, external_connection=None):
-        self.removeMaterial(item, external_connection)
+        if isinstance(item, Material):
+            self.removeMaterial(item, external_connection)
+        elif isinstance(item, TextureMap):
+            self.removeTexture(item, external_connection)
+        else:
+            raise TypeError
 
     def remove(self, remove_materials=False, only_single_bound_materials=True, external_connection=None):
         if self.id() is None:
@@ -161,7 +181,9 @@ class Library(object):
 
         if remove_materials:
             if not only_single_bound_materials:
-                connection.execute('DELETE FROM material WHERE library_id = :library_id',
+                connection.execute('DELETE FROM material WHERE id IN ('
+                                   'SELECT material_id FROM material_library '
+                                   'WHERE library_id = :library_id)',
                                    {'library_id': self.id()})
             else:
                 connection.execute('DELETE FROM material WHERE material.id IN ('

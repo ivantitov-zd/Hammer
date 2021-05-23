@@ -1,7 +1,3 @@
-from ..data_roles import InternalDataRole
-from ..material import Material
-from ..texture_map import TextureMap
-
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtCore import *
@@ -14,6 +10,9 @@ except ImportError:
 from ..proxy_model import MaterialLibraryListProxyModel
 from .model import MaterialLibraryModel
 from .view import LibraryView
+from ..data_roles import InternalDataRole
+from ..material import Material
+from ..texture_map import TextureMap
 
 
 class LibraryBrowser(QWidget):

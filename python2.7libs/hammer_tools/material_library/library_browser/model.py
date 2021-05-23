@@ -1,5 +1,3 @@
-from ..engine_connector import EngineConnector
-
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtCore import *
@@ -8,6 +6,7 @@ except ImportError:
     from PySide2.QtCore import *
 
 from ..data_roles import InternalDataRole, FavoriteRole
+from ..engine_connector import EngineConnector
 
 
 class MaterialLibraryModel(QAbstractListModel):
