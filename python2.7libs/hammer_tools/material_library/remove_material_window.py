@@ -10,14 +10,14 @@ except ImportError:
 import hou
 
 
-class RemoveMaterialWindow(QDialog):
-    def __init__(self, material, library=None):
-        super(RemoveMaterialWindow, self).__init__()
+class RemoveLibraryItemWindow(QDialog):
+    def __init__(self, items, library=None):
+        super(RemoveLibraryItemWindow, self).__init__()
 
-        self._material = material
+        self._items = items
         self._library = library
 
-        self.updateWindowTitle()
+        self.setWindowTitle('Hammer: Remove material')
         self.setWindowIcon(hou.qt.Icon('BUTTONS_material_exclude', 32, 32))
         self.resize(400, 300)
 
@@ -48,13 +48,6 @@ class RemoveMaterialWindow(QDialog):
         self.add_library_button = QPushButton('Remove')
         self.add_library_button.clicked.connect(self.accept)
         button_layout.addWidget(self.add_library_button)
-
-    def updateWindowTitle(self):
-        title = 'Hammer: Remove material'
-        title += ' "{}"'.format(self._material.name())
-        if self._library is not None:
-            title += ' from "{}"'.format(self._library.name())
-        self.setWindowTitle(title)
 
     def onlyFromLibrary(self):
         return self.remove_only_from_this_library_toggle.isChecked()

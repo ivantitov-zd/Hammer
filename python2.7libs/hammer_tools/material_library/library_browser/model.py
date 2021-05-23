@@ -1,3 +1,5 @@
+from ..engine_connector import EngineConnector
+
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtCore import *
@@ -51,7 +53,7 @@ class MaterialLibraryModel(QAbstractListModel):
         if role == Qt.DisplayRole:
             return material.name()
         elif role == Qt.DecorationRole:
-            return material.thumbnail()
+            return material.thumbnail(EngineConnector.currentEngine())
         elif role == FavoriteRole:
             return material.isFavorite()
 

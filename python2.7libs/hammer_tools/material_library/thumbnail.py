@@ -20,7 +20,8 @@ class MaterialPreviewScene(object):
             self.obj_node = hou.node('/obj/')
 
             self.env_node = self.obj_node.createNode('envlight')
-            self.env_node.parm('envmap').set('photo_studio_01_2k.rat')
+            self.env_node.parm('ry').set(190)
+            self.env_node.parm('env_map').set('photo_studio_01_2k.rat')
 
             self.cam_node = self.obj_node.createNode('cam')
             self.cam_node.parmTuple('t').set((-0.4, 0, 0.7))
@@ -54,27 +55,32 @@ class MaterialPreviewScene(object):
             else:
                 self.render_node = self.engine.createThumbnailRenderNode(self)
 
-    def setEnvironmentMap(self):
-        pass
-
-    def setGeometry(self):
-        pass
+    def setEnvironmentMap(self, path):
+        self.env_node.parm('env_map').set(path)
 
     def render(self, material):
         with hou.undos.disabler():
-            path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_mat_lib_thumb.png').replace('\\', '/')
+            image_path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_mat_lib_thumb.png')
+            image_path = image_path.replace('\\', '/')
 
             if self.engine is None:
                 material_node = MantraPrincipledBuilder().build(material, '/mat/')
                 self.geo_node.parm('shop_materialpath').set(material_node.path())
-                self.render_node.parm('picture').set(path)
+                self.render_node.parm('picture').set(image_path)
+
+                # Fix for metallic materials in 18.0
                 self.render_node.parm('hqlighting').set(material_node.parm('metallic_useTexture').eval())
             else:
                 material_node = self.engine.builders()[0]().build(material, '/mat/')
+
             self.render_node.parm('execute').pressButton()
-            image = QImage(path)
             material_node.destroy()
-            os.unlink(path)
+
+        if self.engine is None:
+            hou.hscript('glcache -c')
+
+        image = QImage(image_path)
+        os.remove(image_path)
         return image
 
     def destroy(self):
@@ -90,6 +96,7 @@ class MaterialPreviewScene(object):
 
 def updateMaterialThumbnails(materials, engine=None, external_connection=None):
     scene = MaterialPreviewScene(engine)
+
     if external_connection is None:
         connection = connect()
         connection.execute('BEGIN')
@@ -97,8 +104,8 @@ def updateMaterialThumbnails(materials, engine=None, external_connection=None):
         connection = external_connection
 
     for material in materials:
-        material.addThumbnail(scene.render(material), None, connection)
-        hou.hscript('glcache -c')
+        material.addThumbnail(scene.render(material), engine.id() if engine else None, connection)
+
     scene.destroy()
 
     if external_connection is None:

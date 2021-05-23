@@ -34,5 +34,11 @@ class LibraryListBrowser(QWidget):
     def updateContent(self):
         self.model.updateLibraryList()
 
+    def hasSelection(self):
+        return self.view.selectionModel().hasSelection()
+
+    def selectedLibraries(self):
+        return tuple(index.data(InternalDataRole) for index in self.view.selectedIndexes())
+
     def emitCurrentLibraryChanged(self, index):
         self.currentLibraryChanged.emit(index.data(InternalDataRole))

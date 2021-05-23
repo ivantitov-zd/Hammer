@@ -1,3 +1,7 @@
+from ..data_roles import InternalDataRole
+from ..material import Material
+from ..texture_map import TextureMap
+
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtCore import *
@@ -35,8 +39,35 @@ class LibraryBrowser(QWidget):
         self.view.setModel(self.proxy_model)
         main_layout.addWidget(self.view)
 
-    def updateContent(self):
+    def updateContent(self, preserve_selection=True):
         self.model.updateMaterialList()
+
+    def updateThumbnails(self):
+        self.model.dataChanged.emit(self.model.index(0, 0, QModelIndex()),
+                                    self.model.index(self.model.rowCount(QModelIndex()) - 1, 0, QModelIndex()),
+                                    (Qt.DecorationRole,))
+
+    def hasSelection(self):
+        return self.view.selectionModel().hasSelection()
+
+    def selectedMaterials(self):
+        items = []
+        for index in self.view.selectedIndexes():
+            item = index.data(InternalDataRole)
+            if isinstance(item, Material):
+                items.append(item)
+        return tuple(items)
+
+    def selectedTextures(self):
+        items = []
+        for index in self.view.selectedIndexes():
+            item = index.data(InternalDataRole)
+            if isinstance(item, TextureMap):
+                items.append(item)
+        return tuple(items)
+
+    def selectedItems(self):
+        return tuple(index.data(InternalDataRole) for index in self.view.selectedIndexes())
 
     def library(self):
         return self.view.library()

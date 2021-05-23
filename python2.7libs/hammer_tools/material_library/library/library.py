@@ -16,10 +16,10 @@ class Library(object):
 
     def asData(self):
         return {
-            'id': self._id,
-            'name': self._name,
-            'comment': self._comment,
-            'favorite': self._favorite,
+            'id': self.id(),
+            'name': self.name(),
+            'comment': self.comment(),
+            'favorite': self.isFavorite(),
             'options': self._options,
             'source_path': self._source_path
         }
@@ -57,6 +57,15 @@ class Library(object):
     def id(self):
         return self._id
 
+    def __eq__(self, other):
+        if isinstance(other, Library):
+            if self.id() and other.id():
+                return self.id() == other.id()
+            else:
+                pass  # Todo: Compare attributes
+        else:
+            return NotImplemented
+
     def name(self):
         return self._name
 
@@ -65,6 +74,25 @@ class Library(object):
 
     def isFavorite(self):
         return self._favorite
+
+    def markAsFavorite(self, state=True, external_connection=None):
+        if self.id() is None:
+            self._favorite = state
+            return
+
+        if external_connection is None:
+            connection = connect()
+        else:
+            connection = external_connection
+
+        connection.execute('UPDATE library SET favorite = :state WHERE id = :library_id',
+                           {'state': state, 'library_id': self.id()})
+
+        self._favorite = state
+
+        if external_connection is None:
+            connection.commit()
+            connection.close()
 
     def options(self):
         return MaterialOptions.fromData(self._options)
@@ -75,10 +103,10 @@ class Library(object):
     def materials(self):
         with connect() as connection:
             cursor = connection.cursor()
-            cursor.execute('SELECT * FROM material '
+            cursor.execute('SELECT id, name, comment, favorite, source_path FROM material '
                            'LEFT JOIN material_library ON material_library.material_id = material.id '
                            'WHERE material_library.library_id = :library_id',
-                           {'library_id': self._id})
+                           {'library_id': self.id()})
             return tuple(Material.fromData(data) for data in cursor.fetchall())
 
     def addMaterial(self, material, external_connection=None):
@@ -91,7 +119,7 @@ class Library(object):
             Material.addMaterial(material, external_connection)
 
         connection.execute('INSERT INTO material_library VALUES (:material_id, :library_id)',
-                           {'material_id': material.id(), 'library_id': self._id})
+                           {'material_id': material.id(), 'library_id': self.id()})
 
         if external_connection is None:
             connection.commit()
@@ -110,14 +138,20 @@ class Library(object):
 
         connection.execute('DELETE FROM material_library '
                            'WHERE material_id = :material_id AND library_id = :library_id',
-                           {'material_id': material.id(), 'library_id': self._id})
+                           {'material_id': material.id(), 'library_id': self.id()})
 
         if external_connection is None:
             connection.commit()
             connection.close()
 
+    def removeTexture(self, item, external_connection=None):
+        pass
+
+    def removeItem(self, item, external_connection=None):
+        self.removeMaterial(item, external_connection)
+
     def remove(self, remove_materials=False, only_single_bound_materials=True, external_connection=None):
-        if self._id is None:
+        if self.id() is None:
             return
 
         if external_connection is None:
@@ -128,15 +162,15 @@ class Library(object):
         if remove_materials:
             if not only_single_bound_materials:
                 connection.execute('DELETE FROM material WHERE library_id = :library_id',
-                                   {'library_id': self._id})
+                                   {'library_id': self.id()})
             else:
                 connection.execute('DELETE FROM material WHERE material.id IN ('
                                    'SELECT material_id FROM material_library '
                                    'GROUP BY material_id HAVING count(*) = 1 AND library_id = :library_id)',
-                                   {'library_id': self._id})
+                                   {'library_id': self.id()})
 
         connection.execute('DELETE FROM library WHERE library.id = :library_id',
-                           {'library_id': self._id})
+                           {'library_id': self.id()})
 
         self._id = None
 

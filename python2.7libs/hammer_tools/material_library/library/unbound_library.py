@@ -14,6 +14,6 @@ class UnboundLibrary(Library):
     def materials(self):
         with connect() as connection:
             cursor = connection.cursor()
-            cursor.execute('SELECT * FROM material '
+            cursor.execute('SELECT id, name, comment, favorite, source_path FROM material '
                            'WHERE material.id NOT IN (SELECT material_id FROM material_library)')
             return tuple(Material.fromData(data) for data in cursor.fetchall())

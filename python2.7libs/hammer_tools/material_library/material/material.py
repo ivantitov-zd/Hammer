@@ -37,16 +37,14 @@ class Material(object):
         mat._favorite = data.get('favorite', False)
         mat._options = data.get('options')
         mat._source_path = data['source_path'].replace('\\', '/')
-        image_data = data.get('thumbnail')
-        mat._thumbnail = QIcon(QPixmap.fromImage(QImage.fromData(bytes(image_data), 'png')))
         return mat
 
     def asData(self):
         return {
-            'id': self._id,
-            'name': self._name,
-            'comment': self._comment,
-            'favorite': self._favorite,
+            'id': self.id(),
+            'name': self.name(),
+            'comment': self.comment(),
+            'favorite': self.isFavorite(),
             'options': self._options,
             'source_path': self._source_path,
             'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail)) if self._thumbnail else None
@@ -55,8 +53,9 @@ class Material(object):
     @staticmethod
     def allMaterials():
         connection = connect()
-        cursor = connection.execute('SELECT * FROM material')
-        return tuple(Material.fromData(data) for data in cursor.fetchall())
+        materials_data = connection.execute('SELECT id, name, comment, favorite, source_path FROM material').fetchall()
+        connection.close()
+        return tuple(Material.fromData(data) for data in materials_data)
 
     @staticmethod
     def addMaterial(material, external_connection=None):
@@ -106,7 +105,7 @@ class Material(object):
         connection.commit()
         connection.close()
 
-        return materials
+        return tuple(materials)
 
     def __init__(self):
         self._id = None
@@ -116,9 +115,20 @@ class Material(object):
         self._options = None
         self._source_path = None
         self._thumbnail = None
+        self._thumbnail_engine_id = None
+        self._thumbnail_for_engine = None
 
     def id(self):
         return self._id
+
+    def __eq__(self, other):
+        if isinstance(other, Material):
+            if self.id() and other.id():
+                return self.id() == other.id()
+            else:
+                pass  # Todo: Compare attributes
+        else:
+            return NotImplemented
 
     def name(self):
         return self._name
@@ -130,7 +140,7 @@ class Material(object):
         return self._favorite
 
     def markAsFavorite(self, state=True, external_connection=None):
-        if self._id is None:
+        if self.id() is None:
             self._favorite = state
             return
 
@@ -140,7 +150,7 @@ class Material(object):
             connection = external_connection
 
         connection.execute('UPDATE material SET favorite = :state WHERE id = :material_id',
-                           {'state': state, 'material_id': self._id})
+                           {'state': state, 'material_id': self.id()})
 
         self._favorite = state
 
@@ -148,14 +158,43 @@ class Material(object):
             connection.commit()
             connection.close()
 
-    def thumbnail(self):
-        if self._thumbnail:
-            return self._thumbnail
+    def _loadDefaultThumbnail(self):
+        if self.id() is None:
+            return
+
+        connection = connect()
+        data = connection.execute('SELECT thumbnail AS image FROM material '
+                                  'WHERE id = :material_id',
+                                  {'material_id': self.id()}).fetchone()
+        connection.close()
+        if data is not None:
+            self._thumbnail = QIcon(QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png')))
         else:
-            return MISSING_THUMBNAIL_ICON
+            self._thumbnail = MISSING_THUMBNAIL_ICON
+
+    def thumbnail(self, engine=None):
+        if self.id() and engine:
+            if engine.id() != self._thumbnail_engine_id:
+                connection = connect()
+                data = connection.execute('SELECT image FROM material_thumbnail '
+                                          'WHERE material_id = :material_id AND engine_id = :engine_id',
+                                          {'material_id': self.id(), 'engine_id': engine.id()}).fetchone()
+                connection.close()
+                if data is not None:
+                    self._thumbnail_for_engine = QIcon(
+                        QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png'))
+                    )
+                    self._thumbnail_engine_id = engine.id()
+                    return self._thumbnail_for_engine
+            else:
+                return self._thumbnail_for_engine
+
+        if self._thumbnail is None:
+            self._loadDefaultThumbnail()
+        return self._thumbnail
 
     def addThumbnail(self, image, engine_id=None, external_connection=None):
-        if self._id is None:
+        if self.id() is None:
             self._thumbnail = image
             return
 
@@ -168,10 +207,10 @@ class Material(object):
 
         if engine_id is None:
             connection.execute('UPDATE material SET thumbnail = :image WHERE id = :id',
-                               {'id': self._id, 'image': image_data})
+                               {'id': self.id(), 'image': image_data})
         else:
             connection.execute('INSERT OR UPDATE INTO material VALUES (:material_id, :engine_id, :image)',
-                               {'material_id': self._id, 'engine_id': engine_id, 'image': image_data})
+                               {'material_id': self.id(), 'engine_id': engine_id, 'image': image_data})
 
         if external_connection is None:
             connection.commit()
@@ -187,7 +226,7 @@ class Material(object):
         return self.source().textures()
 
     def remove(self, external_connection=None):
-        if self._id is None:
+        if self.id() is None:
             return
 
         if external_connection is None:
@@ -197,7 +236,7 @@ class Material(object):
 
         connection.execute('DELETE FROM material '
                            'WHERE id = :material_id',
-                           {'material_id': self._id})
+                           {'material_id': self.id()})
 
         self._id = None
 

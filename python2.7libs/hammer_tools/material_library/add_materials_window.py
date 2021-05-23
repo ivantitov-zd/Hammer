@@ -9,6 +9,7 @@ import hou
 
 from .library import Library
 from .material import Material
+from .thumbnail import updateMaterialThumbnails
 
 
 class Target:
@@ -106,8 +107,12 @@ class AddMaterialsDialog(QDialog):
             elif target_mode == Target.ExistingLibrary:
                 library = window.existing_libraries_combo.currentData(Qt.UserRole)
 
-            Material.addMaterialsFromFolder(window.path_field.text(),
-                                            None,
-                                            library=library,
-                                            favorite=window.favorite_toggle.isChecked())
+            materials = Material.addMaterialsFromFolder(window.path_field.text(),
+                                                        None,
+                                                        library=library,
+                                                        favorite=window.favorite_toggle.isChecked())
+
+            if window.generate_thumbnails_toggle.isChecked():
+                updateMaterialThumbnails(materials)
+
         return r

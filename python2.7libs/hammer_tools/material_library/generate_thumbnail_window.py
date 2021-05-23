@@ -10,14 +10,14 @@ except ImportError:
 import hou
 
 
-class RemoveLibraryWindow(QDialog):
-    def __init__(self, library=None):
-        super(RemoveLibraryWindow, self).__init__()
+class GenerateThumbnailWindow(QDialog):
+    def __init__(self, material=None):
+        super(GenerateThumbnailWindow, self).__init__()
 
-        self._library = library
+        self._material = material
 
-        self.setWindowTitle('Hammer: Remove material library')
-        self.setWindowIcon(hou.qt.Icon('BUTTONS_material_exclude', 32, 32))
+        self.setWindowTitle('Hammer: Generate thumbnail')
+        self.setWindowIcon(hou.qt.Icon('NODEFLAGS_render', 32, 32))
         self.resize(400, 300)
 
         layout = QVBoxLayout(self)
@@ -48,7 +48,7 @@ class RemoveLibraryWindow(QDialog):
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Ignored)
         button_layout.addSpacerItem(spacer)
 
-        self._add_library_button = QPushButton('Remove')
+        self._add_library_button = QPushButton('Generate')
         self._add_library_button.clicked.connect(self.accept)
         button_layout.addWidget(self._add_library_button)
 
