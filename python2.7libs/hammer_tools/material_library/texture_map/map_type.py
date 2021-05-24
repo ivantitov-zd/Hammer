@@ -58,8 +58,8 @@ class MapType(object):
         }[map_type]
 
     @staticmethod
-    def tags():
-        if MapType.__tags is not None:
+    def tags(reload=False):
+        if MapType.__tags is not None and not reload:
             return MapType.__tags
 
         with connect() as connection:

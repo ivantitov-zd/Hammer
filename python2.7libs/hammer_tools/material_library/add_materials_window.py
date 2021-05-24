@@ -64,9 +64,9 @@ class AddMaterialsDialog(QDialog):
         )
         form_layout.addRow('Library', self.existing_libraries_combo)
 
-        self.material_name_source = QComboBox()
-        self.material_name_source.addItems(['Folder name', 'Common part of texture names'])
-        form_layout.addRow('Material name source', self.material_name_source)
+        # self.material_name_source = QComboBox()
+        # self.material_name_source.addItems(['Folder name', 'Common part of texture names'])
+        # form_layout.addRow('Material name source', self.material_name_source)
 
         self.favorite_toggle = QCheckBox('Favorite')
         form_layout.addWidget(self.favorite_toggle)

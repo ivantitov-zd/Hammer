@@ -12,7 +12,7 @@ except ImportError:
 import hou
 
 from ..utils import openLocation
-from ..widgets import Slider
+from ..widgets import Slider, InputField
 from .db import connect
 from .data_roles import InternalDataRole
 from .engine_connector import EngineConnector
@@ -79,7 +79,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Ignored)
         top_layout.addSpacerItem(spacer)
 
-        self.search_field = QLineEdit()
+        self.search_field = InputField()
         self.search_field.setFixedWidth(140)
         self.search_field.setPlaceholderText('Search...')
         top_layout.addWidget(self.search_field)
@@ -218,20 +218,20 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.remove_material_action.triggered.connect(self.onRemoveLibraryItem)
 
     def createMainMenu(self):
-        self.main_menu = QMenu('Main', self)
-        self.menuBar().addMenu(self.main_menu)
-
-        self.main_menu.addAction(self.open_settings_action)
+        # self.main_menu = QMenu('Main', self)
+        # self.menuBar().addMenu(self.main_menu)
+        #
+        # self.main_menu.addAction(self.open_settings_action)
 
         self.content_menu = QMenu('Content', self)
         self.menuBar().addMenu(self.content_menu)
 
         self.content_menu.addAction(self.add_library_action)
         self.content_menu.addSeparator()
-        self.content_menu.addAction(self.add_material_action)
+        # self.content_menu.addAction(self.add_material_action)
         self.content_menu.addAction(self.add_materials_action)
         self.content_menu.addSeparator()
-        self.content_menu.addAction(self.update_thumbnails_action)
+        # self.content_menu.addAction(self.update_thumbnails_action)
         self.content_menu.addAction(self.reload_action)
 
         # self.tags_menu = QMenu('Tags', self)
@@ -247,10 +247,10 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.library_menu.addAction(self.generate_library_thumbnails_action)
         self.library_menu.addSeparator()
         self.library_menu.addAction(self.open_library_location_action)
-        self.library_menu.addAction(self.assemble_library_action)
+        # self.library_menu.addAction(self.assemble_library_action)
         self.library_menu.addSeparator()
         # self.library_menu.addAction(self.mark_library_as_favorite_action)
-        self.library_menu.addAction(self.edit_library_action)
+        # self.library_menu.addAction(self.edit_library_action)
         self.library_menu.addAction(self.remove_library_action)
 
     def updateLibraryContextMenu(self):
@@ -272,13 +272,13 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_menu.addAction(self.create_material_and_assign_action)
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.generate_material_thumbnail_action)
-        self.material_menu.addAction(self.set_custom_material_thumbnail_action)
+        # self.material_menu.addAction(self.set_custom_material_thumbnail_action)
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.open_material_location_action)
-        self.material_menu.addAction(self.material_textures_action)
+        # self.material_menu.addAction(self.material_textures_action)
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.mark_item_as_favorite_action)
-        self.material_menu.addAction(self.edit_material_action)
+        # self.material_menu.addAction(self.edit_material_action)
         self.material_menu.addAction(self.remove_material_action)
 
     def updateMaterialContextMenu(self):

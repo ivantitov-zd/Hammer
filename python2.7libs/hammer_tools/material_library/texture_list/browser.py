@@ -27,5 +27,5 @@ class TextureListBrowser(QDialog):
         self.view.setModel(self.model)
         layout.addWidget(self.view)
 
-    def updateContent(self):
+    def reloadContent(self):
         self.model.updateLibraryList()
