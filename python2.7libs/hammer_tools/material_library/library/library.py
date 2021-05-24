@@ -1,4 +1,4 @@
-from ..db.connect import connect
+from ..db import connect
 from ..material import Material, MaterialOptions
 from ..texture_map import TextureMap
 
@@ -117,7 +117,7 @@ class Library(object):
             connection = external_connection
 
         if material.id() is None:
-            Material.addMaterial(material, external_connection)
+            Material.addMaterial(material, external_connection=connection)
 
         connection.execute('INSERT INTO material_library VALUES (:material_id, :library_id)',
                            {'material_id': material.id(), 'library_id': self.id()})
@@ -164,9 +164,9 @@ class Library(object):
 
     def removeItem(self, item, external_connection=None):
         if isinstance(item, Material):
-            self.removeMaterial(item, external_connection)
+            self.removeMaterial(item, external_connection=external_connection)
         elif isinstance(item, TextureMap):
-            self.removeTexture(item, external_connection)
+            self.removeTexture(item, external_connection=external_connection)
         else:
             raise TypeError
 

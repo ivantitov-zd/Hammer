@@ -1,4 +1,4 @@
-from ..db.connect import connect
+from ..db import connect
 from ..material import Material
 from .library import Library
 

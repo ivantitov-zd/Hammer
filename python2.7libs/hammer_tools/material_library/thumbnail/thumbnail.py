@@ -8,8 +8,8 @@ except ImportError:
 
 import hou
 
-from .db.connect import connect
-from .engine_connector.builder import MantraPrincipledBuilder
+from ..db import connect
+from ..engine_connector.builder import MantraPrincipledBuilder
 
 
 class MaterialPreviewScene(object):
@@ -94,8 +94,10 @@ class MaterialPreviewScene(object):
             return
 
 
-def updateMaterialThumbnails(materials, engine=None, external_connection=None):
+def updateMaterialThumbnails(materials, engine=None, hdri_path=None, external_connection=None):
     scene = MaterialPreviewScene(engine)
+    if hdri_path:
+        scene.setEnvironmentMap(hdri_path)
 
     if external_connection is None:
         connection = connect()
@@ -104,7 +106,7 @@ def updateMaterialThumbnails(materials, engine=None, external_connection=None):
         connection = external_connection
 
     for material in materials:
-        material.addThumbnail(scene.render(material), engine.id() if engine else None, connection)
+        material.addThumbnail(scene.render(material), engine.id() if engine else None, external_connection=connection)
 
     scene.destroy()
 

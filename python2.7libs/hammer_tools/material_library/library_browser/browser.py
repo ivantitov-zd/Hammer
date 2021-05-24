@@ -38,7 +38,7 @@ class LibraryBrowser(QWidget):
         self.view.setModel(self.proxy_model)
         main_layout.addWidget(self.view)
 
-    def updateContent(self, preserve_selection=True):
+    def reloadContent(self, preserve_selection=True):
         self.model.updateMaterialList()
 
     def updateThumbnails(self):

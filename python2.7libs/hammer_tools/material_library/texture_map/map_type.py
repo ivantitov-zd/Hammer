@@ -1,4 +1,4 @@
-from ..db.connect import connect
+from ..db import connect
 
 
 class MapType(object):

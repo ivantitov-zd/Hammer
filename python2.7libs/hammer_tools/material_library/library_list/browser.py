@@ -31,7 +31,7 @@ class LibraryListBrowser(QWidget):
         selection_model.currentChanged.connect(self.emitCurrentLibraryChanged)
         layout.addWidget(self.view)
 
-    def updateContent(self):
+    def reloadContent(self):
         self.model.updateLibraryList()
 
     def hasSelection(self):

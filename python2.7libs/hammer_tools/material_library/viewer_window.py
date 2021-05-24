@@ -1,5 +1,3 @@
-from .db.connect import connect
-
 try:
     from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit, QSpacerItem,
                                  QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView)
@@ -14,6 +12,8 @@ except ImportError:
 import hou
 
 from ..utils import openLocation
+from ..widgets import Slider
+from .db import connect
 from .data_roles import InternalDataRole
 from .engine_connector import EngineConnector
 from .library_list import LibraryListBrowser
@@ -24,7 +24,6 @@ from .texture_list import TextureListBrowser
 from .remove_library_window import RemoveLibraryWindow
 from .remove_material_window import RemoveLibraryItemWindow
 from .thumbnail import updateMaterialThumbnails
-from .generate_thumbnail_window import GenerateThumbnailWindow
 
 FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 16, 16)
 FAVORITE_DISABLED_ICON = hou.qt.Icon('BUTTONS_not_favorites', 16, 16)
@@ -92,7 +91,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.favorite_toggle.setIcon(FAVORITE_ICON)
         top_layout.addWidget(self.favorite_toggle)
 
-        self.thumbnail_size_slider = QSlider(Qt.Horizontal)
+        self.thumbnail_size_slider = Slider(Qt.Horizontal)
         self.thumbnail_size_slider.setFixedWidth(80)
         self.thumbnail_size_slider.setRange(48, 256)
         self.thumbnail_size_slider.setValue(64)
@@ -155,7 +154,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.createMaterialContextMenu()
 
         self.updateTargetNetworkList()
-        self.updateContent()
+        self.reloadContent()
 
         self.statusBar().setSizeGripEnabled(False)
 
@@ -163,7 +162,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.open_settings_action = QAction(hou.qt.Icon('LOP_rendersettings', 16, 16), 'Settings...', self)
 
         self.reload_action = QAction(hou.qt.Icon('NETVIEW_reload', 16, 16), 'Reload', self)
-        self.reload_action.triggered.connect(self.updateContent)
+        self.reload_action.triggered.connect(self.reloadContent)
 
         self.add_material_action = QAction(hou.qt.Icon('LOP_materiallibrary', 16, 16), 'Add material...', self)
 
@@ -178,6 +177,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.edit_tags_action = QAction(hou.qt.Icon('BUTTONS_tag', 16, 16), 'Edit tags', self)
 
         self.generate_library_thumbnails_action = QAction('Generate thumbnails...', self)
+        self.generate_library_thumbnails_action.triggered.connect(self.generateLibraryThumbnails)
 
         self.open_library_location_action = QAction('Open location...', self)
         self.open_library_location_action.triggered.connect(self.openCurrentLibraryLocation)
@@ -369,17 +369,17 @@ class MaterialLibraryViewerDialog(QMainWindow):
     def updateStatusBar(self):
         self.statusBar().showMessage('Selected: {}'.format(len(self.library_browser.view.selectedIndexes())))
 
-    def updateContent(self):
-        self.library_list_browser.updateContent()
-        self.library_browser.updateContent()
+    def reloadContent(self):
+        self.library_list_browser.reloadContent()
+        self.library_browser.reloadContent()
 
     def onAddLibrary(self):
         if AddLibraryDialog.addLibrary():
-            self.library_list_browser.updateContent()
+            self.library_list_browser.reloadContent()
 
     def onAddMaterials(self):
         if AddMaterialsDialog.addMaterials():
-            self.updateContent()
+            self.reloadContent()
 
     def updateThumbnailSizeSlider(self, size):
         self.thumbnail_size_slider.blockSignals(True)
@@ -430,9 +430,14 @@ class MaterialLibraryViewerDialog(QMainWindow):
         for mat_node, obj_node in zip(material_nodes, selected_nodes):
             obj_node.parm('shop_materialpath').set(mat_node.path())
 
+    def generateLibraryThumbnails(self):
+        materials = (mat for lib in self.library_list_browser.selectedLibraries() for mat in lib.materials())
+        updateMaterialThumbnails(materials)
+        self.library_browser.reloadContent(True)
+
     def generateMaterialThumbnail(self):
         updateMaterialThumbnails(self.library_browser.selectedMaterials())
-        self.library_browser.updateContent(True)
+        self.library_browser.reloadContent(True)
 
     def openCurrentMaterialLocation(self):
         material = self.library_browser.view.currentIndex().data(InternalDataRole)
@@ -441,7 +446,6 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
     def onMaterialTextures(self):
         material = self.library_browser.view.currentIndex().data(InternalDataRole)
-
         window = TextureListBrowser(self)
         window.model.setTextureList(material.textures())
         window.show()
@@ -460,40 +464,46 @@ class MaterialLibraryViewerDialog(QMainWindow):
                            external_connection=connection)
         connection.commit()
         connection.close()
-        self.library_list_browser.updateContent()
+        self.library_list_browser.reloadContent()
 
     def onMarkLibraryAsFavorite(self):
         connection = connect()
+        connection.execute('BEGIN')
         for library in self.library_browser.selectedItems():
-            library.markAsFavorite(not library.isFavorite(), connection)
+            library.markAsFavorite(not library.isFavorite(), external_connection=connection)
         connection.commit()
         connection.close()
-        self.library_list_browser.updateContent()
+        self.library_list_browser.reloadContent()
 
     def onMarkLibraryItemAsFavorite(self):
         connection = connect()
+        connection.execute('BEGIN')
         for item in self.library_browser.selectedItems():
-            item.markAsFavorite(not item.isFavorite(), connection)
+            item.markAsFavorite(not item.isFavorite(), external_connection=connection)
         connection.commit()
         connection.close()
-        self.library_browser.updateContent()
+        self.library_browser.reloadContent()
 
     def onRemoveLibraryItem(self):
         items = self.library_browser.selectedItems()
         library = self.library_browser.library()
 
         window = RemoveLibraryItemWindow(items, library)
-
         if not window.exec_():
             return
 
+        connection = connect()
+        connection.execute('BEGIN')
         if window.onlyFromLibrary():
-            library.removeItem(items)
+            for item in items:
+                library.removeItem(item, external_connection=connection)
         else:
             for item in items:
-                item.remove()
+                item.remove(external_connection=connection)
+        connection.commit()
+        connection.close()
 
-        self.library_browser.updateContent()
+        self.library_browser.reloadContent()
 
     def eventFilter(self, watched, event):
         if watched == self.target_network_combo:

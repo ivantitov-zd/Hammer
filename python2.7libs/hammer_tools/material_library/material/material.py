@@ -10,7 +10,7 @@ except ImportError:
 
 import hou
 
-from ..db.connect import connect
+from ..db import connect
 from ..texture_map import MapType, TextureMap
 from .material_options import MaterialOptions
 from .material_source import MaterialSource
@@ -98,10 +98,10 @@ class Material(object):
 
         if library is not None:
             for mat in materials:
-                library.addMaterial(mat, connection)
+                library.addMaterial(mat, external_connection=connection)
         else:
             for mat in materials:
-                Material.addMaterial(mat, connection)
+                Material.addMaterial(mat, external_connection=connection)
 
         connection.commit()
         connection.close()

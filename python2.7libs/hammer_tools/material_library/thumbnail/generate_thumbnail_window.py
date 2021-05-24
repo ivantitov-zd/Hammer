@@ -10,6 +10,9 @@ except ImportError:
 import hou
 
 
+# from ...widgets import FilePathField
+
+
 class GenerateThumbnailWindow(QDialog):
     def __init__(self, material=None):
         super(GenerateThumbnailWindow, self).__init__()
@@ -24,14 +27,25 @@ class GenerateThumbnailWindow(QDialog):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
 
-        self._remove_materials_toggle = QCheckBox('Remove bound materials')
-        layout.addWidget(self._remove_materials_toggle)
+        self._generate_default_thumbnail_toggle = QCheckBox('Generate default thumbnail (OpenGL)')
+        layout.addWidget(self._generate_default_thumbnail_toggle)
 
-        self._remove_bound_only_to_current_toggle = QCheckBox('Single-bound materials only')
-        self._remove_bound_only_to_current_toggle.setDisabled(True)
-        self._remove_bound_only_to_current_toggle.setChecked(True)
-        self._remove_materials_toggle.toggled.connect(self._remove_bound_only_to_current_toggle.setEnabled)
-        layout.addWidget(self._remove_bound_only_to_current_toggle)
+        # self._generate_thumbnails_for_engines_toggle = QCheckBox('Generate thumbnails for engines')
+        # layout.addWidget(self._generate_thumbnails_for_engines_toggle)
+        #
+        # self._engine_list = ()
+
+        # self._use_custom_geometry_toggle = QCheckBox('Use custom geometry')
+        # layout.addWidget(self._use_custom_geometry_toggle)
+        #
+        # self._custom_geometry_path_field = QLineEdit()
+        # layout.addWidget(self._custom_geometry_path_field)
+
+        # self._use_custom_hdri_toggle = QCheckBox('Use custom HDRI')
+        # layout.addWidget(self._use_custom_hdri_toggle)
+        #
+        # self._custom_hdri_path_field = FilePathField('$JOB', 'HDRI (*.hdr *.exr *.rat); All (*.*)')
+        # layout.addWidget(self._custom_hdri_path_field)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
         layout.addSpacerItem(spacer)
@@ -52,8 +66,20 @@ class GenerateThumbnailWindow(QDialog):
         self._add_library_button.clicked.connect(self.accept)
         button_layout.addWidget(self._add_library_button)
 
-    def removeMaterials(self):
-        return self._remove_materials_toggle.isChecked()
+    def generateDefault(self):
+        return self._generate_default_thumbnail_toggle.isChecked()
 
-    def onlySingleBoundMaterials(self):
-        return self._remove_bound_only_to_current_toggle.isChecked()
+    # def generateForEngines(self):
+    #     return self._generate_thumbnails_for_engines_toggle.isChecked()
+
+    # def useCustomGeometry(self):
+    #     return self._use_custom_geometry_toggle.isChecked()
+
+    # def customGeometry(self):
+    #     return self._custom_geometry_path_field
+
+    # def useCustomHDRI(self):
+    #     return self._use_custom_hdri_toggle.isChecked()
+
+    # def customHDRIPath(self):
+    #     return self._custom_hdri_path_field
