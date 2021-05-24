@@ -17,7 +17,9 @@ class MaterialPreviewScene(object):
         self.engine = engine
 
         with hou.undos.disabler():
-            self.obj_node = hou.node('/obj/')
+            self.out_node = hou.node('/out/')
+
+            self.obj_node = self.out_node.createNode('objnet')
 
             self.env_node = self.obj_node.createNode('envlight')
             self.env_node.parm('ry').set(190)
@@ -34,12 +36,11 @@ class MaterialPreviewScene(object):
             self.sphere_node.parm('type').set(5)  # Bezier prim type used for UV
             self.sphere_node.parm('scale').set(0.27)
 
-            self.out_node = hou.node('/out/')
-
             if self.engine is None:
                 self.render_node = self.out_node.createNode('opengl')
                 # Scene tab
                 self.render_node.parm('camera').set(self.cam_node.path())
+                self.render_node.parm('scenepath').set(self.obj_node.path())
                 self.render_node.parm('tres').set(True)
                 self.render_node.parmTuple('res').set((256, 256))
                 # Output tab
