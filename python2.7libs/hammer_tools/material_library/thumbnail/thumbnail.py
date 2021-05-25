@@ -88,9 +88,7 @@ class MaterialPreviewScene(object):
         try:
             with hou.undos.disabler():
                 self.render_node.destroy()
-                self.env_node.destroy()
-                self.cam_node.destroy()
-                self.geo_node.destroy()
+                self.obj_node.destroy()
         except hou.ObjectWasDeleted:
             return
 
