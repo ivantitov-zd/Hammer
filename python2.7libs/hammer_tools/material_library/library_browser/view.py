@@ -34,17 +34,17 @@ class LibraryView(QListView):
     def setLibrary(self, library):
         self.model().setLibrary(library)
 
+    def scrollToCurrent(self):
+        if self.currentIndex().isValid():
+            self.scrollTo(self.currentIndex(), QAbstractItemView.PositionAtCenter)
+
     def setIconSize(self, size):
         super(LibraryView, self).setIconSize(size)
+        self.scrollToCurrent()
 
-        index = None
-        if self.selectedIndexes():
-            index = self.selectedIndexes()[-1]
-        elif self.currentIndex().isValid():
-            index = self.currentIndex()
-
-        if index:
-            self.scrollTo(index, QAbstractItemView.PositionAtCenter)
+    def resizeEvent(self, event):
+        super(LibraryView, self).resizeEvent(event)
+        self.scrollToCurrent()
 
     def zoomIn(self, amount=8):
         size = min(self.iconSize().width() + amount, 256)
