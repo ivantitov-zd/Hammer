@@ -65,10 +65,10 @@ def fuzzyMatch(pattern, word):
     return True, weight
 
 
-def openLocation(path):
+def openLocation(path, select=False):
     new_path = os.path.normpath(path)
     path = None
-    if os.path.isfile(new_path):
+    if not select and os.path.isfile(new_path):
         new_path = os.path.dirname(new_path)
     while not os.path.exists(new_path) and path != new_path:
         path = new_path
@@ -77,6 +77,8 @@ def openLocation(path):
         if settings.value('hammer.open_location.use_custom_explorer') and \
                 settings.value('hammer.open_location.custom_explorer_path'):
             exe = hou.expandString(settings.value('hammer.open_location.custom_explorer_path'))
-            subprocess.Popen('{} "{}"'.format(exe, new_path))
+            subprocess.call('{} "{}"'.format(exe, new_path))
+        elif select:
+            subprocess.call('explorer /select,"{0}"'.format(new_path.replace('/', '\\')))
         else:
             os.startfile(new_path)
