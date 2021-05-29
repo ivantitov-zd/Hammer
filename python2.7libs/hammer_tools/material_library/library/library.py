@@ -102,13 +102,24 @@ class Library(object):
         return self._source_path
 
     def materials(self):
-        with connect() as connection:
-            cursor = connection.cursor()
-            cursor.execute('SELECT id, name, comment, favorite, source_path FROM material '
-                           'LEFT JOIN material_library ON material_library.material_id = material.id '
-                           'WHERE material_library.library_id = :library_id',
-                           {'library_id': self.id()})
-            return tuple(Material.fromData(data) for data in cursor.fetchall())
+        connection = connect()
+        materials_data = connection.execute('SELECT id, name, comment, favorite, source_path FROM material '
+                                            'LEFT JOIN material_library ON material_library.material_id = material.id '
+                                            'WHERE material_library.library_id = :library_id',
+                                            {'library_id': self.id()}).fetchall()
+        return tuple(Material.fromData(data) for data in materials_data)
+
+    def textures(self):
+        connection = connect()
+        textures_data = connection.execute('SELECT * FROM texture '
+                                           'LEFT JOIN texture_library ON texture_library.texture_id = texture.id '
+                                           'WHERE texture_library.library_id = :library_id',
+                                           {'library_id': self.id()}).fetchall()
+        connection.close()
+        return tuple(TextureMap.fromData(data) for data in textures_data)
+
+    def items(self):
+        return self.materials() + self.textures()
 
     def addMaterial(self, material, external_connection=None):
         if external_connection is None:
@@ -125,8 +136,32 @@ class Library(object):
         if external_connection is None:
             connection.commit()
             connection.close()
-
         return material
+
+    def addTextureMap(self, texture, external_connection=None):
+        if external_connection is None:
+            connection = connect()
+        else:
+            connection = external_connection
+
+        if texture.id() is None:
+            TextureMap.addTextureMap(texture, external_connection=connection)
+
+        connection.execute('INSERT INTO texture_library VALUES (:texture_id, :library_id)',
+                           {'texture_id': texture.id(), 'library_id': self.id()})
+
+        if external_connection is None:
+            connection.commit()
+            connection.close()
+        return texture
+
+    def addItem(self, item, external_connection=None):
+        if isinstance(item, Material):
+            self.addMaterial(item, external_connection=external_connection)
+        elif isinstance(item, TextureMap):
+            self.addTextureMap(item, external_connection=external_connection)
+        else:
+            raise TypeError
 
     def removeMaterial(self, material, external_connection=None):
         if material.id() is None:

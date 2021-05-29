@@ -1,1 +1,1 @@
-from .thumbnail import updateMaterialThumbnails, MaterialPreviewScene
+from .thumbnail import updateMaterialThumbnails, updateTextureThumbnails, MaterialPreviewScene

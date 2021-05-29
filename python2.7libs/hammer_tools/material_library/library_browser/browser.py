@@ -39,7 +39,7 @@ class LibraryBrowser(QWidget):
         main_layout.addWidget(self.view)
 
     def reloadContent(self, preserve_selection=True):
-        self.model.updateMaterialList()
+        self.model.updateItemList()
 
     def updateThumbnails(self):
         self.model.dataChanged.emit(self.model.index(0, 0, QModelIndex()),
@@ -48,6 +48,9 @@ class LibraryBrowser(QWidget):
 
     def hasSelection(self):
         return self.view.selectionModel().hasSelection()
+
+    def currentItem(self):
+        return self.view.currentIndex().data(InternalDataRole)
 
     def selectedMaterials(self):
         items = []

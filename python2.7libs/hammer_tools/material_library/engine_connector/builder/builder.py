@@ -16,7 +16,7 @@ class MaterialBuilder(object):
         self.shader_node = None
         self.current_map = None
 
-    def build(self, material, root, name=None):
+    def build(self, material, root, name=None, options=None):
         self.material = material
         self.material_name = '_'.join(splitAlphaNumeric(name or self.material.name()))
         if isinstance(root, hou.Node):
@@ -31,7 +31,7 @@ class MaterialBuilder(object):
 
         self.shader_node = self.createShader()
 
-        for tex_map in self.material.textures():
+        for tex_map in self.material.textureMaps():
             self.current_map = tex_map
             method = {
                 MapType.Unknown: lambda: None,

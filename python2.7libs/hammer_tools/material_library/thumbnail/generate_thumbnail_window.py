@@ -1,16 +1,16 @@
 try:
     from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QCheckBox, QFrame, QHBoxLayout, QSpacerItem, QSizePolicy,
-                                 QPushButton, QDialog)
+                                 QPushButton, QDialog, QListWidget, QListWidgetItem)
     from PyQt5.QtCore import Qt
 except ImportError:
     from PySide2.QtWidgets import (QWidget, QVBoxLayout, QCheckBox, QFrame, QHBoxLayout, QSpacerItem, QSizePolicy,
-                                   QPushButton, QDialog)
+                                   QPushButton, QDialog, QListWidget, QListWidgetItem)
     from PySide2.QtCore import Qt
 
 import hou
 
-
 # from ...widgets import FilePathField
+from ..engine_connector import EngineConnector
 
 
 class GenerateThumbnailWindow(QDialog):
@@ -30,10 +30,15 @@ class GenerateThumbnailWindow(QDialog):
         self._generate_default_thumbnail_toggle = QCheckBox('Generate default thumbnail (OpenGL)')
         layout.addWidget(self._generate_default_thumbnail_toggle)
 
-        # self._generate_thumbnails_for_engines_toggle = QCheckBox('Generate thumbnails for engines')
-        # layout.addWidget(self._generate_thumbnails_for_engines_toggle)
-        #
-        # self._engine_list = ()
+        self._generate_thumbnails_for_engines_toggle = QCheckBox('Generate thumbnails for engines')
+        layout.addWidget(self._generate_thumbnails_for_engines_toggle)
+
+        self._engine_list = QListWidget()
+        for engine in EngineConnector.engines():
+            item = QListWidgetItem(engine.icon(), engine.name())
+            item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable)
+            item.setData(Qt.UserRole, engine)
+            self._engine_list.addItem(item)
 
         # self._use_custom_geometry_toggle = QCheckBox('Use custom geometry')
         # layout.addWidget(self._use_custom_geometry_toggle)
@@ -69,8 +74,8 @@ class GenerateThumbnailWindow(QDialog):
     def generateDefault(self):
         return self._generate_default_thumbnail_toggle.isChecked()
 
-    # def generateForEngines(self):
-    #     return self._generate_thumbnails_for_engines_toggle.isChecked()
+    def generateForEngines(self):
+        return self._generate_thumbnails_for_engines_toggle.isChecked()
 
     # def useCustomGeometry(self):
     #     return self._use_custom_geometry_toggle.isChecked()

@@ -1,10 +1,13 @@
 import os
+import subprocess
 import tempfile
 
 try:
     from PyQt5.QtGui import QImage
+    from PyQt5.QtCore import Qt
 except ImportError:
     from PySide2.QtGui import QImage
+    from PySide2.QtCore import Qt
 
 import hou
 
@@ -108,6 +111,29 @@ def updateMaterialThumbnails(materials, engine=None, hdri_path=None, external_co
         material.addThumbnail(scene.render(material), engine.id() if engine else None, external_connection=connection)
 
     scene.destroy()
+
+    if external_connection is None:
+        connection.commit()
+        connection.close()
+
+
+def updateTextureThumbnails(textures, external_connection=None):
+    image_path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_mat_lib_tex_thumb.png')
+    image_path = image_path.replace('\\', '/')
+
+    if external_connection is None:
+        connection = connect()
+        connection.execute('BEGIN')
+    else:
+        connection = external_connection
+
+    for texture in textures:
+        if set(texture.formats()).intersection({'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'}):
+            image_path = texture.path()
+        else:
+            subprocess.call('iconvert -g off {} {}'.format(texture.path(), image_path))
+        image = QImage(image_path).scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        texture.addThumbnail(image, external_connection=connection)
 
     if external_connection is None:
         connection.commit()

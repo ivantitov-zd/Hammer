@@ -4,9 +4,19 @@ import os
 class TextureFormat(object):
     def __init__(self, name):
         name, ext = os.path.splitext(name)
-        if ext.lower() in ('.z', '.gz', '.sc', 'bz2'):
-            _, _ext = os.path.splitext(name)
-            ext = _ext + ext
+
+        if ext.lower() in ('.z', '.gz', '.sc', '.bz2'):
+            self._compression_ext = ext
+            _, ext = os.path.splitext(name)
+        else:
+            self._compression_ext = ''
+
+        if ext.lower().endswith(('nc', 'lc')):
+            self._license_ext = ext
+            ext = ext[:-2]
+        else:
+            self._license_ext = ''
+
         self._extension = ext.lstrip('.')
 
     def __eq__(self, other):
@@ -17,17 +27,8 @@ class TextureFormat(object):
         else:
             return NotImplemented
 
-    def __add__(self, other):
-        if isinstance(other, str):
-            return other + '.' + self._extension
-        else:
-            return NotImplemented
-
-    def __radd__(self, other):
-        if isinstance(other, str):
-            return other + '.' + self._extension
-        else:
-            return NotImplemented
-
     def __repr__(self):
-        return '.' + self._extension
+        return '.' + self._extension + self._license_ext + self._compression_ext
+
+    def __hash__(self):
+        return hash(self._extension)

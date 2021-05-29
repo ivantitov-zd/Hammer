@@ -7,9 +7,8 @@ except ImportError:
 
 import hou
 
+from ..widgets import FilePathField
 from .library import Library
-from .material import Material
-from .thumbnail import updateMaterialThumbnails
 
 
 class Target:
@@ -18,12 +17,12 @@ class Target:
     ExistingLibrary = 2
 
 
-class AddMaterialsDialog(QDialog):
+class AddTextureDialog(QDialog):
     def __init__(self, parent=None):
-        super(AddMaterialsDialog, self).__init__(parent)
+        super(AddTextureDialog, self).__init__(parent)
 
-        self.setWindowTitle('Hammer: Add Material Library from folder')
-        self.setWindowIcon(hou.qt.Icon('SHELF_find_material', 32, 32))
+        self.setWindowTitle('Hammer: Add texture')
+        self.setWindowIcon(hou.qt.Icon('SOP_texture', 32, 32))
         self.resize(400, 300)
 
         main_layout = QVBoxLayout(self)
@@ -35,8 +34,9 @@ class AddMaterialsDialog(QDialog):
         form_layout.setSpacing(4)
         main_layout.addLayout(form_layout)
 
-        self.path_field = QLineEdit()
-        form_layout.addRow('Materials path', self.path_field)
+        self.path_field = FilePathField()
+        self.path_field.label.hide()
+        form_layout.addRow('Texture', self.path_field)
 
         self.target_library_mode = QComboBox()
         self.target_library_mode.addItem('No library')
@@ -64,14 +64,10 @@ class AddMaterialsDialog(QDialog):
         )
         form_layout.addRow('Library', self.existing_libraries_combo)
 
-        # self.material_name_source = QComboBox()
-        # self.material_name_source.addItems(['Folder name', 'Common part of texture names'])
-        # form_layout.addRow('Material name source', self.material_name_source)
-
         self.favorite_toggle = QCheckBox('Favorite')
         form_layout.addWidget(self.favorite_toggle)
 
-        self.generate_thumbnails_toggle = QCheckBox('Generate thumbnails')
+        self.generate_thumbnails_toggle = QCheckBox('Generate thumbnail')
         form_layout.addWidget(self.generate_thumbnails_toggle)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -92,27 +88,3 @@ class AddMaterialsDialog(QDialog):
         self.add_library_button = QPushButton('Add')
         self.add_library_button.clicked.connect(self.accept)
         button_layout.addWidget(self.add_library_button)
-
-    @staticmethod
-    def addMaterials():
-        window = AddMaterialsDialog(hou.qt.mainWindow())
-        r = window.exec_()
-        if r:
-            target_mode = window.target_library_mode.currentData(Qt.UserRole)
-            if target_mode == Target.NoLibrary:
-                library = None
-            elif target_mode == Target.NewLibrary:
-                library = Library.fromData({'name': window.library_name_field.text()})
-                Library.addLibrary(library)
-            elif target_mode == Target.ExistingLibrary:
-                library = window.existing_libraries_combo.currentData(Qt.UserRole)
-
-            materials = Material.addMaterialsFromFolder(window.path_field.text(),
-                                                        None,
-                                                        library=library,
-                                                        favorite=window.favorite_toggle.isChecked())
-
-            if window.generate_thumbnails_toggle.isChecked():
-                updateMaterialThumbnails(materials)
-
-        return r

@@ -1,6 +1,7 @@
 import os
 import sqlite3
 
+
 try:
     from PyQt5.QtCore import QBuffer, QIODevice
     from PyQt5.QtGui import QImage, QPixmap, QIcon
@@ -12,19 +13,11 @@ import hou
 
 from ..db import connect
 from ..texture_map import MapType, TextureMap
+from ..image import imageToBytes
 from .material_options import MaterialOptions
 from .material_source import MaterialSource
 
 MISSING_THUMBNAIL_ICON = hou.qt.Icon('SHOP_vopmaterial', 256, 256)
-
-
-def imageToBytes(image):
-    buffer = QBuffer()
-    buffer.open(QIODevice.ReadWrite)
-    image.save(buffer, 'png')
-    data = buffer.data()
-    buffer.close()
-    return data
 
 
 class Material(object):
@@ -78,8 +71,10 @@ class Material(object):
             connection.close()
         return material
 
+
+
     @staticmethod
-    def addMaterialsFromFolder(path, naming_mode, library=None, favorite=False, options=None):
+    def addMaterialsFromFolder(path, naming_mode=None, library=None, favorite=False, options=None):
         materials = []
         for root, _, files in os.walk(path):
             for file in files:
@@ -105,7 +100,6 @@ class Material(object):
 
         connection.commit()
         connection.close()
-
         return tuple(materials)
 
     def __init__(self):
@@ -223,8 +217,36 @@ class Material(object):
     def source(self):
         return MaterialSource(self, self._source_path)
 
-    def textures(self):
-        return self.source().textures()
+    def textureMaps(self):
+        return self.source().textures()  # Todo: + TextureMaps from database
+
+    def addTextureMap(self, texture, role=None, external_connection=None):
+        if external_connection is None:
+            connection = connect()
+        else:
+            connection = external_connection
+
+        if texture.id() is None:
+            TextureMap.addTextureMap(texture, external_connection=connection)
+
+        connection.execute('INSERT INTO texture_material VALUES (:texture_id, :library_id, :role)',
+                           {'texture_id': texture.id(), 'role': role, 'library_id': self.id()})
+
+        if external_connection is None:
+            connection.commit()
+            connection.close()
+        return texture
+
+    def libraries(self):
+        from ..library import Library
+
+        connection = connect()
+        libraries_data = connection.execute('SELECT * FROM library '
+                                            'LEFT JOIN material_library ON material_library.library_id = library.id '
+                                            'WHERE material_library.material_id = :material_id',
+                                            {'library_id': self.id()})
+        connection.close()
+        return tuple(Library.fromData(data) for data in libraries_data)
 
     def remove(self, external_connection=None):
         if self.id() is None:

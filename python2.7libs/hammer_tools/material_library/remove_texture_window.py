@@ -10,14 +10,14 @@ except ImportError:
 import hou
 
 
-class RemoveMaterialWindow(QDialog):
+class RemoveTextureWindow(QDialog):
     def __init__(self, items, library=None):
-        super(RemoveMaterialWindow, self).__init__()
+        super(RemoveTextureWindow, self).__init__()
 
         self._items = items
         self._library = library
 
-        self.setWindowTitle('Hammer: Remove material')
+        self.setWindowTitle('Hammer: Remove texture')
         self.setWindowIcon(hou.qt.Icon('BUTTONS_material_exclude', 32, 32))
         self.resize(400, 300)
 

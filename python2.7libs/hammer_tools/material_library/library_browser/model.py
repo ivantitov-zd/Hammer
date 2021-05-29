@@ -7,6 +7,7 @@ except ImportError:
 
 from ..data_roles import InternalDataRole, FavoriteRole
 from ..engine_connector import EngineConnector
+from ..material import Material
 
 
 class MaterialLibraryModel(QAbstractListModel):
@@ -14,14 +15,14 @@ class MaterialLibraryModel(QAbstractListModel):
         super(MaterialLibraryModel, self).__init__()
 
         self._library = None
-        self._materials = ()
+        self._items = ()
 
-    def updateMaterialList(self):
+    def updateItemList(self):
         if not self._library:
             return
 
         self.beginResetModel()
-        self._materials = self._library.materials()
+        self._items = self._library.items()
         self.endResetModel()
 
     def library(self):
@@ -29,32 +30,35 @@ class MaterialLibraryModel(QAbstractListModel):
 
     def setLibrary(self, library):
         self._library = library
-        self.updateMaterialList()
+        self.updateItemList()
 
     def rowCount(self, parent):
-        return len(self._materials)
+        return len(self._items)
 
     def index(self, row, column, parent):
         if not self.hasIndex(row, column, parent):
             return QModelIndex()
 
-        return self.createIndex(row, column, self._materials[row])
+        return self.createIndex(row, column, self._items[row])
 
     def data(self, index, role):
         if not index.isValid():
             return
 
-        material = index.internalPointer()
+        item = index.internalPointer()
 
         if role == InternalDataRole:
-            return material
+            return item
 
         if role == Qt.DisplayRole:
-            return material.name()
+            return item.name()
         elif role == Qt.DecorationRole:
-            return material.thumbnail(EngineConnector.currentEngine())
+            if isinstance(item, Material):
+                return item.thumbnail(EngineConnector.currentEngine())
+            else:
+                return item.thumbnail()
         elif role == FavoriteRole:
-            return material.isFavorite()
+            return item.isFavorite()
 
     def flags(self, index):
         if not index.isValid():
