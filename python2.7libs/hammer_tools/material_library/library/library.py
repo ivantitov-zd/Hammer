@@ -4,6 +4,8 @@ from ..texture_map import TextureMap
 
 
 class Library(object):
+    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_source_path')
+
     @staticmethod
     def fromData(data):
         lib = Library()

@@ -1,7 +1,6 @@
 import os
 import sqlite3
 
-
 try:
     from PyQt5.QtCore import QBuffer, QIODevice
     from PyQt5.QtGui import QImage, QPixmap, QIcon
@@ -21,6 +20,9 @@ MISSING_THUMBNAIL_ICON = hou.qt.Icon('SHOP_vopmaterial', 256, 256)
 
 
 class Material(object):
+    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail',
+                 '_thumbnail_engine_id', '_thumbnail_for_engine')
+
     @staticmethod
     def fromData(data):
         mat = Material()
@@ -71,14 +73,12 @@ class Material(object):
             connection.close()
         return material
 
-
-
     @staticmethod
     def addMaterialsFromFolder(path, naming_mode=None, library=None, favorite=False, options=None):
         materials = []
         for root, _, files in os.walk(path):
             for file in files:
-                if TextureMap.mapType(file) not in (MapType.Unknown, MapType.Thumbnail):
+                if TextureMap.mapType(file) not in {MapType.Unknown, MapType.Thumbnail}:
                     mat = Material.fromData({
                         'name': os.path.basename(root),
                         'favorite': favorite,

@@ -24,6 +24,6 @@ class MaterialSource(object):
         textures = []
         for file_name in os.listdir(self.path()):
             tex = TextureMap(file_name, self._material)
-            if tex.type not in (MapType.Unknown, MapType.Thumbnail):
+            if tex.type not in {MapType.Unknown, MapType.Thumbnail}:
                 textures.append(tex)
         return tuple(textures)

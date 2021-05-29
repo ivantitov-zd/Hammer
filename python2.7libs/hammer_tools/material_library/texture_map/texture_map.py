@@ -18,6 +18,9 @@ MISSING_THUMBNAIL_ICON = hou.qt.Icon('SOP_texture', 256, 256)
 
 
 class TextureMap(object):
+    __slots__ = ('_material', '_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail',
+                 '_type')
+
     @staticmethod
     def mapType(name):
         name_tags = splitAlphaNumeric(name.lower())
@@ -118,6 +121,7 @@ class TextureMap(object):
         self._name, _ = os.path.splitext(name)
         self._comment = None
         self._favorite = False
+        self._options = None
         self._source_path = None
         self._thumbnail = None
         self._type = TextureMap.mapType(name)

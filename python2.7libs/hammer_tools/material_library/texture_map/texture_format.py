@@ -2,10 +2,12 @@ import os
 
 
 class TextureFormat(object):
+    __slots__ = ('_compression_ext', '_license_ext', '_extension')
+
     def __init__(self, name):
         name, ext = os.path.splitext(name)
 
-        if ext.lower() in ('.z', '.gz', '.sc', '.bz2'):
+        if ext.lower() in {'.z', '.gz', '.sc', '.bz2'}:
             self._compression_ext = ext
             _, ext = os.path.splitext(name)
         else:

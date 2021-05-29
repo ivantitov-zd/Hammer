@@ -24,8 +24,7 @@ from .texture_list import TextureListBrowser
 from .remove_library_window import RemoveLibraryWindow
 from .remove_material_window import RemoveMaterialWindow
 from .remove_texture_window import RemoveTextureWindow
-from .thumbnail import updateMaterialThumbnails
-from .thumbnail import updateTextureThumbnails
+from .thumbnail import updateMaterialThumbnails, updateTextureThumbnails
 from .library import Library
 from .material import Material
 from .texture_map import TextureMap
