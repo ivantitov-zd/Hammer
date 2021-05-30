@@ -7,12 +7,12 @@ except ImportError:
     from PySide2.QtCore import *
     from PySide2.QtGui import QIcon
 
-from ..proxy_model import MaterialLibraryListProxyModel
-from .model import MaterialLibraryModel
-from .view import LibraryView
-from ..data_roles import InternalDataRole
 from ..material import Material
 from ..texture_map import TextureMap
+from ..data_roles import InternalDataRole
+from .proxy_model import MaterialLibraryListProxyModel
+from .model import MaterialLibraryModel
+from .view import LibraryView
 
 
 class LibraryBrowser(QWidget):

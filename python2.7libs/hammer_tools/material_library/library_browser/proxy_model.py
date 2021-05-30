@@ -5,7 +5,9 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
-from .data_roles import FavoriteRole
+from ..data_roles import FavoriteRole, InternalDataRole
+from ..material import Material
+from ..texture_map import TextureMap
 
 
 class MaterialLibraryListProxyModel(QSortFilterProxyModel):
@@ -13,6 +15,8 @@ class MaterialLibraryListProxyModel(QSortFilterProxyModel):
         super(MaterialLibraryListProxyModel, self).__init__()
 
         self._favorite_only = False
+        self._show_materials = True
+        self._show_textures = True
         self._filter_pattern = None
 
     def onlyFavoriteShown(self):
@@ -20,6 +24,20 @@ class MaterialLibraryListProxyModel(QSortFilterProxyModel):
 
     def showFavoriteOnly(self, show=True):
         self._favorite_only = show
+        self.invalidateFilter()
+
+    def areMaterialsShown(self):
+        return self._show_materials
+
+    def showMaterials(self, show=True):
+        self._show_materials = show
+        self.invalidateFilter()
+
+    def areTexturesShown(self):
+        return self._show_textures
+
+    def showTextures(self, show=True):
+        self._show_textures = show
         self.invalidateFilter()
 
     def filterPattern(self):
@@ -33,6 +51,13 @@ class MaterialLibraryListProxyModel(QSortFilterProxyModel):
         current_index = self.sourceModel().index(source_row, 0, source_parent)
 
         if self._favorite_only and not current_index.data(FavoriteRole):
+            return False
+
+        item = current_index.data(InternalDataRole)
+        if isinstance(item, Material) and not self._show_materials:
+            return False
+
+        if isinstance(item, TextureMap) and not self._show_textures:
             return False
 
         if not self._filter_pattern:

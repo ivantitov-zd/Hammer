@@ -16,7 +16,7 @@ from ..image import imageToBytes
 from .material_options import MaterialOptions
 from .material_source import MaterialSource
 
-MISSING_THUMBNAIL_ICON = hou.qt.Icon('SHOP_vopmaterial', 256, 256)
+MISSING_THUMBNAIL_ICON = hou.qt.Icon('SOP_material', 256, 256)
 
 
 class Material(object):

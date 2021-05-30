@@ -1,11 +1,13 @@
 try:
     from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit, QSpacerItem,
-                                 QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView)
+                                 QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
+                                 QToolBar)
     from PyQt5.QtCore import Qt, QSize, QEvent
     from PyQt5.QtGui import QIcon, QCursor
 except ImportError:
     from PySide2.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit, QSpacerItem,
-                                   QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView)
+                                   QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
+                                   QToolBar)
     from PySide2.QtCore import Qt, QSize, QEvent
     from PySide2.QtGui import QIcon, QCursor
 
@@ -13,6 +15,7 @@ import hou
 
 from ..utils import openLocation
 from ..widgets import Slider, InputField
+from ..menu import Menu
 from .db import connect
 from .data_roles import InternalDataRole
 from .engine_connector import EngineConnector
@@ -35,6 +38,9 @@ FAVORITE_ICON = QIcon()
 FAVORITE_ICON.addPixmap(FAVORITE_ENABLED_ICON.pixmap(16, 16), QIcon.Normal, QIcon.On)
 FAVORITE_ICON.addPixmap(FAVORITE_DISABLED_ICON.pixmap(16, 16), QIcon.Normal, QIcon.Off)
 
+MATERIAL_ICON = hou.qt.Icon('SOP_material', 16, 16)
+TEXTURE_ICON = hou.qt.Icon('SOP_texture', 16, 16)
+
 
 class MaterialLibraryViewerDialog(QMainWindow):
     def __init__(self, parent=None):
@@ -53,10 +59,11 @@ class MaterialLibraryViewerDialog(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(4)
 
-        top_layout = QHBoxLayout()
-        top_layout.setContentsMargins(4, 4, 4, 4)
-        top_layout.setSpacing(8)
-        main_layout.addLayout(top_layout)
+        toolbar = QToolBar()
+        toolbar.setAllowedAreas(Qt.TopToolBarArea | Qt.BottomToolBarArea)
+        toolbar.setFloatable(False)
+        toolbar.setStyleSheet('QToolBar {spacing: 4px;}')
+        self.addToolBar(Qt.TopToolBarArea, toolbar)
 
         self.target_engine_combo = QComboBox()
         self.target_engine_combo.setMinimumWidth(100)
@@ -66,40 +73,57 @@ class MaterialLibraryViewerDialog(QMainWindow):
                 self.target_engine_combo.addItem(engine.icon(), engine.name(), engine)
         self.target_engine_combo.setToolTip('Target rendering engine')
         self.target_engine_combo.currentIndexChanged.connect(self.onCurrentEngineChanged)
-        top_layout.addWidget(self.target_engine_combo)
+        toolbar.addWidget(self.target_engine_combo)
 
         self.target_builder_combo = QComboBox()
         self.target_builder_combo.setMinimumWidth(140)
         self.target_builder_combo.setToolTip('Target builder')
         self.updateEngineBuilderList()
-        top_layout.addWidget(self.target_builder_combo)
+        toolbar.addWidget(self.target_builder_combo)
 
         self.target_network_combo = QComboBox()
         self.target_network_combo.setToolTip('Target network')
         self.target_network_combo.setMinimumWidth(160)
         self.target_network_combo.installEventFilter(self)
-        top_layout.addWidget(self.target_network_combo)
+        toolbar.addWidget(self.target_network_combo)
 
-        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Ignored)
-        top_layout.addSpacerItem(spacer)
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Ignored)
+        toolbar.addWidget(spacer)
+
+        self.show_materials_toggle = QPushButton()
+        self.show_materials_toggle.setFixedWidth(24)
+        self.show_materials_toggle.setCheckable(True)
+        self.show_materials_toggle.setChecked(True)
+        self.show_materials_toggle.setToolTip('Show materials')
+        self.show_materials_toggle.setIcon(MATERIAL_ICON)
+        toolbar.addWidget(self.show_materials_toggle)
+
+        self.show_textures_toggle = QPushButton()
+        self.show_textures_toggle.setFixedWidth(24)
+        self.show_textures_toggle.setCheckable(True)
+        self.show_textures_toggle.setChecked(True)
+        self.show_textures_toggle.setToolTip('Show textures')
+        self.show_textures_toggle.setIcon(TEXTURE_ICON)
+        toolbar.addWidget(self.show_textures_toggle)
 
         self.search_field = InputField()
         self.search_field.setFixedWidth(140)
         self.search_field.setPlaceholderText('Search...')
-        top_layout.addWidget(self.search_field)
+        toolbar.addWidget(self.search_field)
 
         self.favorite_toggle = QPushButton()
         self.favorite_toggle.setFixedWidth(24)
         self.favorite_toggle.setCheckable(True)
         self.favorite_toggle.setToolTip('Show favorite only')
         self.favorite_toggle.setIcon(FAVORITE_ICON)
-        top_layout.addWidget(self.favorite_toggle)
+        toolbar.addWidget(self.favorite_toggle)
 
         self.thumbnail_size_slider = Slider(Qt.Horizontal)
         self.thumbnail_size_slider.setFixedWidth(80)
         self.thumbnail_size_slider.setRange(48, 256)
         self.thumbnail_size_slider.setValue(64)
-        top_layout.addWidget(self.thumbnail_size_slider)
+        toolbar.addWidget(self.thumbnail_size_slider)
 
         self.splitter = QSplitter(Qt.Horizontal)
         main_layout.addWidget(self.splitter)
@@ -111,6 +135,8 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.library_list_browser.currentLibraryChanged.connect(self.library_browser.setLibrary)
         selection_model = self.library_browser.view.selectionModel()
         selection_model.selectionChanged.connect(self.updateStatusBar)
+        self.show_materials_toggle.toggled.connect(self.library_browser.proxy_model.showMaterials)
+        self.show_textures_toggle.toggled.connect(self.library_browser.proxy_model.showTextures)
         self.favorite_toggle.toggled.connect(self.library_browser.proxy_model.showFavoriteOnly)
         self.search_field.textChanged.connect(self.library_browser.proxy_model.setFilterPattern)
         self.library_browser.view.iconSizeChanged.connect(self.updateThumbnailSizeSlider)
@@ -232,12 +258,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.remove_material_action.triggered.connect(self.onRemoveLibraryItem)
 
     def createMainMenu(self):
-        # self.main_menu = QMenu('Main', self)
+        # self.main_menu = Menu('Main', self)
         # self.menuBar().addMenu(self.main_menu)
         #
         # self.main_menu.addAction(self.open_settings_action)
 
-        self.content_menu = QMenu('Content', self)
+        self.content_menu = Menu('Content', self)
         self.menuBar().addMenu(self.content_menu)
 
         self.content_menu.addAction(self.add_library_action)
@@ -249,13 +275,13 @@ class MaterialLibraryViewerDialog(QMainWindow):
         # self.content_menu.addAction(self.update_thumbnails_action)
         self.content_menu.addAction(self.reload_action)
 
-        # self.tags_menu = QMenu('Tags', self)
+        # self.tags_menu = Menu('Tags', self)
         # self.menuBar().addMenu(self.tags_menu)
         #
         # self.tags_menu.addAction(self.edit_tags_action)
 
     def createLibraryContextMenu(self):
-        self.library_menu = QMenu(self.library_list_browser.view)
+        self.library_menu = Menu(self.library_list_browser.view)
         self.library_list_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.library_menu.addAction(self.generate_library_thumbnails_action)
@@ -278,7 +304,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.library_menu.exec_(QCursor.pos())
 
     def createMaterialContextMenu(self):
-        self.material_menu = QMenu(self.library_browser.view)
+        self.material_menu = Menu(self.library_browser.view)
         self.library_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.material_menu.addAction(self.create_material_action)
@@ -302,7 +328,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_menu.exec_(QCursor.pos())
 
     def createTextureContextMenu(self):
-        self.texture_menu = QMenu(self.library_browser.view)
+        self.texture_menu = Menu(self.library_browser.view)
         self.library_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.texture_menu.addAction(self.generate_material_thumbnail_action)

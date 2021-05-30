@@ -71,7 +71,7 @@ class LibraryView(QListView):
         elif self.model().library() is None:
             text = 'No library selected'
         elif self.model().rowCount(QModelIndex()) <= 0:
-            text = 'No materials'
+            text = 'No items'
 
         if text:
             painter = QPainter(self.viewport())
