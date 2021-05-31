@@ -7,7 +7,7 @@ except ImportError:
     from PySide2.QtGui import QPainter, QFont, QColor
     from PySide2.QtCore import Qt, QModelIndex, QEvent, QSize
 
-from .delegate import MaterialDelegate
+from .delegate import LibraryItemDelegate
 
 
 class LibraryView(QListView):
@@ -16,6 +16,7 @@ class LibraryView(QListView):
 
         self.setViewMode(QListView.IconMode)
         self.setUniformItemSizes(True)
+        self.setMouseTracking(True)
         self.viewport().installEventFilter(self)
 
         self.setResizeMode(QListView.Adjust)
@@ -26,7 +27,7 @@ class LibraryView(QListView):
         self.setDragDropMode(QAbstractItemView.DragOnly)
         self.setDragEnabled(True)
 
-        self.setItemDelegate(MaterialDelegate())
+        self.setItemDelegate(LibraryItemDelegate())
 
     def library(self):
         return self.model().library()
