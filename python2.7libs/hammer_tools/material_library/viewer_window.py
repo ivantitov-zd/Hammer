@@ -463,12 +463,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
             materials = Material.addMaterialsFromFolder(window.path_field.path(),
                                                         None,
-                                                        library=library,
-                                                        favorite=window.favorite_toggle.isChecked())
+                                                        library,
+                                                        window.favorite_toggle.isChecked())
             textures = TextureMap.addTexturesFromFolder(window.path_field.path(),
                                                         None,
-                                                        library=library,
-                                                        favorite=window.favorite_toggle.isChecked())
+                                                        library,
+                                                        window.favorite_toggle.isChecked())
             if window.generate_thumbnails_toggle.isChecked():
                 updateMaterialThumbnails(materials)
                 updateTextureThumbnails(textures)
@@ -513,7 +513,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         options = None
         if QApplication.queryKeyboardModifiers() == Qt.ControlModifier:
             try:
-                window = BuildOptionsWindow(builder.buildOptionsWidget())
+                window = BuildOptionsWindow(builder.buildOptionsWidget(), self)
                 if window.exec_():
                     options = window.options()
             except NotImplementedError:
@@ -590,6 +590,8 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
     def onRemoveLibrary(self):
         connection = connect()
+        connection.execute('BEGIN')
+
         libraries = self.library_list_browser.selectedLibraries()
 
         window = RemoveLibraryWindow(libraries)
@@ -602,7 +604,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
                            external_connection=connection)
         connection.commit()
         connection.close()
-        self.library_list_browser.reloadContent()
+        self.reloadContent()
 
     def onRemoveItems(self):
         items = self.library_browser.selectedItems()
