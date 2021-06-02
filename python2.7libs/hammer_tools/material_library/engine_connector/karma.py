@@ -2,7 +2,7 @@ import hou
 
 from .engine_connector import EngineConnector
 from .mantra import MantraConnector
-from .builder import KarmaPrincipledBuilder, KarmaPrincipledNetworkBuilder
+from .builder import KarmaPrincipledBuilder
 
 
 class KarmaConnector(MantraConnector):
@@ -29,7 +29,7 @@ class KarmaConnector(MantraConnector):
         return super(KarmaConnector, self).nodeTypeAssociatedWithEngine(node_type)
 
     def builders(self):
-        return KarmaPrincipledBuilder, KarmaPrincipledNetworkBuilder
+        return KarmaPrincipledBuilder(self),
 
 
 EngineConnector.registerEngine(KarmaConnector)

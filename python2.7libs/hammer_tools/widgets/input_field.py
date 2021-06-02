@@ -17,21 +17,24 @@ class InputField(FieldBase):
         super(InputField, self).__init__(label_text, label_width)
 
         self.text_field = QLineEdit()
+        self.text_field.installEventFilter(self)
         if text:
             self.text_field.setText(text)
         self.layout().addWidget(self.text_field)
 
     def keyPressEvent(self, event):
         if event.matches(QKeySequence.Cancel):
-            self.clear()
+            self.text_field.clear()
         else:
             super(InputField, self).keyPressEvent(event)
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MiddleButton and event.modifiers() == Qt.ControlModifier:
-            self.clear()
-        else:
-            super(InputField, self).mousePressEvent(event)
+    def eventFilter(self, watched, event):
+        if watched == self.text_field:
+            if event.type() == QEvent.MouseButtonPress:
+                if event.button() == Qt.MiddleButton and event.modifiers() == Qt.ControlModifier:
+                    self.text_field.clear()
+                    return True
+        return False
 
     def __getattr__(self, attr_name):
         return self.text_field.__getattribute__(attr_name)

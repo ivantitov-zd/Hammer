@@ -7,9 +7,11 @@ DEFAULT_BUILDER_ICON = hou.qt.Icon('MISC_empty', 16, 16)
 
 
 class MaterialBuilder(object):
-    def __init__(self):
+    def __init__(self, engine=None):
+        self.engine = engine
         self.material = None
         self.material_name = None
+        self.options = None
         self.root_node = None
         self.network_node = None
         self.output_node = None
@@ -19,6 +21,8 @@ class MaterialBuilder(object):
     def build(self, material, root, name=None, options=None):
         self.material = material
         self.material_name = '_'.join(splitAlphaNumeric(name or self.material.name()))
+        self.options = options or {}
+
         if isinstance(root, hou.Node):
             self.root_node = root
         else:
@@ -30,6 +34,11 @@ class MaterialBuilder(object):
             pass
 
         self.shader_node = self.createShader()
+
+        try:
+            self.setup()
+        except NotImplementedError:
+            pass
 
         for tex_map in self.material.textureMaps():
             self.current_map = tex_map
@@ -55,7 +64,7 @@ class MaterialBuilder(object):
                 continue
 
         try:
-            self.cleanUp()
+            self.cleanup()
         except NotImplementedError:
             pass
 
@@ -71,13 +80,20 @@ class MaterialBuilder(object):
     def icon():
         return DEFAULT_BUILDER_ICON
 
+    @staticmethod
+    def buildOptionsWidget():
+        raise NotImplementedError
+
     def createNetwork(self):
         raise NotImplementedError
 
     def createShader(self):
         raise NotImplementedError
 
-    def cleanUp(self):
+    def setup(self):
+        raise NotImplementedError
+
+    def cleanup(self):
         raise NotImplementedError
 
     def addDiffuse(self):

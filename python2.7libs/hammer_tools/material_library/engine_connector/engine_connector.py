@@ -56,9 +56,6 @@ class EngineConnector(object):
     def builders():
         return ()
 
-    def buildOptionsWidget(self):
-        raise NotImplementedError
-
     def createThumbnailRenderNode(self):
         raise NotImplementedError
 

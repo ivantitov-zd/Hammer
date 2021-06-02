@@ -1,5 +1,5 @@
 from ..db import connect
-from ..material import Material, MaterialOptions
+from ..material import Material
 from ..texture_map import TextureMap
 
 
@@ -98,7 +98,7 @@ class Library(object):
             connection.close()
 
     def options(self):
-        return MaterialOptions.fromData(self._options)
+        return self._options
 
     def path(self):
         return self._source_path

@@ -13,7 +13,6 @@ import hou
 from ..db import connect
 from ..texture_map import MapType, TextureMap
 from ..image import imageToBytes
-from .material_options import MaterialOptions
 from .material_source import MaterialSource
 
 MISSING_THUMBNAIL_ICON = hou.qt.Icon('SOP_material', 256, 256)
@@ -212,10 +211,13 @@ class Material(object):
             connection.close()
 
     def options(self):
-        return MaterialOptions.fromData(self._options)
+        return self._options
 
     def source(self):
         return MaterialSource(self, self._source_path)
+
+    def path(self):
+        return self._source_path
 
     def textureMaps(self):
         return self.source().textures()  # Todo: + TextureMaps from database

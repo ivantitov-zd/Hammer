@@ -1,7 +1,7 @@
 import hou
 
 from .engine_connector import EngineConnector
-from .builder import MantraPrincipledBuilder, MantraPrincipledNetworkBuilder
+from .builder import MantraPrincipledBuilder
 
 
 class MantraConnector(EngineConnector):
@@ -35,7 +35,7 @@ class MantraConnector(EngineConnector):
         return False
 
     def builders(self):
-        return MantraPrincipledBuilder, MantraPrincipledNetworkBuilder
+        return MantraPrincipledBuilder(self),
 
     def supportedTextureFormats(self):
         return ('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'jpg', 'jpeg',

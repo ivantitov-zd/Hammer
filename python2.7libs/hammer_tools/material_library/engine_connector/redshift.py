@@ -39,7 +39,7 @@ class RedshiftConnector(EngineConnector):
         return False
 
     def builders(self):
-        return RedshiftNetworkBuilder,
+        return RedshiftNetworkBuilder(self),
 
     def supportedTextureFormats(self):
         return ('exr', 'ptx', 'ptex', 'png', 'tga', 'jpg', 'jpeg',

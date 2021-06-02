@@ -67,9 +67,9 @@ class GenerateThumbnailWindow(QDialog):
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Ignored)
         button_layout.addSpacerItem(spacer)
 
-        self._add_library_button = QPushButton('Generate')
-        self._add_library_button.clicked.connect(self.accept)
-        button_layout.addWidget(self._add_library_button)
+        self._generate_button = QPushButton('Generate')
+        self._generate_button.clicked.connect(self.accept)
+        button_layout.addWidget(self._generate_button)
 
     def generateDefault(self):
         return self._generate_default_thumbnail_toggle.isChecked()

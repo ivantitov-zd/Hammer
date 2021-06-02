@@ -1,15 +1,15 @@
 try:
     from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit, QSpacerItem,
                                  QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
-                                 QToolBar)
+                                 QToolBar, QApplication)
     from PyQt5.QtCore import Qt, QSize, QEvent
-    from PyQt5.QtGui import QIcon, QCursor
+    from PyQt5.QtGui import QIcon, QCursor, QKeySequence
 except ImportError:
     from PySide2.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit, QSpacerItem,
                                    QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
-                                   QToolBar)
+                                   QToolBar, QApplication)
     from PySide2.QtCore import Qt, QSize, QEvent
-    from PySide2.QtGui import QIcon, QCursor
+    from PySide2.QtGui import QIcon, QCursor, QKeySequence
 
 import hou
 
@@ -31,6 +31,7 @@ from .thumbnail import updateMaterialThumbnails, updateTextureThumbnails
 from .library import Library
 from .material import Material
 from .texture_map import TextureMap
+from .build_options_window import BuildOptionsWindow
 
 FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 16, 16)
 FAVORITE_DISABLED_ICON = hou.qt.Icon('BUTTONS_not_favorites', 16, 16)
@@ -172,11 +173,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.create_material_and_assign_action = None
         self.generate_material_thumbnail_action = None
         self.set_custom_material_thumbnail_action = None
+        self.copy_item_path_action = None
         self.open_item_location_action = None
-        self.material_textures_action = None
+        self.show_material_textures_action = None
         self.mark_item_as_favorite_action = None
-        self.edit_material_action = None
-        self.remove_material_action = None
+        self.edit_item_action = None
+        self.remove_item_action = None
         self.material_menu = None
         self.texture_menu = None
 
@@ -221,6 +223,9 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
         self.open_library_location_action = QAction('Open location...', self)
         self.open_library_location_action.triggered.connect(self.openCurrentLibraryLocation)
+        self.open_library_location_action.setShortcut(QKeySequence('Ctrl+L'))
+        self.open_library_location_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_list_browser.addAction(self.open_library_location_action)
 
         self.assemble_library_action = QAction('Assemble...', self)
 
@@ -228,9 +233,15 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.mark_library_as_favorite_action.triggered.connect(self.onMarkLibraryAsFavorite)
 
         self.edit_library_action = QAction('Edit...', self)
+        self.edit_library_action.setShortcut(QKeySequence('Ctrl+E'))
+        self.edit_library_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_list_browser.addAction(self.edit_library_action)
 
         self.remove_library_action = QAction('Remove...', self)
         self.remove_library_action.triggered.connect(self.onRemoveLibrary)
+        self.remove_library_action.setShortcut(QKeySequence.Delete)
+        self.remove_library_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_list_browser.addAction(self.remove_library_action)
 
         self.create_material_action = QAction('Create material', self)
         self.create_material_action.triggered.connect(self.createMaterial)
@@ -239,23 +250,38 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.create_material_and_assign_action.triggered.connect(self.createMaterialAndAssign)
 
         self.generate_material_thumbnail_action = QAction('Generate thumbnail', self)
-        self.generate_material_thumbnail_action.triggered.connect(self.generateLibraryItemThumbnail)
+        self.generate_material_thumbnail_action.triggered.connect(self.generateItemThumbnails)
 
         self.set_custom_material_thumbnail_action = QAction('Set custom thumbnail...', self)
 
+        self.copy_item_path_action = QAction('Copy path', self)
+        self.copy_item_path_action.triggered.connect(self.copyCurrentItemPath)
+        self.copy_item_path_action.setShortcut(QKeySequence.Copy)
+        self.copy_item_path_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_browser.addAction(self.copy_item_path_action)
+
         self.open_item_location_action = QAction('Open location...', self)
         self.open_item_location_action.triggered.connect(self.openCurrentItemLocation)
+        self.open_item_location_action.setShortcut(QKeySequence('Ctrl+L'))
+        self.open_item_location_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_browser.addAction(self.open_item_location_action)
 
-        self.material_textures_action = QAction('Textures...', self)
-        self.material_textures_action.triggered.connect(self.onMaterialTextures)
+        self.show_material_textures_action = QAction('Textures...', self)
+        self.show_material_textures_action.triggered.connect(self.onShowMaterialTextures)
 
         self.mark_item_as_favorite_action = QAction('Mark as favorite', self)
-        self.mark_item_as_favorite_action.triggered.connect(self.onMarkLibraryItemAsFavorite)
+        self.mark_item_as_favorite_action.triggered.connect(self.onMarkItemsAsFavorite)
 
-        self.edit_material_action = QAction('Edit...', self)
+        self.edit_item_action = QAction('Edit...', self)
+        self.edit_item_action.setShortcut(QKeySequence('Ctrl+E'))
+        self.edit_item_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_browser.addAction(self.edit_item_action)
 
-        self.remove_material_action = QAction('Remove...', self)
-        self.remove_material_action.triggered.connect(self.onRemoveLibraryItem)
+        self.remove_item_action = QAction('Remove...', self)
+        self.remove_item_action.triggered.connect(self.onRemoveItems)
+        self.remove_item_action.setShortcut(QKeySequence.Delete)
+        self.remove_item_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_browser.addAction(self.remove_item_action)
 
     def createMainMenu(self):
         # self.main_menu = Menu('Main', self)
@@ -313,12 +339,13 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_menu.addAction(self.generate_material_thumbnail_action)
         # self.material_menu.addAction(self.set_custom_material_thumbnail_action)
         self.material_menu.addSeparator()
+        self.material_menu.addAction(self.copy_item_path_action)
         self.material_menu.addAction(self.open_item_location_action)
         # self.material_menu.addAction(self.material_textures_action)
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.mark_item_as_favorite_action)
         # self.material_menu.addAction(self.edit_material_action)
-        self.material_menu.addAction(self.remove_material_action)
+        self.material_menu.addAction(self.remove_item_action)
 
     def updateMaterialContextMenu(self):
         pass
@@ -334,11 +361,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.texture_menu.addAction(self.generate_material_thumbnail_action)
         # self.texture_menu.addAction(self.set_custom_material_thumbnail_action)
         self.texture_menu.addSeparator()
+        self.texture_menu.addAction(self.copy_item_path_action)
         self.texture_menu.addAction(self.open_item_location_action)
         self.texture_menu.addSeparator()
         self.texture_menu.addAction(self.mark_item_as_favorite_action)
         # self.texture_menu.addAction(self.edit_material_action)
-        self.texture_menu.addAction(self.remove_material_action)
+        self.texture_menu.addAction(self.remove_item_action)
 
     def updateTextureContextMenu(self):
         pass
@@ -366,7 +394,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
             return
 
         for builder in engine.builders():
-            self.target_builder_combo.addItem(builder().name(), builder())
+            self.target_builder_combo.addItem(builder.name(), builder)
 
     def onCurrentEngineChanged(self, index):
         EngineConnector.setCurrentEngine(self.target_engine_combo.itemData(index, Qt.UserRole))
@@ -468,7 +496,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
             if engine is None:
                 return
 
-            builder = engine.builders()[0]()
+            builder = engine.builders()[0]
         if builder is None:
             return
 
@@ -482,9 +510,18 @@ class MaterialLibraryViewerDialog(QMainWindow):
         if root is None:
             root = hou.root().node('mat')
 
+        options = None
+        if QApplication.queryKeyboardModifiers() == Qt.ControlModifier:
+            try:
+                window = BuildOptionsWindow(builder.buildOptionsWidget())
+                if window.exec_():
+                    options = window.options()
+            except NotImplementedError:
+                pass
+
         nodes = []
         for material in materials:
-            material_node = builder.build(material, root)
+            material_node = builder.build(material, root, options=options)
             material_node.moveToGoodPosition()
             nodes.append(material_node)
         return tuple(nodes)
@@ -502,10 +539,20 @@ class MaterialLibraryViewerDialog(QMainWindow):
         updateTextureThumbnails(textures)
         self.library_browser.reloadContent(True)
 
-    def generateLibraryItemThumbnail(self):
+    def generateItemThumbnails(self):
         updateMaterialThumbnails(self.library_browser.selectedMaterials())
         updateTextureThumbnails(self.library_browser.selectedTextures())
         self.library_browser.reloadContent(True)
+
+    def generateTextureThumbnail(self):
+        texture = self.library_browser.currentItem()
+        window = GenerateTextureThumbnailWindow(texture)
+        window.exec_()
+
+    def copyCurrentItemPath(self):
+        path = self.library_browser.currentItem().path()
+        if path:
+            QApplication.clipboard().setText(path)
 
     def openCurrentItemLocation(self):
         item = self.library_browser.currentItem()
@@ -514,11 +561,32 @@ class MaterialLibraryViewerDialog(QMainWindow):
         elif isinstance(item, TextureMap):
             openLocation(item.path(), select=True)
 
-    def onMaterialTextures(self):
+    def onShowMaterialTextures(self):
         material = self.library_browser.currentItem()
         window = TextureListBrowser(self)
         window.model.setTextureList(material.textureMaps())
         window.show()
+
+    def onMarkLibraryAsFavorite(self):
+        connection = connect()
+        connection.execute('BEGIN')
+        for library in self.library_browser.selectedItems():
+            library.markAsFavorite(not library.isFavorite(), external_connection=connection)
+        connection.commit()
+        connection.close()
+        self.library_list_browser.reloadContent()
+
+    def onMarkItemsAsFavorite(self):
+        connection = connect()
+        connection.execute('BEGIN')
+
+        state = not self.library_browser.currentItem().isFavorite()
+        for item in self.library_browser.selectedItems():
+            item.markAsFavorite(state, external_connection=connection)
+
+        connection.commit()
+        connection.close()
+        self.library_browser.reloadContent()
 
     def onRemoveLibrary(self):
         connection = connect()
@@ -536,28 +604,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         connection.close()
         self.library_list_browser.reloadContent()
 
-    def onMarkLibraryAsFavorite(self):
-        connection = connect()
-        connection.execute('BEGIN')
-        for library in self.library_browser.selectedItems():
-            library.markAsFavorite(not library.isFavorite(), external_connection=connection)
-        connection.commit()
-        connection.close()
-        self.library_list_browser.reloadContent()
-
-    def onMarkLibraryItemAsFavorite(self):
-        connection = connect()
-        connection.execute('BEGIN')
-
-        state = not self.library_browser.currentItem().isFavorite()
-        for item in self.library_browser.selectedItems():
-            item.markAsFavorite(state, external_connection=connection)
-
-        connection.commit()
-        connection.close()
-        self.library_browser.reloadContent()
-
-    def onRemoveLibraryItem(self):
+    def onRemoveItems(self):
         items = self.library_browser.selectedItems()
         library = self.library_browser.library()
 

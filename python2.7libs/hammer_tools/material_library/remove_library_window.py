@@ -48,9 +48,9 @@ class RemoveLibraryWindow(QDialog):
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Ignored)
         button_layout.addSpacerItem(spacer)
 
-        self._add_library_button = QPushButton('Remove')
-        self._add_library_button.clicked.connect(self.accept)
-        button_layout.addWidget(self._add_library_button)
+        self._remove_button = QPushButton('Remove')
+        self._remove_button.clicked.connect(self.accept)
+        button_layout.addWidget(self._remove_button)
 
     def removeMaterials(self):
         return self._remove_materials_toggle.isChecked()

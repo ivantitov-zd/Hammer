@@ -1,7 +1,7 @@
 try:
     from PyQt5.QtWidgets import QStyledItemDelegate, QStyle, QApplication
     from PyQt5.QtCore import Qt, QRect, QPoint, QSize
-    from PyQt5.QtGui import QColor, QImage, QCursor, QPainter
+    from PyQt5.QtGui import QColor, QImage, QCursor, QPainter, QIcon
 except ImportError:
     from PySide2.QtWidgets import QStyledItemDelegate, QStyle, QApplication
     from PySide2.QtCore import Qt, QRect, QPoint, QSize
@@ -45,7 +45,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
             self._previous_item = current_item
             self._texture = QImage(current_item.path())
 
-        option.widget.update()
+        option.widget.update(index)
         return False
 
     def paint(self, painter, option, index):
@@ -70,15 +70,15 @@ class LibraryItemDelegate(QStyledItemDelegate):
         painter.setClipping(True)
         painter.setClipRect(rect)
 
-        painter.eraseRect(option.rect)
+        painter.eraseRect(rect)
 
         # Draw darker background
         if selected:
             painter.save()
             painter.setBrush(QColor(36, 36, 36))
             painter.setPen(Qt.NoPen)
-            adjust = painter.pen().width()
-            painter.drawRect(option.rect.adjusted(adjust, adjust, -adjust, -adjust))
+            adjust = painter.pen().width() / 2
+            painter.drawRect(rect.adjusted(adjust, adjust, -adjust, -adjust))
             painter.restore()
 
         if self._texture and isinstance(current_item, TextureMap) and \
@@ -121,6 +121,6 @@ class LibraryItemDelegate(QStyledItemDelegate):
             painter.setBrush(Qt.transparent)
             painter.setPen(QColor(185, 134, 32))
             adjust = painter.pen().width()
-            painter.drawRect(option.rect.adjusted(adjust, adjust, -adjust, -adjust))
+            painter.drawRect(rect.adjusted(adjust, adjust, -adjust, -adjust))
 
         painter.restore()
