@@ -90,7 +90,8 @@ class TextureMap(object):
         for root, _, files in os.walk(path):
             for file in files:
                 name, ext = os.path.splitext(file)
-                if TextureMap.mapType(file) == MapType.Unknown and TextureFormat(ext) in supported_texture_formats:
+                if TextureMap.mapType(file) == MapType.Unknown and \
+                        TextureFormat(ext) in supported_texture_formats:
                     tex = TextureMap.fromData({
                         'name': name,
                         'favorite': favorite,

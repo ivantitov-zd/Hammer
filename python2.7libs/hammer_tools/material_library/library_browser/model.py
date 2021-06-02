@@ -5,6 +5,7 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
+from ..texture_map import TextureMap
 from ..data_roles import InternalDataRole, FavoriteRole
 from ..engine_connector import EngineConnector
 from ..material import Material
@@ -41,6 +42,15 @@ class MaterialLibraryModel(QAbstractListModel):
 
         return self.createIndex(row, column, self._items[row])
 
+    def flags(self, index):
+        if not index.isValid():
+            return
+
+        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        if isinstance(index.internalPointer(), TextureMap):
+            return flags | Qt.ItemIsDragEnabled
+        return flags
+
     def data(self, index, role):
         if not index.isValid():
             return
@@ -60,8 +70,8 @@ class MaterialLibraryModel(QAbstractListModel):
         elif role == FavoriteRole:
             return item.isFavorite()
 
-    def flags(self, index):
-        if not index.isValid():
-            return
-
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled
+    def mimeData(self, indexes):
+        data = QMimeData()
+        current_item = indexes[-1].data(InternalDataRole)
+        data.setText(current_item.path(EngineConnector.currentEngine()))
+        return data
