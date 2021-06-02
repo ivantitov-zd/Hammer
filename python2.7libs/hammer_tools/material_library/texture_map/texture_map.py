@@ -116,7 +116,6 @@ class TextureMap(object):
 
     def __init__(self, name, material=None):
         self._material = material
-
         self._id = None
         self._name, _ = os.path.splitext(name)
         self._comment = None
@@ -134,9 +133,12 @@ class TextureMap(object):
             if self.id() and other.id():
                 return self.id() == other.id()
             else:
-                pass  # Todo: Compare attributes
+                return self.name() == other.name()  # Todo: Improve
         else:
             return NotImplemented
+
+    def __hash__(self):
+        return hash(self._name)
 
     def name(self):
         return self._name
@@ -238,6 +240,9 @@ class TextureMap(object):
         else:
             file_path = os.path.join(root_dir, name + str(self.formats()[0]))
         return file_path.replace('\\', '/')
+
+    def __repr__(self):
+        return '<{}>'.format(self.name())
 
     def libraries(self):
         from ..library import Library

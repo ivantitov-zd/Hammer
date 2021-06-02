@@ -11,8 +11,8 @@ import hou
 
 
 class BuildOptionsWindow(QDialog):
-    def __init__(self, widget):
-        super(BuildOptionsWindow, self).__init__()
+    def __init__(self, widget, parent=None):
+        super(BuildOptionsWindow, self).__init__(parent)
 
         self.setWindowTitle('Hammer: Material build options')
         self.setWindowIcon(hou.qt.Icon('SHELF_preflight', 32, 32))

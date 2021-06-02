@@ -1,5 +1,6 @@
 import hou
 
+from ..texture_map.texture_format import TextureFormat
 from .engine_connector import EngineConnector
 
 
@@ -23,8 +24,8 @@ class OpenGLConnector(EngineConnector):
         return 'opengl' in node_type.name().lower()
 
     def supportedTextureFormats(self):
-        return ('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'jpg', 'jpeg',
-                'hdr', 'tif', 'tif3', 'tif16', 'tif32', 'tiff', 'pic')
+        return TextureFormat.wrap('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'hdr', 'tif', 'tif3', 'tif16', 'tif32',
+                                  'tiff', 'pic' 'jpg', 'jpeg')
 
 
 EngineConnector.registerEngine(OpenGLConnector)

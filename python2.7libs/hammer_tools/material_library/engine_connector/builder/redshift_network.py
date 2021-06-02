@@ -46,17 +46,18 @@ class RedshiftNetworkBuilder(MaterialBuilder):
     def cleanup(self):
         self.network_node.layoutChildren()
 
-    def __addTexture(self, texture_map=None, name=None, connect_to=None, raw=True):
+    def __addTexture(self, texture_map=None, name=None, connect_to='auto', raw=True):
         texture_map = texture_map or self.current_map
         name = '_'.join(splitAlphaNumeric(name or texture_map.name()))
 
         texture_node = self.network_node.createNode('redshift::TextureSampler', name)
-        texture_node.parm('tex0').set(texture_map.path())
+        texture_node.parm('tex0').set(texture_map.path(engine=self.engine))
         texture_node.parm('tex0_gammaoverride').set(raw)
 
-        if connect_to is None:
-            connect_to = self.shader_node
-        connect_to.setInput(self.input_mapping[texture_map.type()], texture_node)
+        if connect_to is not None:
+            if connect_to == 'auto':
+                connect_to = self.shader_node
+            connect_to.setInput(self.input_mapping[texture_map.type()], texture_node)
         return texture_node
 
     def __addTriPlanar(self, texture_node):
@@ -96,16 +97,20 @@ class RedshiftNetworkBuilder(MaterialBuilder):
             node = self.__addTriPlanar(node)
 
     def addNormal(self):
-        texture_node = self.__addTexture()
+        texture_node = self.__addTexture(connect_to=None)
+
         bump_node = self.network_node.createNode('redshift::BumpMap')
         bump_node.parm('inputType').set('1')  # Tangent-Space Normal
         bump_node.setInput(0, texture_node)
+
         self.shader_node.setInput(self.input_mapping[self.current_map.type()], bump_node)
 
     def addBump(self):
-        texture_node = self.__addTexture()
+        texture_node = self.__addTexture(connect_to=None)
+
         bump_node = self.network_node.createNode('redshift::BumpMap')
         bump_node.setInput(0, texture_node)
+
         self.shader_node.setInput(self.input_mapping[self.current_map.type()], bump_node)
 
     def addOpacity(self):
@@ -119,9 +124,11 @@ class RedshiftNetworkBuilder(MaterialBuilder):
             node = self.__addTriPlanar(node)
 
     def addDisplacement(self):
-        texture_node = self.__addTexture()
+        texture_node = self.__addTexture(connect_to=None)
+
         displacement_node = self.network_node.createNode('redshift::Displacement')
         displacement_node.setInput(0, texture_node)
+
         self.output_node.setInput(self.input_mapping[self.current_map.type()], displacement_node)
 
     def addAmbientOcclusion(self):

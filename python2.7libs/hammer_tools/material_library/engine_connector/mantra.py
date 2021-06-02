@@ -1,5 +1,6 @@
 import hou
 
+from ..texture_map.texture_format import TextureFormat
 from .engine_connector import EngineConnector
 from .builder import MantraPrincipledBuilder
 
@@ -38,8 +39,8 @@ class MantraConnector(EngineConnector):
         return MantraPrincipledBuilder(self),
 
     def supportedTextureFormats(self):
-        return ('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'jpg', 'jpeg',
-                'hdr', 'tif', 'tif3', 'tif16', 'tif32', 'tiff', 'pic')
+        return TextureFormat.wrap('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'hdr', 'tif', 'tif3', 'tif16', 'tif32',
+                                  'tiff', 'pic' 'jpg', 'jpeg')
 
 
 EngineConnector.registerEngine(MantraConnector)

@@ -1,5 +1,6 @@
 import hou
 
+from ..texture_map.texture_format import TextureFormat
 from .engine_connector import EngineConnector
 from .builder import RedshiftNetworkBuilder
 
@@ -42,8 +43,7 @@ class RedshiftConnector(EngineConnector):
         return RedshiftNetworkBuilder(self),
 
     def supportedTextureFormats(self):
-        return ('exr', 'ptx', 'ptex', 'png', 'tga', 'jpg', 'jpeg',
-                'hdr', 'tif', 'tif3', 'tif16', 'tif32', 'tiff')
+        return TextureFormat.wrap('exr', 'ptx', 'ptex', 'hdr', 'png', 'tga', 'tif', 'tiff', 'jpg', 'jpeg', )
 
 
 EngineConnector.registerEngine(RedshiftConnector)
