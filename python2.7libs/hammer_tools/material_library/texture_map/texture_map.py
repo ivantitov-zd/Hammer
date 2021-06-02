@@ -80,15 +80,12 @@ class TextureMap(object):
         return texture
 
     @staticmethod
-    def addTexturesFromFolder(path, naming_mode=None, library=None, material=None, favorite=False, options=None):
+    def addTexturesFromFolder(path, naming_mode=None, library=None, favorite=False, options=None):
         from ..engine_connector import EngineConnector
 
         textures = []
         supported_texture_formats = {tex_format for engine in EngineConnector.engines()
                                      for tex_format in engine.supportedTextureFormats()}
-
-        connection = connect()
-        connection.execute('BEGIN')
 
         for root, _, files in os.walk(path):
             for file in files:
@@ -102,16 +99,15 @@ class TextureMap(object):
                     })
                     textures.append(tex)
 
+        connection = connect()
+        connection.execute('BEGIN')
+
         if library is not None:
             for tex in textures:
                 library.addTextureMap(tex, external_connection=connection)
         else:
             for tex in textures:
                 TextureMap.addTextureMap(tex, external_connection=connection)
-
-        if material:
-            for tex in textures:
-                material.addTextureMap(tex, external_connection=connection)
 
         connection.commit()
         connection.close()

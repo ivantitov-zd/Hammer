@@ -36,6 +36,9 @@ class TextureFormat(object):
         return hash(self._extension.lower())
 
     def __repr__(self):
+        return self._extension.lower()
+
+    def __str__(self):
         return '.' + self._extension + self._license_ext + self._compression_ext
 
     @staticmethod

@@ -40,7 +40,7 @@ class MantraConnector(EngineConnector):
 
     def supportedTextureFormats(self):
         return TextureFormat.wrap('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'hdr', 'tif', 'tif3', 'tif16', 'tif32',
-                                  'tiff', 'pic' 'jpg', 'jpeg')
+                                  'tiff', 'pic', 'jpg', 'jpeg')
 
 
 EngineConnector.registerEngine(MantraConnector)
