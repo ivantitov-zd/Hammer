@@ -222,10 +222,18 @@ class Library(object):
                                    'SELECT material_id FROM material_library '
                                    'WHERE library_id = :library_id)',
                                    {'library_id': self.id()})
+                connection.execute('DELETE FROM texture WHERE id IN ('
+                                   'SELECT texture_id FROM texture_library '
+                                   'WHERE library_id = :library_id)',
+                                   {'library_id': self.id()})
             else:
                 connection.execute('DELETE FROM material WHERE material.id IN ('
                                    'SELECT material_id FROM material_library '
                                    'GROUP BY material_id HAVING count(*) = 1 AND library_id = :library_id)',
+                                   {'library_id': self.id()})
+                connection.execute('DELETE FROM texture WHERE texture.id IN ('
+                                   'SELECT texture_id FROM texture_library '
+                                   'GROUP BY texture_id HAVING count(*) = 1 AND library_id = :library_id)',
                                    {'library_id': self.id()})
 
         connection.execute('DELETE FROM library WHERE library.id = :library_id',
