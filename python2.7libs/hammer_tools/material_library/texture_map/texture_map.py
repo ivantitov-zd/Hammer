@@ -84,8 +84,12 @@ class TextureMap(object):
         from ..engine_connector import EngineConnector
 
         textures = []
-        supported_texture_formats = {'.' + tex_format for engine in EngineConnector.engines()
+        supported_texture_formats = {tex_format for engine in EngineConnector.engines()
                                      for tex_format in engine.supportedTextureFormats()}
+
+        connection = connect()
+        connection.execute('BEGIN')
+
         for root, _, files in os.walk(path):
             for file in files:
                 name, ext = os.path.splitext(file)
@@ -97,11 +101,6 @@ class TextureMap(object):
                         'source_path': os.path.join(root, file)
                     })
                     textures.append(tex)
-                    if material:
-                        material.addTextureMap(tex, )
-
-        connection = connect()
-        connection.execute('BEGIN')
 
         if library is not None:
             for tex in textures:
@@ -109,6 +108,10 @@ class TextureMap(object):
         else:
             for tex in textures:
                 TextureMap.addTextureMap(tex, external_connection=connection)
+
+        if material:
+            for tex in textures:
+                material.addTextureMap(tex, external_connection=connection)
 
         connection.commit()
         connection.close()
