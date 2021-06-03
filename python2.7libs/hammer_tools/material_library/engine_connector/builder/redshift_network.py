@@ -46,7 +46,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
     def cleanup(self):
         self.network_node.layoutChildren()
 
-    def __addTexture(self, texture_map=None, name=None, connect_to='auto', raw=True):
+    def __addTexture(self, texture_map=None, name=None, connect_to='shader', raw=True):
         texture_map = texture_map or self.current_map
         name = '_'.join(splitAlphaNumeric(name or texture_map.name()))
 
@@ -55,83 +55,129 @@ class RedshiftNetworkBuilder(MaterialBuilder):
         texture_node.parm('tex0_gammaoverride').set(raw)
 
         if connect_to is not None:
-            if connect_to == 'auto':
+            if connect_to == 'shader':
                 connect_to = self.shader_node
             connect_to.setInput(self.input_mapping[texture_map.type()], texture_node)
         return texture_node
 
-    def __addTriPlanar(self, texture_node):
+    def __addColorControl(self, node):
+        color_correct_node = self.network_node.createNode('redshift::RSColorCorrection')
+
+        if node.outputConnections():
+            connection = node.outputConnections()[0]
+            connection.outputNode().setInput(connection.inputIndex(), color_correct_node)
+
+        color_correct_node.setInput(0, node)
+        return color_correct_node
+
+    def __addRangeControl(self, node):
+        range_correct_node = self.network_node.createNode('redshift::RSMathRange')
+
+        if node.outputConnections():
+            connection = node.outputConnections()[0]
+            connection.outputNode().setInput(connection.inputIndex(), range_correct_node)
+
+        range_correct_node.setInput(0, node)
+        return range_correct_node
+
+    def __addTriPlanar(self, node):
         tri_planar_node = self.network_node.createNode('redshift::TriPlanar')
-        if texture_node.outputConnections():
-            connection = texture_node.outputConnections()[0]
+
+        if node.outputConnections():
+            connection = node.outputConnections()[0]
             connection.outputNode().setInput(connection.inputIndex(), tri_planar_node)
 
-        tri_planar_node.setInput(tri_planar_node.inputIndex('imageX'), texture_node)
-        tri_planar_node.setInput(tri_planar_node.inputIndex('imageY'), texture_node)
-        tri_planar_node.setInput(tri_planar_node.inputIndex('imageZ'), texture_node)
+        tri_planar_node.setInput(tri_planar_node.inputIndex('imageX'), node)
+        tri_planar_node.setInput(tri_planar_node.inputIndex('imageY'), node)
+        tri_planar_node.setInput(tri_planar_node.inputIndex('imageZ'), node)
         return tri_planar_node
 
     def addDiffuse(self):
         node = self.__addTexture(raw=False)
+        if self.options.get('add_color_controls'):
+            node = self.__addColorControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
 
     def addRoughness(self):
         node = self.__addTexture()
+        if self.options.get('add_range_controls'):
+            node = self.__addRangeControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
 
     def addMetalness(self):
         node = self.__addTexture()
+        if self.options.get('add_range_controls'):
+            node = self.__addRangeControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
 
     def addReflection(self):
         node = self.__addTexture()
+        if self.options.get('add_range_controls'):
+            node = self.__addRangeControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
 
     def addRefraction(self):
         node = self.__addTexture()
+        if self.options.get('add_range_controls'):
+            node = self.__addRangeControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
 
     def addNormal(self):
-        texture_node = self.__addTexture(connect_to=None)
+        node = self.__addTexture(connect_to=None)
+
+        if self.options.get('use_tri_planar'):
+            node = self.__addTriPlanar(node)
 
         bump_node = self.network_node.createNode('redshift::BumpMap')
         bump_node.parm('inputType').set('1')  # Tangent-Space Normal
-        bump_node.setInput(0, texture_node)
+        bump_node.setInput(0, node)
 
         self.shader_node.setInput(self.input_mapping[self.current_map.type()], bump_node)
 
     def addBump(self):
-        texture_node = self.__addTexture(connect_to=None)
+        node = self.__addTexture(connect_to=None)
+
+        if self.options.get('use_tri_planar'):
+            node = self.__addTriPlanar(node)
 
         bump_node = self.network_node.createNode('redshift::BumpMap')
-        bump_node.setInput(0, texture_node)
+        bump_node.setInput(0, node)
 
         self.shader_node.setInput(self.input_mapping[self.current_map.type()], bump_node)
 
     def addOpacity(self):
         node = self.__addTexture()
+        if self.options.get('add_range_controls'):
+            node = self.__addRangeControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
 
     def addEmission(self):
         node = self.__addTexture()
+        if self.options.get('add_color_controls'):
+            node = self.__addColorControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
 
     def addDisplacement(self):
-        texture_node = self.__addTexture(connect_to=None)
+        node = self.__addTexture(connect_to=None)
+
+        if self.options.get('use_tri_planar'):
+            node = self.__addTriPlanar(node)
 
         displacement_node = self.network_node.createNode('redshift::Displacement')
-        displacement_node.setInput(0, texture_node)
+        displacement_node.setInput(0, node)
 
         self.output_node.setInput(self.input_mapping[self.current_map.type()], displacement_node)
 
     def addAmbientOcclusion(self):
         node = self.__addTexture()
+        if self.options.get('add_range_controls'):
+            node = self.__addRangeControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)

@@ -14,7 +14,7 @@ from ..text import splitAlphaNumeric
 from .map_type import MapType
 from .texture_format import TextureFormat
 
-MISSING_THUMBNAIL_ICON = hou.qt.Icon('SOP_texture', 256, 256)
+MISSING_THUMBNAIL_ICON = hou.qt.Icon('BUTTONS_parmmenu_texture', 256, 256)
 
 
 class TextureMap(object):
@@ -202,7 +202,7 @@ class TextureMap(object):
             connection.close()
 
     def options(self):
-        raise NotImplementedError
+        return self._options
 
     def source(self):
         return self._source_path
