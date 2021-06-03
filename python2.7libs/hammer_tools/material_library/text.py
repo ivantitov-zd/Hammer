@@ -22,7 +22,7 @@ def splitAlphaNumeric(text):
 def replaceByPattern(file_path, tag, pattern):
     pattern = '(?P<pre>.*?)' + pattern + '(?P<post>.+)'
     path, name = os.path.split(file_path)
-    if not re.match(pattern, path):
+    if not re.match(pattern, name):
         return file_path
     name = re.sub(pattern, r'\g<pre>%s\g<post>' % tag, name)
     return path + '/' + name

@@ -18,7 +18,7 @@ class RedshiftBuildOptions(QWidget):
         self._uv_mode.addItem('Normal UV', 'normal')
         self._uv_mode.addItem('UDIM', 'udim')
         self._uv_mode.addItem('UV Tile', 'uvtile')
-        # layout.addWidget(self._uv_mode)
+        layout.addWidget(self._uv_mode)
 
         self._add_color_controls_toggle = QCheckBox('Add color controls')
         layout.addWidget(self._add_color_controls_toggle)

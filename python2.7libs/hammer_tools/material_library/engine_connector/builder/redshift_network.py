@@ -1,4 +1,4 @@
-from ...text import splitAlphaNumeric
+from ...text import splitAlphaNumeric, replaceUDIM, replaceUVTile
 from ...texture_map import MapType
 from .builder import MaterialBuilder
 from .redshift_options import RedshiftBuildOptions
@@ -51,7 +51,13 @@ class RedshiftNetworkBuilder(MaterialBuilder):
         name = '_'.join(splitAlphaNumeric(name or texture_map.name()))
 
         texture_node = self.network_node.createNode('redshift::TextureSampler', name)
-        texture_node.parm('tex0').set(texture_map.path(engine=self.engine))
+        tex_map_path = texture_map.path(engine=self.engine)
+        uv_mode = self.options.get('uv_mode')
+        if uv_mode == 'udim':
+            tex_map_path = replaceUDIM(tex_map_path, '<UDIM>')
+        elif uv_mode == 'uvtile':
+            tex_map_path = replaceUVTile(tex_map_path, '<UVTILE>')
+        texture_node.parm('tex0').set(tex_map_path)
         texture_node.parm('tex0_gammaoverride').set(raw)
 
         if connect_to is not None:
