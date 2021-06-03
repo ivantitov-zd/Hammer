@@ -516,6 +516,8 @@ class MaterialLibraryViewerDialog(QMainWindow):
                 window = BuildOptionsWindow(builder.buildOptionsWidget(), self)
                 if window.exec_():
                     options = window.options()
+                else:
+                    return
             except NotImplementedError:
                 pass
 
