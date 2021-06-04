@@ -111,8 +111,14 @@ def updateMaterialThumbnails(materials, engine=None, hdri_path=None, external_co
     else:
         connection = external_connection
 
-    for material in materials:
-        material.addThumbnail(scene.render(material), engine.id() if engine else None, external_connection=connection)
+    with hou.InterruptableOperation('Thumbnail rendering', open_interrupt_dialog=True) as op:
+        for index, material in enumerate(materials, 1):
+            material.addThumbnail(scene.render(material), engine.id() if engine else None,
+                                  external_connection=connection)
+            try:
+                op.updateLongProgress(index / float(len(materials)))
+            except hou.OperationInterrupted:
+                break  # Todo: Flash message
 
     scene.destroy()
 
