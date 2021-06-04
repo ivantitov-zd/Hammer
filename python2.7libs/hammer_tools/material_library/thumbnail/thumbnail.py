@@ -73,7 +73,11 @@ class MaterialPreviewScene(object):
                 self.render_node.parm('picture').set(image_path)
 
                 # Fix for metallic materials in 18.0
-                self.render_node.parm('hqlighting').set(material_node.parm('metallic_useTexture').eval())
+                major_version, minor_version, build_version = hou.applicationVersion()
+                if major_version == 18 and minor_version == 0:
+                    self.render_node.parm('hqlighting').set(material_node.parm('metallic_useTexture').eval())
+                else:
+                    self.render_node.parm('hqlighting').set(True)
             else:
                 material_node = self.engine.builders()[0]().build(material, '/mat/')
 
