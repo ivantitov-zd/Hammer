@@ -141,7 +141,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
 
         bump_node = self.network_node.createNode('redshift::BumpMap')
         bump_node.parm('inputType').set('1')  # Tangent-Space Normal
-        bump_node.setInput(0, node)
+        bump_node.setInput(bump_node.inputIndex('input'), node)
 
         self.shader_node.setInput(self.input_mapping[self.current_map.type()], bump_node)
 
@@ -152,7 +152,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
             node = self.__addTriPlanar(node)
 
         bump_node = self.network_node.createNode('redshift::BumpMap')
-        bump_node.setInput(0, node)
+        bump_node.setInput(bump_node.inputIndex('input'), node)
 
         self.shader_node.setInput(self.input_mapping[self.current_map.type()], bump_node)
 
@@ -187,7 +187,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
             node = self.__addTriPlanar(node)
 
         displacement_node = self.network_node.createNode('redshift::Displacement')
-        displacement_node.setInput(0, node)
+        displacement_node.setInput(displacement_node.inputIndex('texMap'), node)
 
         self.output_node.setInput(self.input_mapping[self.current_map.type()], displacement_node)
 
