@@ -29,12 +29,16 @@ class RedshiftBuildOptions(QWidget):
         self._use_tri_planar_toggle = QCheckBox('Use Tri-Planar')
         layout.addWidget(self._use_tri_planar_toggle)
 
+        self._use_sprite_toggle = QCheckBox('Use Sprite for Opacity')
+        layout.addWidget(self._use_sprite_toggle)
+
     def options(self):
         return {
             'uv_mode': self._uv_mode.currentData(),
             'add_color_controls': self._add_color_controls_toggle.isChecked(),
             'add_range_controls': self._add_range_controls_toggle.isChecked(),
-            'use_tri_planar': self._use_tri_planar_toggle.isChecked()
+            'use_tri_planar': self._use_tri_planar_toggle.isChecked(),
+            'use_sprite': self._use_sprite_toggle.isChecked()
         }
 
     def setOptions(self, options):
@@ -53,3 +57,7 @@ class RedshiftBuildOptions(QWidget):
         use_tri_planar = options.get('use_tri_planar')
         if use_tri_planar is not None:
             self._use_tri_planar_toggle.setChecked(use_tri_planar)
+
+        use_sprite = options.get('use_sprite')
+        if use_sprite is not None:
+            self._use_sprite_toggle.setChecked(use_sprite)

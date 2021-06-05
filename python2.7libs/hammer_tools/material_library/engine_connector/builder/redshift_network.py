@@ -157,11 +157,21 @@ class RedshiftNetworkBuilder(MaterialBuilder):
         self.shader_node.setInput(self.input_mapping[self.current_map.type()], bump_node)
 
     def addOpacity(self):
-        node = self.__addTexture()
-        if self.options.get('add_range_controls'):
-            node = self.__addRangeControl(node)
-        if self.options.get('use_tri_planar'):
-            node = self.__addTriPlanar(node)
+        if self.options.get('use_sprite'):
+            sprite_node = self.network_node.createNode('redshift::Sprite')
+            sprite_node.parm('tex0').set(self.current_map.path(engine=self.engine))
+            sprite_node.parm('tex0_gammaoverride').set(True)
+
+            if self.shader_node.outputConnections():
+                connection = self.shader_node.outputConnections()[0]
+                connection.outputNode().setInput(connection.inputIndex(), sprite_node)
+            sprite_node.setInput(sprite_node.inputIndex('input'), self.shader_node)
+        else:
+            node = self.__addTexture()
+            if self.options.get('add_range_controls'):
+                node = self.__addRangeControl(node)
+            if self.options.get('use_tri_planar'):
+                node = self.__addTriPlanar(node)
 
     def addEmission(self):
         node = self.__addTexture()
