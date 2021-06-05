@@ -112,11 +112,16 @@ def updateMaterialThumbnails(materials, engine=None, hdri_path=None, external_co
         connection = external_connection
 
     with hou.InterruptableOperation('Thumbnail rendering', open_interrupt_dialog=True) as op:
-        for index, material in enumerate(materials, 1):
+        try:
+            material_count = float(len(materials))
+        except TypeError:
+            material_count = 1.0
+        for num, material in enumerate(materials, 1):
             material.addThumbnail(scene.render(material), engine.id() if engine else None,
                                   external_connection=connection)
             try:
-                op.updateLongProgress(index / float(len(materials)))
+                op.updateLongProgress(num / material_count,
+                                      'Thumbnail {} / {}'.format(num, material_count))
             except hou.OperationInterrupted:
                 break  # Todo: Flash message
 
@@ -137,13 +142,23 @@ def updateTextureThumbnails(textures, external_connection=None):
     else:
         connection = external_connection
 
-    for texture in textures:
-        if set(texture.formats()).intersection({'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'}):
-            image_path = texture.path()
-        else:
-            subprocess.call('iconvert -g off {} {}'.format(texture.path(), image_path))
-        image = QImage(image_path).scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        texture.addThumbnail(image, external_connection=connection)
+    with hou.InterruptableOperation('Thumbnail rendering', open_interrupt_dialog=True) as op:
+        try:
+            texture_count = float(len(textures))
+        except TypeError:
+            texture_count = 1.0
+        for num, texture in enumerate(textures, 1):
+            if set(texture.formats()).intersection({'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'}):
+                image_path = texture.path()
+            else:
+                subprocess.call('iconvert -g off {} {}'.format(texture.path(), image_path))
+            image = QImage(image_path).scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            texture.addThumbnail(image, external_connection=connection)
+            try:
+                op.updateLongProgress(num / texture_count,
+                                      'Thumbnail {} / {}'.format(num, texture_count))
+            except hou.OperationInterrupted:
+                break  # Todo: Flash message
 
     if external_connection is None:
         connection.commit()
