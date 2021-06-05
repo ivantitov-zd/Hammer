@@ -18,7 +18,9 @@ class RedshiftNetworkBuilder(MaterialBuilder):
         return self.root_node.createNode('redshift_vopnet', self.material_name)
 
     def createShader(self):
-        shader_node = self.network_node.createNode('redshift::Material')
+        shader_node = self.network_node.node('Material1')
+        if not shader_node:
+            shader_node = self.network_node.createNode('redshift::Material')
         shader_node.parm('refl_roughness').set(1)  # Todo: Move to addRoughness?
         shader_node.parm('refl_brdf').set('1')  # GGX
         shader_node.parm('refl_fresnel_mode').set('2')  # Metalness
