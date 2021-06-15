@@ -73,5 +73,5 @@ class MaterialLibraryModel(QAbstractListModel):
     def mimeData(self, indexes):
         data = QMimeData()
         current_item = indexes[-1].data(InternalDataRole)
-        data.setText(current_item.path(EngineConnector.currentEngine()))
+        data.setText(current_item.path(engine=EngineConnector.currentEngine()))
         return data
