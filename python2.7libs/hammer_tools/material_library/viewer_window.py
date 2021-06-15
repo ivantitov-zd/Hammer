@@ -243,10 +243,10 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.remove_library_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         self.library_list_browser.addAction(self.remove_library_action)
 
-        self.create_material_action = QAction('Create material', self)
+        self.create_material_action = QAction('Create material\t[Ctrl]', self)
         self.create_material_action.triggered.connect(self.createMaterial)
 
-        self.create_material_and_assign_action = QAction('Create material and assign', self)
+        self.create_material_and_assign_action = QAction('Create material and assign\t[Ctrl]', self)
         self.create_material_and_assign_action.triggered.connect(self.createMaterialAndAssign)
 
         self.generate_material_thumbnail_action = QAction('Generate thumbnail', self)
