@@ -114,6 +114,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
         # Draw text
         metrics = painter.fontMetrics()
         text = metrics.elidedText(index.data(Qt.DisplayRole), Qt.ElideRight, text_rect.adjusted(4, 0, -4, 0).width())
+        painter.setPen(QColor(200, 200, 200))
         painter.drawText(text_rect, Qt.AlignCenter, text)
 
         # Draw frame
