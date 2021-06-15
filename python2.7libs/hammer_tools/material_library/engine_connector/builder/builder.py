@@ -1,6 +1,6 @@
 import hou
 
-from ...text import splitAlphaNumeric
+from ...text import alphaNumericTokens
 from ...texture_map import MapType
 
 DEFAULT_BUILDER_ICON = hou.qt.Icon('MISC_empty', 16, 16)
@@ -20,7 +20,7 @@ class MaterialBuilder(object):
 
     def build(self, material, root, name=None, options=None):
         self.material = material
-        self.material_name = '_'.join(splitAlphaNumeric(name or self.material.name()))
+        self.material_name = '_'.join(alphaNumericTokens(name or self.material.name()))
         self.options = options or {}
 
         if isinstance(root, hou.Node):

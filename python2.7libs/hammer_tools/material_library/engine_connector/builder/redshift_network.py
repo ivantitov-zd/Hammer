@@ -1,4 +1,4 @@
-from ...text import splitAlphaNumeric, replaceUDIM, replaceUVTile
+from ...text import alphaNumericTokens, replaceUDIM, replaceUVTile
 from ...texture_map import MapType
 from .builder import MaterialBuilder
 from .redshift_options import RedshiftBuildOptions
@@ -50,7 +50,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
 
     def __addTexture(self, texture_map=None, name=None, connect_to='shader', raw=True):
         texture_map = texture_map or self.current_map
-        name = '_'.join(splitAlphaNumeric(name or texture_map.name()))
+        name = '_'.join(alphaNumericTokens(name or texture_map.name()))
 
         texture_node = self.network_node.createNode('redshift::TextureSampler', name)
         tex_map_path = texture_map.path(engine=self.engine)

@@ -2,7 +2,7 @@ import os
 import re
 
 
-def splitAlphaNumeric(text):
+def alphaNumericTokens(text):
     parts = []
 
     buffer = ''

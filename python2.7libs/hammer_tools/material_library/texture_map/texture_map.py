@@ -10,7 +10,7 @@ import hou
 
 from ..db import connect
 from ..image import imageToBytes
-from ..text import splitAlphaNumeric
+from ..text import alphaNumericTokens
 from .map_type import MapType
 from .texture_format import TextureFormat
 
@@ -22,14 +22,22 @@ class TextureMap(object):
                  '_type')
 
     @staticmethod
-    def mapType(name):
-        name_tags = splitAlphaNumeric(name.lower())
-
+    def mapType(name):  # Todo: Move to map type module
+        name_tokens = alphaNumericTokens(name.lower())[::-1]
+        found_pos = float('+inf')
+        found_type = None
         for map_type, tags in MapType.tags().items():
             for tag in tags:
-                if tag in name_tags:
-                    return map_type
-        return MapType.Unknown
+                if tag in name_tokens:
+                    pos = name_tokens.index(tag)
+                    if pos > found_pos:
+                        continue
+                    elif pos == found_pos:
+                        raise AssertionError('Found intersections between tags in different map types.')
+                    found_pos = pos
+                    found_type = map_type
+                    break
+        return found_type or MapType.Unknown
 
     @staticmethod
     def fromData(data):
