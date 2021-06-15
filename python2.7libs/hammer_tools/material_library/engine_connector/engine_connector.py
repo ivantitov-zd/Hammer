@@ -12,8 +12,8 @@ class EngineConnector(object):
         EngineConnector.__engines.append(engine())
 
     @staticmethod
-    def engines():
-        return tuple(EngineConnector.__engines)
+    def engines(predicate=lambda e: True):
+        return tuple(filter(predicate, EngineConnector.__engines))
 
     @staticmethod
     def setCurrentEngine(engine):
