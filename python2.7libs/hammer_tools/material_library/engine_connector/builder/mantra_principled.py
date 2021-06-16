@@ -1,4 +1,4 @@
-from .builder import MaterialBuilder
+from .material_builder import MaterialBuilder
 
 
 class MantraPrincipledBuilder(MaterialBuilder):

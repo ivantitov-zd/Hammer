@@ -1,6 +1,6 @@
 from ...text import alphaNumericTokens, replaceUDIM, replaceUVTile
 from ...texture_map import MapType
-from .builder import MaterialBuilder
+from .material_builder import MaterialBuilder
 from .redshift_options import RedshiftBuildOptions
 
 

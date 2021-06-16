@@ -1,11 +1,11 @@
 try:
-    from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit, QSpacerItem,
+    from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QSpacerItem,
                                  QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
                                  QToolBar, QApplication)
     from PyQt5.QtCore import Qt, QSize, QEvent
     from PyQt5.QtGui import QIcon, QCursor, QKeySequence
 except ImportError:
-    from PySide2.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLineEdit, QSpacerItem,
+    from PySide2.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QSpacerItem,
                                    QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
                                    QToolBar, QApplication)
     from PySide2.QtCore import Qt, QSize, QEvent
@@ -14,7 +14,7 @@ except ImportError:
 import hou
 
 from ..utils import openLocation
-from ..widgets import Slider, InputField
+from ..widgets import Slider, InputField, ComboBox
 from ..menu import Menu
 from .db import connect
 from .data_roles import InternalDataRole
@@ -66,7 +66,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         toolbar.setStyleSheet('QToolBar {spacing: 4px;}')
         self.addToolBar(Qt.TopToolBarArea, toolbar)
 
-        self.target_engine_combo = QComboBox()
+        self.target_engine_combo = ComboBox()
         self.target_engine_combo.setMinimumWidth(100)
         self.target_engine_combo.addItem(EngineConnector.icon(), 'Auto', None)
         for engine in EngineConnector.engines():
@@ -76,13 +76,13 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.target_engine_combo.currentIndexChanged.connect(self.onCurrentEngineChanged)
         toolbar.addWidget(self.target_engine_combo)
 
-        self.target_builder_combo = QComboBox()
+        self.target_builder_combo = ComboBox()
         self.target_builder_combo.setMinimumWidth(140)
         self.target_builder_combo.setToolTip('Target builder')
         self.updateEngineBuilderList()
         toolbar.addWidget(self.target_builder_combo)
 
-        self.target_network_combo = QComboBox()
+        self.target_network_combo = ComboBox()
         self.target_network_combo.setToolTip('Target network')
         self.target_network_combo.setMinimumWidth(160)
         self.target_network_combo.installEventFilter(self)
@@ -452,14 +452,14 @@ class MaterialLibraryViewerDialog(QMainWindow):
     def onAddFromFolder(self):
         window = AddFromFolderDialog()
         if window.exec_():
-            target_mode = window.target_library_mode.currentData(Qt.UserRole)
+            target_mode = window.target_library_mode.currentData()
             if target_mode == Target.NoLibrary:
                 library = None
             elif target_mode == Target.NewLibrary:
                 library = Library.fromData({'name': window.library_name_field.text()})
                 Library.addLibrary(library)
             elif target_mode == Target.ExistingLibrary:
-                library = window.existing_libraries_combo.currentData(Qt.UserRole)
+                library = window.existing_libraries_combo.currentData()
 
             materials = Material.addMaterialsFromFolder(window.path_field.path(),
                                                         None,
@@ -488,19 +488,15 @@ class MaterialLibraryViewerDialog(QMainWindow):
             openLocation(library.path())
 
     def createMaterial(self):
-        materials = self.library_browser.selectedMaterials()
-
-        builder = self.target_builder_combo.currentData(Qt.UserRole)
+        builder = self.target_builder_combo.currentData()
         if builder is None:
             engine = EngineConnector.currentEngine()
-            if engine is None:
-                return
+            if engine:
+                builders = engine.builders()
+                if builders:
+                    builder = builders[0]  # Todo: Take it by options
 
-            builder = engine.builders()[0]
-        if builder is None:
-            return
-
-        root = self.target_network_combo.currentData(Qt.UserRole)
+        root = self.target_network_combo.currentData()
         if root is None:
             selected_nodes = hou.selectedNodes()
             if selected_nodes:
@@ -511,18 +507,16 @@ class MaterialLibraryViewerDialog(QMainWindow):
             root = hou.root().node('mat')
 
         options = None
-        if QApplication.queryKeyboardModifiers() == Qt.ControlModifier:
-            try:
-                window = BuildOptionsWindow(builder.buildOptionsWidget(), self)
-                if window.exec_():
-                    options = window.options()
-                else:
-                    return
-            except NotImplementedError:
-                pass
+        if QApplication.queryKeyboardModifiers() == Qt.ControlModifier or not builder:
+            window = BuildOptionsWindow(builder, self)
+            if not window.exec_():
+                return
+
+            options = window.options()
+            builder = options['builder']
 
         nodes = []
-        for material in materials:
+        for material in self.library_browser.selectedMaterials():
             material_node = builder.build(material, root, options=options)
             material_node.moveToGoodPosition()
             nodes.append(material_node)

@@ -7,7 +7,7 @@ except ImportError:
 
 import hou
 
-from ..widgets import FilePathField
+from ..widgets import FilePathField, ComboBox
 from .library import Library
 
 
@@ -38,7 +38,7 @@ class AddTextureDialog(QDialog):
         self.path_field.label.hide()
         form_layout.addRow('Texture', self.path_field)
 
-        self.target_library_mode = QComboBox()
+        self.target_library_mode = ComboBox()
         self.target_library_mode.addItem('No library')
         self.target_library_mode.addItem('New library', Target.NewLibrary)
         self.target_library_mode.addItem('Existing library', Target.ExistingLibrary)
@@ -53,7 +53,7 @@ class AddTextureDialog(QDialog):
         )
         form_layout.addRow('Library name', self.library_name_field)
 
-        self.existing_libraries_combo = QComboBox()
+        self.existing_libraries_combo = ComboBox()
         for library in Library.allLibraries():
             self.existing_libraries_combo.addItem(library.name(), library)
         self.existing_libraries_combo.setDisabled(True)

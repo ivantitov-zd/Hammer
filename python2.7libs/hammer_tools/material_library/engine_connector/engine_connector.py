@@ -42,6 +42,12 @@ class EngineConnector(object):
     def id(self):
         raise NotImplementedError
 
+    def __eq__(self, other):
+        return isinstance(other, EngineConnector) and self.id() == other.id()
+
+    def __hash__(self):
+        return hash(self.id())
+
     def name(self):
         raise NotImplementedError
 

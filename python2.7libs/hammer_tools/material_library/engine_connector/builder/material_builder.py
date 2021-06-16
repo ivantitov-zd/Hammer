@@ -7,7 +7,7 @@ DEFAULT_BUILDER_ICON = hou.qt.Icon('MISC_empty', 16, 16)
 
 
 class MaterialBuilder(object):
-    def __init__(self, engine=None):
+    def __init__(self, engine=None):  # Todo: Make engine required
         self.engine = engine
         self.material = None
         self.material_name = None
@@ -73,6 +73,12 @@ class MaterialBuilder(object):
     def id(self):
         raise NotImplementedError
 
+    def __eq__(self, other):
+        return isinstance(other, MaterialBuilder) and self.id() == other.id()
+
+    def __hash__(self):
+        return hash(self.id())
+
     def name(self):
         raise NotImplementedError
 
@@ -82,7 +88,7 @@ class MaterialBuilder(object):
 
     @staticmethod
     def buildOptionsWidget():
-        raise NotImplementedError
+        return
 
     def createNetwork(self):
         raise NotImplementedError

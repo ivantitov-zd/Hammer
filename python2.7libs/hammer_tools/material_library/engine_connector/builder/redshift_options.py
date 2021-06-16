@@ -1,9 +1,11 @@
 try:
-    from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QComboBox
+    from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox
     from PyQt5.QtCore import Qt
 except ImportError:
-    from PySide2.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QComboBox
+    from PySide2.QtWidgets import QWidget, QVBoxLayout, QCheckBox
     from PySide2.QtCore import Qt
+
+from ....widgets import ComboBox
 
 
 class RedshiftBuildOptions(QWidget):
@@ -14,7 +16,7 @@ class RedshiftBuildOptions(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
 
-        self._uv_mode = QComboBox()
+        self._uv_mode = ComboBox()
         self._uv_mode.addItem('Normal UV', 'normal')
         self._uv_mode.addItem('UDIM', 'udim')
         self._uv_mode.addItem('UV Tile', 'uvtile')
