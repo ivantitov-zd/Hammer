@@ -148,8 +148,9 @@ def updateTextureThumbnails(textures, external_connection=None):
         except TypeError:
             texture_count = 1.0
         for num, texture in enumerate(textures, 1):
-            if set(texture.formats()).intersection({'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'}):
-                image_path = texture.path()
+            format_collision = set(texture.formats()).intersection({'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'})
+            if format_collision:
+                image_path = texture.path(format_collision.pop())
             else:
                 subprocess.call('iconvert -g off {} {}'.format(texture.path(), image_path))
             image = QImage(image_path).scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
