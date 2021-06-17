@@ -11,6 +11,7 @@ import hou
 
 from ..data_roles import FavoriteRole, InternalDataRole
 from ..texture_map import TextureMap
+from ..image import loadImage
 
 FAVORITE_ICON = hou.qt.Icon('BUTTONS_favorites', 24, 24)
 ZOOM_ICON = hou.qt.Icon('IMAGE_zoom_in', 24, 24)
@@ -25,7 +26,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
         super(LibraryItemDelegate, self).__init__()
 
         self._previous_item = None
-        self._texture = None
+        self._image = None
         self._zoomed = False
 
     def editorEvent(self, event, model, option, index):
@@ -43,7 +44,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
 
         if current_item != self._previous_item:
             self._previous_item = current_item
-            self._texture = QImage(current_item.path())
+            self._image = loadImage(current_item.path())
 
         option.widget.update(index)
         return False
@@ -81,13 +82,13 @@ class LibraryItemDelegate(QStyledItemDelegate):
             painter.drawRect(rect.adjusted(adjust, adjust, -adjust, -adjust))
             painter.restore()
 
-        if self._texture and isinstance(current_item, TextureMap) and \
+        if self._image and isinstance(current_item, TextureMap) and \
                 option.state & QStyle.State_MouseOver and \
                 QApplication.queryKeyboardModifiers() == Qt.ControlModifier:
             # Draw zoomed texture
             cursor_pos = option.widget.mapFromGlobal(QCursor.pos()) - thumbnail_rect.topLeft()
-            texture_width = self._texture.width()
-            texture_height = self._texture.height()
+            texture_width = self._image.width()
+            texture_height = self._image.height()
             sample_width = texture_width * 0.2
             sample_height = texture_height * 0.2
 
@@ -97,7 +98,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
                 hou.hmath.clamp(cursor_pos.x() / float(thumbnail_rect.width()) * max_x, 0, max_x),
                 hou.hmath.clamp(cursor_pos.y() / float(thumbnail_rect.height()) * max_y, 0, max_y)
             )
-            image = self._texture.copy(QRect(sample_top_left, QSize(sample_width, sample_height)))
+            image = self._image.copy(QRect(sample_top_left, QSize(sample_width, sample_height)))
             painter.drawImage(thumbnail_rect.topLeft(),
                               image.scaled(option.decorationSize, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
