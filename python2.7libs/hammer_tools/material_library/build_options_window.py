@@ -107,6 +107,3 @@ class BuildOptionsWindow(QDialog):
     def onCurrentEngineChanged(self, index):
         self.updateEngineBuilderList()
         self.replaceOptionsWidget()
-
-    def hideEvent(self, event):
-        self.deleteLater()
