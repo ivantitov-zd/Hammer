@@ -9,8 +9,6 @@ except ImportError:
     from PySide2.QtCore import QBuffer, QIODevice, Qt
     from PySide2.QtGui import QImage
 
-from .texture_map.texture_format import TextureFormat
-
 
 def imageToBytes(image):
     buffer = QBuffer()
@@ -22,6 +20,8 @@ def imageToBytes(image):
 
 
 def loadImage(path):
+    from .texture import TextureFormat
+
     tex_format = TextureFormat(path)
     if tex_format in {'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'}:
         return QImage(path)
