@@ -546,7 +546,11 @@ class MaterialLibraryViewerDialog(QMainWindow):
         window.exec_()
 
     def copyCurrentItemPath(self):
-        path = self.library_browser.currentItem().path()
+        item = self.library_browser.currentItem()
+        if isinstance(item, TextureMap):
+            path = item.path(engine=EngineConnector.currentEngine())
+        else:
+            path = item.path()
         if path:
             QApplication.clipboard().setText(path)
 
