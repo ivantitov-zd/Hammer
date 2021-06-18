@@ -8,16 +8,17 @@
   <interface name="hammer::material_library::1.0" label="Hammer Material Library" icon="SOP_material" help_url="">
     <script><![CDATA[from hammer_tools.material_library import MaterialLibraryViewerDialog
 
-group_list = None
+material_library = None
 
 def onCreateInterface():
-    global group_list
-    group_list = MaterialLibraryViewerDialog()
-    return group_list
+    global material_library
+    material_library = MaterialLibraryViewerDialog()
+    return material_library
 
 def onDestroyInterface():
-    global group_list
-    group_list = None
+    global material_library
+    material_library.deleteLater()
+    material_library = None
 
 ]]></script>
     <includeInPaneTabMenu menu_position="38" create_separator="false"/>

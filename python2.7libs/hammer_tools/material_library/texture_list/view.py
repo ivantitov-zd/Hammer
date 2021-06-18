@@ -14,4 +14,4 @@ class TextureListView(QListView):
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        self.setItemDelegate(TextureDelegate())
+        self.setItemDelegate(TextureDelegate(self))

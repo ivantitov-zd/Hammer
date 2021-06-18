@@ -7,7 +7,7 @@ except ImportError:
 
 from ..data_roles import FavoriteRole, InternalDataRole
 from ..material import Material
-from ..texture_map import TextureMap
+from ..texture import TextureMap
 
 
 class MaterialLibraryListProxyModel(QSortFilterProxyModel):

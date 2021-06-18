@@ -1,13 +1,13 @@
 try:
     from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QSpacerItem,
                                  QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
-                                 QToolBar, QApplication)
+                                 QToolBar, QApplication, QFileDialog)
     from PyQt5.QtCore import Qt, QSize, QEvent
     from PyQt5.QtGui import QIcon, QCursor, QKeySequence
 except ImportError:
     from PySide2.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QSpacerItem,
                                    QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
-                                   QToolBar, QApplication)
+                                   QToolBar, QApplication, QFileDialog)
     from PySide2.QtCore import Qt, QSize, QEvent
     from PySide2.QtGui import QIcon, QCursor, QKeySequence
 
@@ -22,15 +22,15 @@ from .engine_connector import EngineConnector
 from .library_list import LibraryListBrowser
 from .library_browser import LibraryBrowser
 from .add_library_window import AddLibraryDialog
-from .add_from_folder_window import AddFromFolderDialog, Target
+from .add_folder_content_window import AddFolderContentDialog, Target
 from .texture_list import TextureListBrowser
-from .remove_library_window import RemoveLibraryWindow
-from .remove_material_window import RemoveMaterialWindow
-from .remove_texture_window import RemoveTextureWindow
+from .remove_library_options_window import RemoveLibraryOptionsWindow
+from .remove_material_options_window import RemoveMaterialOptionsWindow
+from .remove_texture_options_window import RemoveTextureOptionsWindow
 from .thumbnail import updateMaterialThumbnails, updateTextureThumbnails
 from .library import Library
 from .material import Material
-from .texture_map import TextureMap
+from .texture import TextureMap
 from .build_options_window import BuildOptionsWindow
 
 FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 16, 16)
@@ -40,7 +40,7 @@ FAVORITE_ICON.addPixmap(FAVORITE_ENABLED_ICON.pixmap(16, 16), QIcon.Normal, QIco
 FAVORITE_ICON.addPixmap(FAVORITE_DISABLED_ICON.pixmap(16, 16), QIcon.Normal, QIcon.Off)
 
 MATERIAL_ICON = hou.qt.Icon('SOP_material', 16, 16)
-TEXTURE_ICON = hou.qt.Icon('SOP_texture', 16, 16)
+TEXTURE_ICON = hou.qt.Icon('BUTTONS_parmmenu_texture', 16, 16)
 
 
 class MaterialLibraryViewerDialog(QMainWindow):
@@ -172,6 +172,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.create_material_action = None
         self.create_material_and_assign_action = None
         self.generate_material_thumbnail_action = None
+        self.save_item_thumbnail_action = None
         self.set_custom_material_thumbnail_action = None
         self.copy_item_path_action = None
         self.open_item_location_action = None
@@ -251,6 +252,9 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
         self.generate_material_thumbnail_action = QAction('Generate thumbnail', self)
         self.generate_material_thumbnail_action.triggered.connect(self.generateItemThumbnails)
+
+        self.save_item_thumbnail_action = QAction('Save thumbnail...', self)
+        self.save_item_thumbnail_action.triggered.connect(self.saveItemThumbnail)
 
         self.set_custom_material_thumbnail_action = QAction('Set custom thumbnail...', self)
 
@@ -337,11 +341,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.material_menu.addAction(self.create_material_and_assign_action)
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.generate_material_thumbnail_action)
+        self.material_menu.addAction(self.save_item_thumbnail_action)
         # self.material_menu.addAction(self.set_custom_material_thumbnail_action)
         self.material_menu.addSeparator()
-        self.material_menu.addAction(self.copy_item_path_action)
+        self.material_menu.addAction(self.show_material_textures_action)
         self.material_menu.addAction(self.open_item_location_action)
-        # self.material_menu.addAction(self.material_textures_action)
+        self.material_menu.addAction(self.copy_item_path_action)
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.mark_item_as_favorite_action)
         # self.material_menu.addAction(self.edit_material_action)
@@ -359,10 +364,11 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.library_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.texture_menu.addAction(self.generate_material_thumbnail_action)
+        self.texture_menu.addAction(self.save_item_thumbnail_action)
         # self.texture_menu.addAction(self.set_custom_material_thumbnail_action)
         self.texture_menu.addSeparator()
-        self.texture_menu.addAction(self.copy_item_path_action)
         self.texture_menu.addAction(self.open_item_location_action)
+        self.texture_menu.addAction(self.copy_item_path_action)
         self.texture_menu.addSeparator()
         self.texture_menu.addAction(self.mark_item_as_favorite_action)
         # self.texture_menu.addAction(self.edit_material_action)
@@ -450,29 +456,33 @@ class MaterialLibraryViewerDialog(QMainWindow):
         pass
 
     def onAddFromFolder(self):
-        window = AddFromFolderDialog()
+        window = AddFolderContentDialog()
         if window.exec_():
-            target_mode = window.target_library_mode.currentData()
-            if target_mode == Target.NoLibrary:
+            options = window.options()
+            if options['add_to'] == Target.NoLibrary:
                 library = None
-            elif target_mode == Target.NewLibrary:
+            elif options['add_to'] == Target.NewLibrary:
                 library = Library.fromData({'name': window.library_name_field.text()})
                 Library.addLibrary(library)
-            elif target_mode == Target.ExistingLibrary:
-                library = window.existing_libraries_combo.currentData()
+            elif options['add_to'] == Target.ExistingLibrary:
+                library = options['existing_library']
 
-            materials = Material.addMaterialsFromFolder(window.path_field.path(),
-                                                        None,
-                                                        library,
-                                                        window.favorite_toggle.isChecked())
-            textures = TextureMap.addTexturesFromFolder(window.path_field.path(),
-                                                        None,
-                                                        library,
-                                                        window.favorite_toggle.isChecked())
-            if window.generate_thumbnails_toggle.isChecked():
+            if options['add_materials']:
+                materials = Material.addMaterialsFromFolder(options['path'],
+                                                            None,
+                                                            library,
+                                                            options['mark_materials_as_favorite'])
+            if options['add_textures']:
+                textures = TextureMap.addTexturesFromFolder(options['path'],
+                                                            None,
+                                                            library,
+                                                            options['mark_textures_as_favorite'])
+            if options['add_materials'] and options['material_thumbnails']:
                 updateMaterialThumbnails(materials)
+            if options['add_textures'] and options['texture_thumbnails']:
                 updateTextureThumbnails(textures)
             self.reloadContent()
+        window.deleteLater()
 
     def updateThumbnailSizeSlider(self, size):
         self.thumbnail_size_slider.blockSignals(True)
@@ -524,6 +534,8 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
     def createMaterialAndAssign(self):
         material_nodes = self.createMaterial()
+        if not material_nodes:
+            return
         selected_nodes = hou.selectedNodes()
         for mat_node, obj_node in zip(material_nodes, selected_nodes):
             obj_node.parm('shop_materialpath').set(mat_node.path())
@@ -544,6 +556,15 @@ class MaterialLibraryViewerDialog(QMainWindow):
         texture = self.library_browser.currentItem()
         window = GenerateTextureThumbnailWindow(texture)
         window.exec_()
+
+    def saveItemThumbnail(self):
+        item = self.library_browser.currentItem()
+        if not item.thumbnail():
+            return
+        path, _ = QFileDialog.getSaveFileName(self, 'Save thumbnail', item.path(), 'Image (*.png *.jpg);; Any (*.*)')
+        if not path:
+            return
+        item.thumbnail().pixmap(256).save(path)
 
     def copyCurrentItemPath(self):
         item = self.library_browser.currentItem()
@@ -594,14 +615,21 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
         libraries = self.library_list_browser.selectedLibraries()
 
-        window = RemoveLibraryWindow(libraries)
-        if not window.exec_():
-            return
+        window = RemoveLibraryOptionsWindow(libraries)
+        try:
+            if not window.exec_():
+                return
+            options = window.options()
+        finally:
+            window.deleteLater()
 
         for library in libraries:
-            library.remove(remove_materials=window.removeMaterials(),
-                           only_single_bound_materials=window.onlySingleBoundMaterials(),
+            library.remove(remove_materials=options['remove_materials'],
+                           only_single_bound_materials=options['only_single_bound_materials'],
+                           remove_textures=options['remove_textures'],
+                           only_single_bound_textures=options['only_single_bound_textures'],
                            external_connection=connection)
+
         connection.commit()
         connection.close()
         self.reloadContent()
@@ -612,18 +640,24 @@ class MaterialLibraryViewerDialog(QMainWindow):
 
         current_item = self.library_browser.currentItem()
         if isinstance(current_item, Material):
-            window = RemoveMaterialWindow(items, library)
+            window = RemoveMaterialOptionsWindow(items, library)
         elif isinstance(current_item, TextureMap):
-            window = RemoveTextureWindow(items, library)
+            window = RemoveTextureOptionsWindow(items, library)
         else:
             raise TypeError
-        if not window.exec_():
-            return
+
+        try:
+            if not window.exec_():
+                return
+            else:
+                options = window.options()
+        finally:
+            window.deleteLater()
 
         connection = connect()
         connection.execute('BEGIN')
 
-        if window.onlyFromLibrary():
+        if options['only_from_this_library']:
             for item in items:
                 library.removeItem(item, external_connection=connection)
         else:
@@ -633,6 +667,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         connection.commit()
         connection.close()
         self.library_browser.reloadContent()
+        window.deleteLater()
 
     def eventFilter(self, watched, event):
         if watched == self.target_network_combo:

@@ -11,15 +11,21 @@ except ImportError:
 import hou
 
 from ..db import connect
-from ..texture_map import MapType, TextureMap
+from ..texture import MapType, TextureMap
 from ..image import imageToBytes
 from .material_source import MaterialSource
 
-MISSING_THUMBNAIL_ICON = hou.qt.Icon('SOP_material', 256, 256)
+MISSING_MATERIAL_THUMBNAIL_ICON = hou.qt.Icon('SOP_material', 256, 256)
+
+
+class ThumbnailState:
+    NotLoaded = 0
+    Loaded = 1
+    NotExists = 2
 
 
 class Material(object):
-    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail',
+    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail_state', '_thumbnail',
                  '_thumbnail_engine_id', '_thumbnail_for_engine')
 
     @staticmethod
@@ -42,7 +48,7 @@ class Material(object):
             'options': self._options,
             'source_path': self._source_path,
             'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail))
-            if self._thumbnail and self._thumbnail != MISSING_THUMBNAIL_ICON else None
+            if self._thumbnail and self._thumbnail != MISSING_MATERIAL_THUMBNAIL_ICON else None
         }
 
     @staticmethod
@@ -92,14 +98,20 @@ class Material(object):
 
         if library is not None:
             for mat in materials:
-                library.addMaterial(mat, external_connection=connection)
+                try:
+                    library.addMaterial(mat, external_connection=connection)
+                except sqlite3.IntegrityError:
+                    continue
         else:
             for mat in materials:
-                Material.addMaterial(mat, external_connection=connection)
+                try:
+                    Material.addMaterial(mat, external_connection=connection)
+                except sqlite3.IntegrityError:
+                    continue
 
         connection.commit()
         connection.close()
-        return tuple(materials)
+        return tuple(mat for mat in materials if mat.id() is not None)
 
     def __init__(self):
         self._id = None
@@ -108,6 +120,7 @@ class Material(object):
         self._favorite = None
         self._options = None
         self._source_path = None
+        self._thumbnail_state = ThumbnailState.NotLoaded
         self._thumbnail = None
         self._thumbnail_engine_id = None
         self._thumbnail_for_engine = None
@@ -163,11 +176,13 @@ class Material(object):
         connection.close()
         if data['image']:
             self._thumbnail = QIcon(QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png')))
+            self._thumbnail_state = ThumbnailState.Loaded
         else:
-            self._thumbnail = MISSING_THUMBNAIL_ICON
+            self._thumbnail = None
+            self._thumbnail_state = ThumbnailState.NotExists
 
-    def thumbnail(self, engine=None):
-        if self.id() and engine:
+    def thumbnail(self, engine=None, reload=False):
+        if engine is not None and self.id():
             if engine.id() != self._thumbnail_engine_id:
                 connection = connect()
                 data = connection.execute('SELECT image FROM material_thumbnail '
@@ -183,7 +198,7 @@ class Material(object):
             else:
                 return self._thumbnail_for_engine
 
-        if self._thumbnail is None:
+        if not self._thumbnail and self._thumbnail_state == ThumbnailState.NotLoaded or reload:
             self._loadDefaultThumbnail()
         return self._thumbnail
 

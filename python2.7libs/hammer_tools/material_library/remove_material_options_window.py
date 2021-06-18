@@ -10,9 +10,9 @@ except ImportError:
 import hou
 
 
-class RemoveMaterialWindow(QDialog):
-    def __init__(self, items, library=None):
-        super(RemoveMaterialWindow, self).__init__()
+class RemoveMaterialOptionsWindow(QDialog):
+    def __init__(self, items, library=None, parent=None):
+        super(RemoveMaterialOptionsWindow, self).__init__(parent)
 
         self._items = items
         self._library = library
@@ -49,5 +49,10 @@ class RemoveMaterialWindow(QDialog):
         self.add_library_button.clicked.connect(self.accept)
         button_layout.addWidget(self.add_library_button)
 
-    def onlyFromLibrary(self):
-        return self.remove_only_from_this_library_toggle.isChecked()
+    def options(self):
+        return {
+            'only_from_this_library': self.remove_only_from_this_library_toggle.isChecked()
+        }
+
+    def setOptions(self, data):
+        raise NotImplementedError

@@ -84,7 +84,7 @@ POPULATE_TAGS = 'INSERT INTO map_type_tag VALUES (?, ?)'
 
 
 def createDatabase(file_path):
-    from ..texture_map.map_type import DEFAULT_MAP_TYPE_TAGS
+    from ..texture.map_type import DEFAULT_MAP_TYPE_TAGS
 
     connection = sqlite3.connect(file_path, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     connection.executescript(SCHEMA)

@@ -1,6 +1,6 @@
 import os
 
-from ..texture_map import TextureMap, MapType
+from ..texture import TextureMap, MapType
 
 
 class MaterialSource(object):

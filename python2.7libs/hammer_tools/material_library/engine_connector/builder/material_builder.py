@@ -1,7 +1,7 @@
 import hou
 
 from ...text import alphaNumericTokens
-from ...texture_map import MapType
+from ...texture import MapType
 
 DEFAULT_BUILDER_ICON = hou.qt.Icon('MISC_empty', 16, 16)
 

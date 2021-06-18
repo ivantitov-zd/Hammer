@@ -62,10 +62,7 @@ class EngineConnector(object):
     def builders():
         return ()
 
-    def createThumbnailRenderNode(self):
-        raise NotImplementedError
-
-    def thumbnailRenderNodeParms(self):
+    def createThumbnail(self, material, options):
         raise NotImplementedError
 
     def supportedTextureFormats(self):

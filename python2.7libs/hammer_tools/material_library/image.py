@@ -28,8 +28,8 @@ def loadImage(path):
 
     temp_path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_temp_image.png')
     temp_path = temp_path.replace('\\', '/')
-    subprocess.call('iconvert -g off {0} {1}'.format(path, temp_path))
-    try:
-        return QImage(temp_path)
-    finally:
+    subprocess.call('iconvert -g off "{0}" "{1}"'.format(path, temp_path))
+    if os.path.exists(temp_path):
+        image = QImage(temp_path)
         os.remove(temp_path)
+        return image

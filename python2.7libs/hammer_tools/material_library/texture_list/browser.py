@@ -7,6 +7,8 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
+import hou
+
 from .model import TextureListModel
 from .view import TextureListView
 
@@ -14,8 +16,11 @@ from .view import TextureListView
 class TextureListBrowser(QDialog):
     def __init__(self, parent=None):
         super(TextureListBrowser, self).__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.setWindowTitle('Textures')
+        self.setWindowIcon(hou.qt.Icon('BUTTONS_parmmenu_texture', 32, 32))
+        self.resize(400, 300)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)

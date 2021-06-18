@@ -8,7 +8,7 @@ except ImportError:
     from PySide2.QtGui import QIcon
 
 from ..material import Material
-from ..texture_map import TextureMap
+from ..texture import TextureMap
 from ..data_roles import InternalDataRole
 from .proxy_model import MaterialLibraryListProxyModel
 from .model import MaterialLibraryModel

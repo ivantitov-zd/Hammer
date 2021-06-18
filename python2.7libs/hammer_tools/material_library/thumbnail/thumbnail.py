@@ -57,7 +57,8 @@ class MaterialPreviewScene(object):
                 self.render_node.parm('shadows').set(False)
                 self.render_node.parm('reflection').set(True)
             else:
-                self.render_node = self.engine.createThumbnailRenderNode(self)
+                pass
+                # self.render_node = self.engine.createThumbnailRenderNode(self)
 
     def setEnvironmentMap(self, path):
         self.env_node.parm('env_map').set(path)

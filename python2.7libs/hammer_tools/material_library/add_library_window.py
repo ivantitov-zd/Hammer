@@ -57,13 +57,16 @@ class AddLibraryDialog(QDialog):
         button_layout.addWidget(self.add_library_button)
 
     @staticmethod
-    def addLibrary():
+    def addLibrary():  # Todo: Remove
         window = AddLibraryDialog(hou.qt.mainWindow())
-        r = window.exec_()
-        if r:
-            Library.addLibrary({
-                'name': window.library_name_field.text(),
-                'comment': window.comment_edit.toPlainText(),
-                'favorite': window.favorite_toggle.isChecked()
-            })
-        return r
+        try:
+            r = window.exec_()
+            if r:
+                Library.addLibrary({
+                    'name': window.library_name_field.text(),
+                    'comment': window.comment_edit.toPlainText(),
+                    'favorite': window.favorite_toggle.isChecked()
+                })
+            return r
+        finally:
+            window.deleteLater()

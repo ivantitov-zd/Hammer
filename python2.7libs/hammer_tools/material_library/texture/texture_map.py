@@ -14,12 +14,18 @@ from ..text import alphaNumericTokens
 from .map_type import MapType
 from .texture_format import TextureFormat
 
-MISSING_THUMBNAIL_ICON = hou.qt.Icon('BUTTONS_parmmenu_texture', 256, 256)
+MISSING_TEXTURE_THUMBNAIL_ICON = hou.qt.Icon('BUTTONS_parmmenu_texture', 256, 256)
+
+
+class ThumbnailState:
+    NotLoaded = 0
+    Loaded = 1
+    NotExists = 2
 
 
 class TextureMap(object):
-    __slots__ = ('_material', '_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail',
-                 '_type')
+    __slots__ = ('_material', '_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail_state',
+                 '_thumbnail', '_type')
 
     @staticmethod
     def mapType(name):  # Todo: Move to map type module
@@ -56,8 +62,7 @@ class TextureMap(object):
             'favorite': self.isFavorite(),
             'options': self._options,
             'source_path': self._source_path,
-            'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail))
-            if self._thumbnail and self._thumbnail != MISSING_THUMBNAIL_ICON else None
+            'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail)) if self._thumbnail else None
         }
 
     @staticmethod
@@ -104,7 +109,7 @@ class TextureMap(object):
                         'name': name,
                         'favorite': favorite,
                         'options': options,
-                        'source_path': os.path.join(root, file)
+                        'source_path': os.path.join(root, file).replace('\\', '/')
                     })
                     textures.append(tex)
 
@@ -113,14 +118,20 @@ class TextureMap(object):
 
         if library is not None:
             for tex in textures:
-                library.addTextureMap(tex, external_connection=connection)
+                try:
+                    library.addTextureMap(tex, external_connection=connection)
+                except sqlite3.IntegrityError:
+                    continue
         else:
             for tex in textures:
-                TextureMap.addTextureMap(tex, external_connection=connection)
+                try:
+                    TextureMap.addTextureMap(tex, external_connection=connection)
+                except sqlite3.IntegrityError:
+                    continue
 
         connection.commit()
         connection.close()
-        return tuple(textures)
+        return tuple(tex for tex in textures if tex.id() is not None)
 
     def __init__(self, name, material=None):
         self._material = material
@@ -130,6 +141,7 @@ class TextureMap(object):
         self._favorite = False
         self._options = None
         self._source_path = None
+        self._thumbnail_state = ThumbnailState.NotLoaded
         self._thumbnail = None
         self._type = TextureMap.mapType(name)
 
@@ -176,8 +188,8 @@ class TextureMap(object):
             connection.commit()
             connection.close()
 
-    def thumbnail(self):
-        if self._thumbnail is None:
+    def thumbnail(self, reload=False):
+        if not self._thumbnail and self._thumbnail_state == ThumbnailState.NotLoaded or reload:
             connection = connect()
             data = connection.execute('SELECT thumbnail AS image FROM texture '
                                       'WHERE id = :texture_id',
@@ -185,8 +197,10 @@ class TextureMap(object):
             connection.close()
             if data['image']:
                 self._thumbnail = QIcon(QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png')))
+                self._thumbnail_state = ThumbnailState.Loaded
             else:
-                self._thumbnail = MISSING_THUMBNAIL_ICON
+                self._thumbnail = None
+                self._thumbnail_state = ThumbnailState.NotExists
 
         return self._thumbnail
 
@@ -232,6 +246,9 @@ class TextureMap(object):
         return tuple(formats)
 
     def path(self, tex_format=None, engine=None):
+        if tex_format and not isinstance(tex_format, TextureFormat):
+            tex_format = TextureFormat(tex_format)
+
         if self._material is None:
             root_dir, name = os.path.split(self._source_path)
         else:
@@ -248,6 +265,9 @@ class TextureMap(object):
         else:
             file_path = os.path.join(root_dir, name + str(self.formats()[0]))
         return file_path.replace('\\', '/')
+
+    def image(self):
+        pass
 
     def __repr__(self):
         return '<{}>'.format(self.name())

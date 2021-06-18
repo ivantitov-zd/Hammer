@@ -10,11 +10,13 @@ except ImportError:
 import hou
 
 from ..data_roles import FavoriteRole, InternalDataRole
-from ..texture_map import TextureMap
+from ..texture import TextureMap
 from ..image import loadImage
 
 FAVORITE_ICON = hou.qt.Icon('BUTTONS_favorites', 24, 24)
 ZOOM_ICON = hou.qt.Icon('IMAGE_zoom_in', 24, 24)
+
+MARGIN_SIZE = 4
 
 
 # painter: QPainter
@@ -22,8 +24,8 @@ ZOOM_ICON = hou.qt.Icon('IMAGE_zoom_in', 24, 24)
 # index: QModelIndex
 
 class LibraryItemDelegate(QStyledItemDelegate):
-    def __init__(self):
-        super(LibraryItemDelegate, self).__init__()
+    def __init__(self, parent=None):
+        super(LibraryItemDelegate, self).__init__(parent)
 
         self._previous_item = None
         self._image = None
@@ -56,7 +58,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
 
         rect = option.rect
 
-        rect_indented = rect.adjusted(4, 4, -4, -4)
+        rect_indented = rect.adjusted(MARGIN_SIZE, MARGIN_SIZE, -MARGIN_SIZE, -MARGIN_SIZE)
 
         thumbnail_rect = QRect()
         thumbnail_rect.setSize(option.decorationSize)

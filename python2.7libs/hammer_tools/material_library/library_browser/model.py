@@ -5,10 +5,10 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
-from ..texture_map import TextureMap
 from ..data_roles import InternalDataRole, FavoriteRole
 from ..engine_connector import EngineConnector
-from ..material import Material
+from ..material import Material, MISSING_MATERIAL_THUMBNAIL_ICON
+from ..texture import TextureMap, MISSING_TEXTURE_THUMBNAIL_ICON
 
 
 class MaterialLibraryModel(QAbstractListModel):
@@ -64,11 +64,25 @@ class MaterialLibraryModel(QAbstractListModel):
             return item.name()
         elif role == Qt.DecorationRole:
             if isinstance(item, Material):
-                return item.thumbnail(EngineConnector.currentEngine())
+                thumbnail = item.thumbnail(EngineConnector.currentEngine())
+                return thumbnail or MISSING_MATERIAL_THUMBNAIL_ICON
             else:
-                return item.thumbnail()
+                thumbnail = item.thumbnail()
+                return thumbnail or MISSING_TEXTURE_THUMBNAIL_ICON
         elif role == FavoriteRole:
             return item.isFavorite()
+        elif role == Qt.ToolTipRole:
+            tooltip = '<p style="white-space:pre">'
+            tooltip += '<b>Type</b>  <i>{}</i>\n'.format('Material'
+                                                         if isinstance(item, Material)
+                                                         else 'Texture')
+            tooltip += '<b>ID</b>  <i>{}</i>\n'.format(item.id())
+            tooltip += '<b>Name</b>  <i>{}</i>\n'.format(item.name())
+            tooltip += '<b>Path</b>  <i>{}</i>\n'.format(item.path())
+            if isinstance(item, TextureMap):
+                tooltip += '<b>Formats</b>  <i>{}</i>'.format(' '.join(map(str, item.formats())))
+            tooltip += '</p>'
+            return tooltip
 
     def mimeData(self, indexes):
         data = QMimeData()

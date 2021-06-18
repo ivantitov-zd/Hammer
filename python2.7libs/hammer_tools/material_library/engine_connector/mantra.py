@@ -1,6 +1,6 @@
 import hou
 
-from ..texture_map.texture_format import TextureFormat
+from ..texture import TextureFormat
 from .engine_connector import EngineConnector
 from .builder import MantraPrincipledBuilder
 

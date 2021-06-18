@@ -1,5 +1,5 @@
 from ..material import Material
-from ..texture_map import TextureMap
+from ..texture import TextureMap
 from .library import Library
 
 

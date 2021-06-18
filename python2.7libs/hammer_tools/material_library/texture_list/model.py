@@ -16,7 +16,7 @@ class TextureListModel(QAbstractListModel):
 
     def setTextureList(self, textures):
         self.beginResetModel()
-        self._textures = tuple(textures)
+        self._textures = tuple(set(textures))
         self.endResetModel()
 
     def rowCount(self, parent):

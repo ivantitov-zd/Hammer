@@ -27,7 +27,7 @@ class LibraryView(QListView):
         self.setDragDropMode(QAbstractItemView.DragOnly)
         self.setDragEnabled(True)
 
-        self.setItemDelegate(LibraryItemDelegate())
+        self.setItemDelegate(LibraryItemDelegate(self))
 
     def library(self):
         return self.model().library()
