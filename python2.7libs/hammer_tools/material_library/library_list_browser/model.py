@@ -34,8 +34,12 @@ class LibraryListModel(QAbstractListModel):
         if not index.isValid():
             return
 
+        library = index.internalPointer()
+
         if role == InternalDataRole:
-            return index.internalPointer()
+            return library
 
         if role == Qt.DisplayRole:
-            return index.internalPointer().name()
+            return library.name()
+        elif role == Qt.ToolTipRole:
+            return library.comment()

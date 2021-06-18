@@ -19,7 +19,7 @@ from ..menu import Menu
 from .db import connect
 from .data_roles import InternalDataRole
 from .engine_connector import EngineConnector
-from .library_list import LibraryListBrowser
+from .library_list_browser import LibraryListBrowser
 from .library_browser import LibraryBrowser
 from .add_library_window import AddLibraryDialog
 from .add_folder_content_window import AddFolderContentDialog, Target
