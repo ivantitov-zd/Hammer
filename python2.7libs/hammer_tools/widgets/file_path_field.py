@@ -5,25 +5,28 @@ except ImportError:
 
 import hou
 
-from .field_base import FieldBase
 from .input_field import InputField
 
 
-class FilePathField(FieldBase):
+class FilePathField(QWidget):
     def __init__(self, initial_path='', formats='All (*.*)'):
-        super(FilePathField, self).__init__('Location', 80)
+        super(FilePathField, self).__init__()
 
         self._formats = formats
 
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(4)
+
         self._text_field = InputField(initial_path)
-        self.layout().addWidget(self._text_field)
+        layout.addWidget(self._text_field)
 
         self._pick_location_button = QPushButton()
         self._pick_location_button.setToolTip('Pick location')
         self._pick_location_button.setFixedSize(24, 24)
         self._pick_location_button.setIcon(hou.qt.Icon('BUTTONS_chooser_folder', 16, 16))
         self._pick_location_button.clicked.connect(self.pickLocation)
-        self.layout().addWidget(self._pick_location_button)
+        layout.addWidget(self._pick_location_button)
 
     def text(self):
         return self._text_field.text()

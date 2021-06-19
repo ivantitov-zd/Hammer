@@ -5,13 +5,12 @@ except ImportError:
 
 import hou
 
-from .field_base import FieldBase
 from .input_field import InputField
 
 
-class LocationField(FieldBase):
+class LocationField(QWidget):
     def __init__(self, initial_location=''):
-        super(LocationField, self).__init__('Location', 80)
+        super(LocationField, self).__init__()
 
         self.text_field = InputField(initial_location)
         self.layout().addWidget(self.text_field)
