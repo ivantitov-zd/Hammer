@@ -22,21 +22,47 @@ showPreviousFiles()
             </scriptCode>
         </addScriptItem>
 
-        <subMenu id="file_menu">
+<!--        <subMenu id="file_menu">-->
 
-            <subMenu id="hammer_dependencies">
+<!--            <subMenu id="hammer_dependencies">-->
 
-                <label>Dependencies</label>
-                <insertAfter>recent_projects</insertAfter>
+<!--                <label>Dependencies</label>-->
+<!--                <insertAfter>recent_projects</insertAfter>-->
 
-                <scriptItem>
-                    <label>Collect Files...</label>
-                </scriptItem>
+<!--                <scriptItem>-->
+<!--                    <label>Collect Files...</label>-->
+<!--                    <scriptCode>-->
+<!--&lt;!&ndash;from hammer_tools.collect_project_files import collectProjectFiles&ndash;&gt;-->
 
-            </subMenu>
+<!--&lt;!&ndash;collectProjectFiles()&ndash;&gt;-->
+<!--import hammer_tools.collect_project_files as collector-->
+<!--reload(collector)-->
 
-        </subMenu>
+<!--collector.collectProjectFiles()-->
+<!--                    </scriptCode>-->
+<!--                </scriptItem>-->
 
+<!--                <separatorItem />-->
+
+<!--                <scriptItem>-->
+<!--                    <label>Find Missing Geometry Files</label>-->
+<!--                </scriptItem>-->
+
+<!--                <scriptItem>-->
+<!--                    <label>Find Missing Images</label>-->
+<!--                </scriptItem>-->
+
+<!--                <scriptItem>-->
+<!--                    <label>Find Missing Textures</label>-->
+<!--                </scriptItem>-->
+
+<!--                <scriptItem>-->
+<!--                    <label>Find Missing Audio</label>-->
+<!--                </scriptItem>-->
+
+<!--            </subMenu>-->
+
+<!--        </subMenu>-->
 
         <!-- ========================= Preferences Menu ========================= -->
 
@@ -49,6 +75,27 @@ from hammer_tools.settings_ui import HammerSettingsDialog
 
 window = HammerSettingsDialog(hou.qt.mainWindow())
 window.show()
+            </scriptCode>
+        </addScriptItem>
+
+        <!-- ========================= Windows Menu ========================= -->
+
+        <addScriptItem id="h.hammer_material_library">
+            <label>Material Library</label>
+            <parent>windows_menu</parent>
+            <insertAfter>h.mat_palette</insertAfter>
+<!--            <context>-->
+<!--                <expression>-->
+<!--                    from hammer_tools.settings import SettingsManager-->
+
+<!--                    return SettingsManager.instance().value('hammer.previous_files.enable')-->
+<!--                </expression>-->
+<!--            </context>-->
+            <scriptCode>
+from hammer_tools.material_library.viewer_window import MaterialLibraryViewerWindow
+
+hou.session.material_library = MaterialLibraryViewerWindow(hou.qt.mainWindow())
+hou.session.material_library.show()
             </scriptCode>
         </addScriptItem>
 
