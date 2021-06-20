@@ -34,7 +34,7 @@ class LibraryBrowser(QWidget):
         self.proxy_model.setSourceModel(self.model)
 
         self.view = LibraryView()
-        self.view.setIconSize(QSize(64, 64))
+        self.view.setIconSize(QSize(96, 96))
         self.view.setModel(self.proxy_model)
         main_layout.addWidget(self.view)
 
@@ -50,7 +50,10 @@ class LibraryBrowser(QWidget):
         return self.view.selectionModel().hasSelection()
 
     def currentItem(self):
-        return self.view.currentIndex().data(InternalDataRole)
+        index = self.view.currentIndex()
+        if not index.isValid():
+            return None
+        return index.data(InternalDataRole)
 
     def selectedMaterials(self):
         items = []

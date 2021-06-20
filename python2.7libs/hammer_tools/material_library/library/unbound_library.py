@@ -9,13 +9,13 @@ class UnboundLibrary(Library):
         super(UnboundLibrary, self).__init__()
 
         self._name = 'Unbound'
-        self._description = 'Contains items not assigned to any library'
+        self._comment = 'Contains items not bound to any library'
         self._favorite = False
 
     def materials(self):
         with connect() as connection:
             cursor = connection.cursor()
-            cursor.execute('SELECT id, name, comment, favorite, source_path FROM material '
+            cursor.execute('SELECT id, name, comment, favorite, path FROM material '
                            'WHERE material.id NOT IN (SELECT material_id FROM material_library)')
             return tuple(Material.fromData(data) for data in cursor.fetchall())
 

@@ -35,20 +35,19 @@ class AddFolderContentDialog(QDialog):
         main_layout.addLayout(form_layout)
 
         self._path_field = LocationField()
-        self._path_field.label.hide()
         form_layout.addRow('Scan path', self._path_field)
 
-        self._target_library_mode = ComboBox()
-        self._target_library_mode.addItem('No library')
-        self._target_library_mode.addItem('New library', Target.NewLibrary)
-        self._target_library_mode.addItem('Existing library', Target.ExistingLibrary)
-        form_layout.addRow('Target', self._target_library_mode)
+        self._add_to_mode = ComboBox()
+        self._add_to_mode.addItem('no library')
+        self._add_to_mode.addItem('new library', Target.NewLibrary)
+        self._add_to_mode.addItem('existing library', Target.ExistingLibrary)
+        form_layout.addRow('Add to', self._add_to_mode)
 
         self.library_name_field = QLineEdit()
         self.library_name_field.setDisabled(True)
-        self._target_library_mode.currentIndexChanged.connect(
+        self._add_to_mode.currentIndexChanged.connect(
             lambda i: self.library_name_field.setDisabled(
-                self._target_library_mode.itemData(i, Qt.UserRole) != Target.NewLibrary
+                self._add_to_mode.itemData(i, Qt.UserRole) != Target.NewLibrary
             )
         )
         form_layout.addRow('Library name', self.library_name_field)
@@ -57,9 +56,9 @@ class AddFolderContentDialog(QDialog):
         for library in Library.allLibraries():
             self._existing_libraries_combo.addItem(library.name(), library)
         self._existing_libraries_combo.setDisabled(True)
-        self._target_library_mode.currentIndexChanged.connect(
+        self._add_to_mode.currentIndexChanged.connect(
             lambda i: self._existing_libraries_combo.setDisabled(
-                self._target_library_mode.itemData(i, Qt.UserRole) != Target.ExistingLibrary
+                self._add_to_mode.itemData(i, Qt.UserRole) != Target.ExistingLibrary
             )
         )
         form_layout.addRow('Library', self._existing_libraries_combo)
@@ -136,7 +135,7 @@ class AddFolderContentDialog(QDialog):
     def options(self):
         return {
             'path': self._path_field.path(),
-            'add_to': self._target_library_mode.currentData(),
+            'add_to': self._add_to_mode.currentData(),
             'existing_library': self._existing_libraries_combo.currentData(),
             'add_materials': self._material_group_box.isChecked(),
             'mark_materials_as_favorite': self._material_favorite_toggle.isChecked(),

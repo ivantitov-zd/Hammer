@@ -78,7 +78,7 @@ class TextureDelegate(QStyledItemDelegate):
 
         thumbnail = self._thumbnail_cache[texture] or MISSING_TEXTURE_THUMBNAIL_ICON
         painter.drawImage(thumbnail_rect.topLeft(), thumbnail)
-        painter.drawText(map_type_rect, Qt.AlignLeft | Qt.AlignTop, MapType.name(texture.type()))
+        painter.drawText(map_type_rect, Qt.AlignLeft | Qt.AlignTop, MapType.typeName(texture.type()))
         painter.drawText(texture_name_rect, Qt.AlignLeft | Qt.AlignTop, texture.name())
         painter.drawText(texture_formats_rect, Qt.AlignLeft | Qt.AlignTop,
                          ' '.join(str(fmt) for fmt in texture.formats()))

@@ -7,7 +7,7 @@ except ImportError:
 
 import hou
 
-from .library import Library
+from .library_options_widget import LibraryOptionsWidget
 
 
 class AddLibraryDialog(QDialog):
@@ -22,20 +22,10 @@ class AddLibraryDialog(QDialog):
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
 
-        form_layout = QFormLayout()
-        form_layout.setContentsMargins(0, 0, 0, 0)
-        form_layout.setSpacing(4)
-        main_layout.addLayout(form_layout)
-
-        self.library_name_field = QLineEdit()
-        form_layout.addRow('Library name', self.library_name_field)
-
-        self.comment_edit = QTextEdit()
-        self.comment_edit.setAutoFillBackground(False)
-        form_layout.addRow('Comment', self.comment_edit)
-
-        self.favorite_toggle = QCheckBox('Favorite')
-        form_layout.addWidget(self.favorite_toggle)
+        self._library_options_widget = LibraryOptionsWidget()
+        self.options = self._library_options_widget.options
+        self.setOptions = self._library_options_widget.setOptions
+        main_layout.addWidget(self._library_options_widget)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
         main_layout.addSpacerItem(spacer)
@@ -55,18 +45,3 @@ class AddLibraryDialog(QDialog):
         self.add_library_button = QPushButton('Add')
         self.add_library_button.clicked.connect(self.accept)
         button_layout.addWidget(self.add_library_button)
-
-    @staticmethod
-    def addLibrary():  # Todo: Remove
-        window = AddLibraryDialog(hou.qt.mainWindow())
-        try:
-            r = window.exec_()
-            if r:
-                Library.addLibrary({
-                    'name': window.library_name_field.text(),
-                    'comment': window.comment_edit.toPlainText(),
-                    'favorite': window.favorite_toggle.isChecked()
-                })
-            return r
-        finally:
-            window.deleteLater()

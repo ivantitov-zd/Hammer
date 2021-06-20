@@ -37,6 +37,12 @@ class LibraryListBrowser(QWidget):
     def hasSelection(self):
         return self.view.selectionModel().hasSelection()
 
+    def currentLibrary(self):
+        index = self.view.currentIndex()
+        if not index.isValid():
+            return None
+        return index.data(InternalDataRole)
+
     def selectedLibraries(self):
         return tuple(index.data(InternalDataRole) for index in self.view.selectedIndexes())
 

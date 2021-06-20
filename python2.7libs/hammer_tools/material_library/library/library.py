@@ -4,17 +4,20 @@ from ..texture import TextureMap
 
 
 class Library(object):
-    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_source_path')
+    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_path')
+
+    def fillFromData(self, data):
+        self._id = data.get('id')
+        self._name = data['name']
+        self._comment = data.get('comment')
+        self._favorite = data.get('favorite', False)
+        self._options = data.get('options')
+        self._path = data.get('path')
 
     @staticmethod
     def fromData(data):
         lib = Library()
-        lib._id = data.get('id')
-        lib._name = data['name']
-        lib._comment = data.get('comment')
-        lib._favorite = data.get('favorite', False)
-        lib._options = data.get('options')
-        lib._source_path = data.get('source_path')
+        lib.fillFromData(data)
         return lib
 
     def asData(self):
@@ -24,7 +27,7 @@ class Library(object):
             'comment': self.comment(),
             'favorite': self.isFavorite(),
             'options': self._options,
-            'source_path': self._source_path
+            'path': self._path
         }
 
     @staticmethod
@@ -40,8 +43,8 @@ class Library(object):
             library = Library.fromData(library)
 
         connection = connect()
-        cursor = connection.execute('INSERT INTO library (name, comment, favorite, options, source_path) '
-                                    'VALUES (:name, :comment, :favorite, :options, :source_path)',
+        cursor = connection.execute('INSERT INTO library (name, comment, favorite, options, path) '
+                                    'VALUES (:name, :comment, :favorite, :options, :path)',
                                     library.asData())
         library._id = cursor.lastrowid
 
@@ -55,7 +58,7 @@ class Library(object):
         self._comment = None
         self._favorite = False
         self._options = None
-        self._source_path = None
+        self._path = None
 
     def id(self):
         return self._id
@@ -79,8 +82,12 @@ class Library(object):
         return self._favorite
 
     def markAsFavorite(self, state=True, external_connection=None):
+        if state is None:
+            state = not self._favorite
+
+        self._favorite = state
+
         if self.id() is None:
-            self._favorite = state
             return
 
         if external_connection is None:
@@ -91,8 +98,6 @@ class Library(object):
         connection.execute('UPDATE library SET favorite = :state WHERE id = :library_id',
                            {'state': state, 'library_id': self.id()})
 
-        self._favorite = state
-
         if external_connection is None:
             connection.commit()
             connection.close()
@@ -101,11 +106,11 @@ class Library(object):
         return self._options
 
     def path(self):
-        return self._source_path
+        return self._path
 
     def materials(self):
         connection = connect()
-        materials_data = connection.execute('SELECT id, name, comment, favorite, source_path FROM material '
+        materials_data = connection.execute('SELECT id, name, comment, favorite, path FROM material '
                                             'LEFT JOIN material_library ON material_library.material_id = material.id '
                                             'WHERE material_library.library_id = :library_id',
                                             {'library_id': self.id()}).fetchall()

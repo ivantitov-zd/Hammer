@@ -16,50 +16,51 @@ class RedshiftBuildOptions(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
 
-        self._uv_mode = ComboBox()
-        self._uv_mode.addItem('Normal UV', 'normal')
-        self._uv_mode.addItem('UDIM', 'udim')
-        self._uv_mode.addItem('UV Tile', 'uvtile')
-        layout.addWidget(self._uv_mode)
+        self.add_color_controls_toggle = QCheckBox('Add color controls')
+        layout.addWidget(self.add_color_controls_toggle)
 
-        self._add_color_controls_toggle = QCheckBox('Add color controls')
-        layout.addWidget(self._add_color_controls_toggle)
+        self.add_range_controls_toggle = QCheckBox('Add range controls')
+        layout.addWidget(self.add_range_controls_toggle)
 
-        self._add_range_controls_toggle = QCheckBox('Add range controls')
-        layout.addWidget(self._add_range_controls_toggle)
+        self.use_tri_planar_toggle = QCheckBox('Use Tri-Planar')
+        layout.addWidget(self.use_tri_planar_toggle)
 
-        self._use_tri_planar_toggle = QCheckBox('Use Tri-Planar')
-        layout.addWidget(self._use_tri_planar_toggle)
+        self.uv_mode_combo = ComboBox()
+        self.uv_mode_combo.addItem('Normal UV', 'normal')
+        self.uv_mode_combo.addItem('UDIM', 'udim')
+        self.uv_mode_combo.addItem('UV Tile', 'uvtile')
+        self.use_tri_planar_toggle.toggled.connect(self.uv_mode_combo.setDisabled)
+        layout.addWidget(self.uv_mode_combo)
 
-        self._use_sprite_toggle = QCheckBox('Use Sprite for Opacity')
-        layout.addWidget(self._use_sprite_toggle)
+        self.use_sprite_toggle = QCheckBox('Use Sprite for Opacity')
+        layout.addWidget(self.use_sprite_toggle)
 
     def options(self):
         return {
-            'uv_mode': self._uv_mode.currentData(),
-            'add_color_controls': self._add_color_controls_toggle.isChecked(),
-            'add_range_controls': self._add_range_controls_toggle.isChecked(),
-            'use_tri_planar': self._use_tri_planar_toggle.isChecked(),
-            'use_sprite': self._use_sprite_toggle.isChecked()
+            'uv_mode': self.uv_mode_combo.currentData() if not self.use_tri_planar_toggle.isChecked() else 'normal',
+            'add_color_controls': self.add_color_controls_toggle.isChecked(),
+            'add_range_controls': self.add_range_controls_toggle.isChecked(),
+            'use_tri_planar': self.use_tri_planar_toggle.isChecked(),
+            'use_sprite': self.use_sprite_toggle.isChecked()
         }
 
     def setOptions(self, options):
         uv_mode = options.get('uv_mode')
         if uv_mode is not None:
-            self._uv_mode.setCurrentIndex(self._uv_mode.findData(uv_mode))
+            self.uv_mode_combo.setCurrentIndex(self.uv_mode_combo.findData(uv_mode))
 
         add_color_controls = options.get('add_color_controls')
         if add_color_controls is not None:
-            self._add_color_controls_toggle.setChecked(add_color_controls)
+            self.add_color_controls_toggle.setChecked(add_color_controls)
 
         add_range_controls = options.get('add_range_controls')
         if add_range_controls is not None:
-            self._add_range_controls_toggle.setChecked(add_range_controls)
+            self.add_range_controls_toggle.setChecked(add_range_controls)
 
         use_tri_planar = options.get('use_tri_planar')
         if use_tri_planar is not None:
-            self._use_tri_planar_toggle.setChecked(use_tri_planar)
+            self.use_tri_planar_toggle.setChecked(use_tri_planar)
 
         use_sprite = options.get('use_sprite')
         if use_sprite is not None:
-            self._use_sprite_toggle.setChecked(use_sprite)
+            self.use_sprite_toggle.setChecked(use_sprite)

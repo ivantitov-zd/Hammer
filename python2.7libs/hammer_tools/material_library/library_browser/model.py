@@ -12,8 +12,8 @@ from ..texture import TextureMap, MISSING_TEXTURE_THUMBNAIL_ICON
 
 
 class MaterialLibraryModel(QAbstractListModel):
-    def __init__(self):
-        super(MaterialLibraryModel, self).__init__()
+    def __init__(self, parent=None):
+        super(MaterialLibraryModel, self).__init__(parent)
 
         self._library = None
         self._items = ()

@@ -2,25 +2,25 @@ from ..db import connect
 
 
 class MapType(object):
-    Unknown = 0
-    Thumbnail = 1
-    Diffuse = 2
-    Roughness = 3
-    Metalness = 4
-    Reflection = 5
-    Refraction = 6
-    Normal = 7
-    Bump = 8
-    Subsurface = 9
-    Opacity = 10
-    Emission = 11
-    Displacement = 12
-    AmbientOcclusion = 13
+    Unknown = 'unknown'
+    Thumbnail = 'thumb'
+    Diffuse = 'diff'
+    Roughness = 'rough'
+    Metalness = 'metal'
+    Reflection = 'refl'
+    Refraction = 'refr'
+    Normal = 'normal'
+    Bump = 'bump'
+    Subsurface = 'sss'
+    Opacity = 'opacity'
+    Emission = 'emission'
+    Displacement = 'disp'
+    AmbientOcclusion = 'ao'
 
-    __tags = None
+    __labels = None
 
     @staticmethod
-    def all():
+    def allTypes():
         return (
             MapType.Unknown,
             MapType.Thumbnail,
@@ -39,7 +39,7 @@ class MapType(object):
         )
 
     @staticmethod
-    def name(map_type):
+    def typeName(map_type):
         return {
             MapType.Unknown: 'Unknown',
             MapType.Thumbnail: 'Thumbnail',
@@ -58,25 +58,25 @@ class MapType(object):
         }[map_type]
 
     @staticmethod
-    def tags(reload=False):
-        if MapType.__tags is not None and not reload:
-            return MapType.__tags
+    def allLabels(reload=False):
+        if MapType.__labels is not None and not reload:
+            return MapType.__labels
 
         with connect() as connection:
-            cursor = connection.execute('SELECT * FROM map_type_tag')
+            cursor = connection.execute('SELECT * FROM map_types_labels')
 
-            tags = {map_type: [] for map_type in MapType.all()}
+            labels = {map_type: [] for map_type in MapType.allTypes()}
 
             for data in cursor.fetchall():
                 map_type = data['map_type']
-                tag = data['tag']
-                tags[map_type].append(tag)
+                label = data['label']
+                labels[map_type].append(label)
 
-            MapType.__tags = {map_type: tuple(tags) for map_type, tags in tags.items()}
-            return MapType.__tags
+            MapType.__labels = {map_type: tuple(labels) for map_type, labels in labels.items()}
+            return MapType.__labels
 
 
-DEFAULT_MAP_TYPE_TAGS = {
+DEFAULT_MAP_TYPES_LABELS = {
     MapType.Unknown: (),
     MapType.Thumbnail: ('thumbnail', 'thumb', 'preview'),
     MapType.Diffuse: ('diffuse', 'diff', 'albedo', 'basecolor', 'color'),

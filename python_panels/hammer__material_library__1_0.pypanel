@@ -6,13 +6,13 @@
  same interface or of the interfaces menu are not allowed
  in a single file. -->
   <interface name="hammer::material_library::1.0" label="Hammer Material Library" icon="SOP_material" help_url="">
-    <script><![CDATA[from hammer_tools.material_library import MaterialLibraryViewerDialog
+    <script><![CDATA[from hammer_tools.material_library import MaterialLibraryViewerWindow
 
 material_library = None
 
 def onCreateInterface():
     global material_library
-    material_library = MaterialLibraryViewerDialog()
+    material_library = MaterialLibraryViewerWindow()
     return material_library
 
 def onDestroyInterface():

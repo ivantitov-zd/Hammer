@@ -9,7 +9,7 @@ CREATE TABLE library (
     comment TEXT,
     favorite INTEGER NOT NULL DEFAULT 0,
     options TEXT,
-    source_path TEXT UNIQUE
+    path TEXT
 );
 
 CREATE TABLE material (
@@ -18,7 +18,7 @@ CREATE TABLE material (
     comment TEXT,
     favorite INTEGER NOT NULL DEFAULT 0,
     options TEXT,
-    source_path TEXT NOT NULL UNIQUE,
+    path TEXT,
     thumbnail BLOB
 );
 
@@ -40,22 +40,23 @@ CREATE TABLE material_library (
     FOREIGN KEY (library_id) REFERENCES library(id) ON DELETE CASCADE
 );
 
-CREATE TABLE map_type_tag (
-    map_type INTEGER NOT NULL CHECK (map_type >= 0),
-    tag TEXT NOT NULL,
+CREATE TABLE map_types_labels (
+    map_type TEXT NOT NULL,
+    label TEXT NOT NULL UNIQUE,
 
-    PRIMARY KEY (map_type, tag)
+    PRIMARY KEY (map_type, label)
 );
 
 CREATE TABLE texture (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
-    role INTEGER,
+    role TEXT,
     comment TEXT,
     favorite INTEGER NOT NULL DEFAULT 0,
     options TEXT,
-    source_path TEXT NOT NULL UNIQUE,
+    path TEXT NOT NULL UNIQUE,
     thumbnail BLOB
+
 );
 
 CREATE TABLE texture_library (
@@ -71,7 +72,7 @@ CREATE TABLE texture_library (
 CREATE TABLE texture_material (
     texture_id INTEGER NOT NULL,
     material_id INTEGER NOT NULL,
-    role INTEGER,
+    role TEXT,
 
     PRIMARY KEY (texture_id, material_id),
 
@@ -80,17 +81,16 @@ CREATE TABLE texture_material (
 );
 '''
 
-POPULATE_TAGS = 'INSERT INTO map_type_tag VALUES (?, ?)'
+POPULATE_LABELS = 'INSERT INTO map_types_labels VALUES (?, ?)'
 
 
 def createDatabase(file_path):
-    from ..texture.map_type import DEFAULT_MAP_TYPE_TAGS
+    from ..texture.map_type import DEFAULT_MAP_TYPES_LABELS
 
     connection = sqlite3.connect(file_path, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     connection.executescript(SCHEMA)
-
-    for map_type, tags in DEFAULT_MAP_TYPE_TAGS.items():
-        connection.executemany(POPULATE_TAGS, [(map_type, tag) for tag in tags])
+    for map_type, labels in DEFAULT_MAP_TYPES_LABELS.items():
+        connection.executemany(POPULATE_LABELS, [(map_type, label) for label in labels])
 
     connection.commit()
     connection.close()

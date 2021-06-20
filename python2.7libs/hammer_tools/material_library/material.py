@@ -10,10 +10,9 @@ except ImportError:
 
 import hou
 
-from ..db import connect
-from ..texture import MapType, TextureMap
-from ..image import imageToBytes
-from .material_source import MaterialSource
+from .db import connect
+from .texture import MapType, TextureMap
+from .image import imageToBytes
 
 MISSING_MATERIAL_THUMBNAIL_ICON = hou.qt.Icon('SOP_material', 256, 256)
 
@@ -25,18 +24,21 @@ class ThumbnailState:
 
 
 class Material(object):
-    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail_state', '_thumbnail',
+    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_path', '_thumbnail_state', '_thumbnail',
                  '_thumbnail_engine_id', '_thumbnail_for_engine')
+
+    def fillFromData(self, data):
+        self._id = data.get('id')
+        self._name = data['name']
+        self._comment = data.get('comment')
+        self._favorite = data.get('favorite', False)
+        self._options = data.get('options')
+        self._path = data['path'].replace('\\', '/')
 
     @staticmethod
     def fromData(data):
         mat = Material()
-        mat._id = data.get('id')
-        mat._name = data['name']
-        mat._comment = data.get('comment')
-        mat._favorite = data.get('favorite', False)
-        mat._options = data.get('options')
-        mat._source_path = data['source_path'].replace('\\', '/')
+        mat.fillFromData(data)
         return mat
 
     def asData(self):
@@ -46,7 +48,7 @@ class Material(object):
             'comment': self.comment(),
             'favorite': self.isFavorite(),
             'options': self._options,
-            'source_path': self._source_path,
+            'path': self._path,
             'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail))
             if self._thumbnail and self._thumbnail != MISSING_MATERIAL_THUMBNAIL_ICON else None
         }
@@ -54,7 +56,7 @@ class Material(object):
     @staticmethod
     def allMaterials():
         connection = connect()
-        materials_data = connection.execute('SELECT id, name, comment, favorite, source_path FROM material').fetchall()
+        materials_data = connection.execute('SELECT id, name, comment, favorite, path FROM material').fetchall()
         connection.close()
         return tuple(Material.fromData(data) for data in materials_data)
 
@@ -68,8 +70,8 @@ class Material(object):
         else:
             connection = external_connection
 
-        cursor = connection.execute('INSERT INTO material (name, comment, favorite, options, source_path, thumbnail) '
-                                    'VALUES (:name, :comment, :favorite, :options, :source_path, :thumbnail)',
+        cursor = connection.execute('INSERT INTO material (name, comment, favorite, options, path, thumbnail) '
+                                    'VALUES (:name, :comment, :favorite, :options, :path, :thumbnail)',
                                     material.asData())
         material._id = cursor.lastrowid
 
@@ -88,7 +90,7 @@ class Material(object):
                         'name': os.path.basename(root),
                         'favorite': favorite,
                         'options': options,
-                        'source_path': root
+                        'path': root
                     })
                     materials.append(mat)
                     break
@@ -119,7 +121,7 @@ class Material(object):
         self._comment = None
         self._favorite = None
         self._options = None
-        self._source_path = None
+        self._path = None
         self._thumbnail_state = ThumbnailState.NotLoaded
         self._thumbnail = None
         self._thumbnail_engine_id = None
@@ -147,8 +149,12 @@ class Material(object):
         return self._favorite
 
     def markAsFavorite(self, state=True, external_connection=None):
+        if state is None:
+            state = not self._favorite
+
+        self._favorite = state
+
         if self.id() is None:
-            self._favorite = state
             return
 
         if external_connection is None:
@@ -158,8 +164,6 @@ class Material(object):
 
         connection.execute('UPDATE material SET favorite = :state WHERE id = :material_id',
                            {'state': state, 'material_id': self.id()})
-
-        self._favorite = state
 
         if external_connection is None:
             connection.commit()
@@ -228,14 +232,16 @@ class Material(object):
     def options(self):
         return self._options
 
-    def source(self):
-        return MaterialSource(self, self._source_path)
-
     def path(self):
-        return self._source_path
+        return self._path
 
-    def textureMaps(self):
-        return self.source().textures()  # Todo: + TextureMaps from database
+    def textureMaps(self):  # Todo: + TextureMaps from database
+        textures = []
+        for file_name in os.listdir(self.path()):
+            tex = TextureMap(file_name, self)
+            if tex.type not in {MapType.Unknown, MapType.Thumbnail}:
+                textures.append(tex)
+        return tuple(set(textures))
 
     def addTextureMap(self, texture, role=None, external_connection=None):
         if external_connection is None:
@@ -255,7 +261,7 @@ class Material(object):
         return texture
 
     def libraries(self):
-        from ..library import Library
+        from .library import Library
 
         connection = connect()
         libraries_data = connection.execute('SELECT * FROM library '

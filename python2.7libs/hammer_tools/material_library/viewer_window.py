@@ -32,6 +32,7 @@ from .library import Library
 from .material import Material
 from .texture import TextureMap
 from .build_options_window import BuildOptionsWindow
+from .edit_library_window import EditLibraryWindow
 
 FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 16, 16)
 FAVORITE_DISABLED_ICON = hou.qt.Icon('BUTTONS_not_favorites', 16, 16)
@@ -43,9 +44,9 @@ MATERIAL_ICON = hou.qt.Icon('SOP_material', 16, 16)
 TEXTURE_ICON = hou.qt.Icon('BUTTONS_parmmenu_texture', 16, 16)
 
 
-class MaterialLibraryViewerDialog(QMainWindow):
+class MaterialLibraryViewerWindow(QMainWindow):
     def __init__(self, parent=None):
-        super(MaterialLibraryViewerDialog, self).__init__(parent)
+        super(MaterialLibraryViewerWindow, self).__init__(parent)
 
         self.setWindowTitle('Hammer: Material Library')
         self.setWindowIcon(hou.qt.Icon('SOP_material', 32, 32))
@@ -63,10 +64,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
         toolbar = QToolBar()
         toolbar.setAllowedAreas(Qt.TopToolBarArea | Qt.BottomToolBarArea)
         toolbar.setFloatable(False)
-        toolbar.setStyleSheet('QToolBar {spacing: 4px;}')
+        toolbar.setContentsMargins(2, 4, 6, 0)
+        toolbar.setStyleSheet('QToolBar { spacing: 2px; }')
         self.addToolBar(Qt.TopToolBarArea, toolbar)
 
         self.target_engine_combo = ComboBox()
+        self.target_engine_combo.view().setMinimumWidth(self.target_engine_combo.minimumSizeHint().width())
         self.target_engine_combo.setMinimumWidth(100)
         self.target_engine_combo.addItem(EngineConnector.icon(), 'Auto', None)
         for engine in EngineConnector.engines():
@@ -77,14 +80,26 @@ class MaterialLibraryViewerDialog(QMainWindow):
         toolbar.addWidget(self.target_engine_combo)
 
         self.target_builder_combo = ComboBox()
-        self.target_builder_combo.setMinimumWidth(140)
+        self.target_builder_combo.setMinimumWidth(100)
+        self.target_builder_combo.setMaximumWidth(150)
+        self.target_builder_combo.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
+        self.target_builder_combo.view().setMinimumWidth(200)
         self.target_builder_combo.setToolTip('Target builder')
+        self.target_builder_combo.currentTextChanged.connect(
+            lambda name: self.target_builder_combo.setToolTip('Target builder\n' + name)
+        )
         self.updateEngineBuilderList()
         toolbar.addWidget(self.target_builder_combo)
 
         self.target_network_combo = ComboBox()
+        self.target_network_combo.setMinimumWidth(100)
+        self.target_network_combo.setMaximumWidth(200)
+        self.target_network_combo.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
+        self.target_network_combo.view().setMinimumWidth(350)
         self.target_network_combo.setToolTip('Target network')
-        self.target_network_combo.setMinimumWidth(160)
+        self.target_network_combo.currentTextChanged.connect(
+            lambda path: self.target_network_combo.setToolTip('Target network\n' + path)
+        )
         self.target_network_combo.installEventFilter(self)
         toolbar.addWidget(self.target_network_combo)
 
@@ -109,7 +124,9 @@ class MaterialLibraryViewerDialog(QMainWindow):
         toolbar.addWidget(self.show_textures_toggle)
 
         self.search_field = InputField()
-        self.search_field.setFixedWidth(140)
+        self.search_field.setMinimumWidth(80)
+        self.search_field.setMaximumWidth(140)
+        self.search_field.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
         self.search_field.setPlaceholderText('Search...')
         toolbar.addWidget(self.search_field)
 
@@ -123,7 +140,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.thumbnail_size_slider = Slider(Qt.Horizontal)
         self.thumbnail_size_slider.setFixedWidth(80)
         self.thumbnail_size_slider.setRange(48, 256)
-        self.thumbnail_size_slider.setValue(64)
+        self.thumbnail_size_slider.setValue(96)
         toolbar.addWidget(self.thumbnail_size_slider)
 
         self.splitter = QSplitter(Qt.Horizontal)
@@ -133,6 +150,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.splitter.addWidget(self.library_list_browser)
 
         self.library_browser = LibraryBrowser()
+        self.library_browser.installEventFilter(self)
         self.library_list_browser.currentLibraryChanged.connect(self.library_browser.setLibrary)
         selection_model = self.library_browser.view.selectionModel()
         selection_model.selectionChanged.connect(self.updateStatusBar)
@@ -234,6 +252,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.mark_library_as_favorite_action.triggered.connect(self.onMarkLibraryAsFavorite)
 
         self.edit_library_action = QAction('Edit...', self)
+        self.edit_library_action.triggered.connect(self.editLibrary)
         self.edit_library_action.setShortcut(QKeySequence('Ctrl+E'))
         self.edit_library_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         self.library_list_browser.addAction(self.edit_library_action)
@@ -320,7 +339,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         # self.library_menu.addAction(self.assemble_library_action)
         self.library_menu.addSeparator()
         # self.library_menu.addAction(self.mark_library_as_favorite_action)
-        # self.library_menu.addAction(self.edit_library_action)
+        self.library_menu.addAction(self.edit_library_action)
         self.library_menu.addAction(self.remove_library_action)
 
     def updateLibraryContextMenu(self):
@@ -446,8 +465,13 @@ class MaterialLibraryViewerDialog(QMainWindow):
         self.library_browser.reloadContent()
 
     def onAddLibrary(self):
-        if AddLibraryDialog.addLibrary():
-            self.library_list_browser.reloadContent()
+        window = AddLibraryDialog(hou.qt.mainWindow())
+        try:
+            if window.exec_():
+                Library.addLibrary(window.options())
+                self.library_list_browser.reloadContent()
+        finally:
+            window.deleteLater()
 
     def onAddMaterial(self):
         raise NotImplementedError
@@ -456,7 +480,7 @@ class MaterialLibraryViewerDialog(QMainWindow):
         pass
 
     def onAddFromFolder(self):
-        window = AddFolderContentDialog()
+        window = AddFolderContentDialog(hou.qt.mainWindow())
         if window.exec_():
             options = window.options()
             if options['add_to'] == Target.NoLibrary:
@@ -530,6 +554,9 @@ class MaterialLibraryViewerDialog(QMainWindow):
             material_node = builder.build(material, root, options=options)
             material_node.moveToGoodPosition()
             nodes.append(material_node)
+
+        if len(nodes) == 1:
+            QApplication.clipboard().setText(nodes[0].path())
         return tuple(nodes)
 
     def createMaterialAndAssign(self):
@@ -561,7 +588,12 @@ class MaterialLibraryViewerDialog(QMainWindow):
         item = self.library_browser.currentItem()
         if not item.thumbnail():
             return
-        path, _ = QFileDialog.getSaveFileName(self, 'Save thumbnail', item.path(), 'Image (*.png *.jpg);; Any (*.*)')
+
+        if isinstance(item, Material):
+            path = item.path() + '/' + item.name()
+        else:
+            path = item.path()
+        path, _ = QFileDialog.getSaveFileName(self, 'Save thumbnail', path, 'Image (*.png *.jpg);; Any (*.*)')
         if not path:
             return
         item.thumbnail().pixmap(256).save(path)
@@ -591,11 +623,26 @@ class MaterialLibraryViewerDialog(QMainWindow):
     def onMarkLibraryAsFavorite(self):
         connection = connect()
         connection.execute('BEGIN')
-        for library in self.library_browser.selectedItems():
+
+        for library in self.library_list_browser.selectedLibraries():
             library.markAsFavorite(not library.isFavorite(), external_connection=connection)
+
         connection.commit()
         connection.close()
         self.library_list_browser.reloadContent()
+
+    def editLibrary(self):
+        library = self.library_list_browser.currentLibrary()
+        if not library:
+            return
+
+        window = EditLibraryWindow(self)
+        window.setOptions(library.asData())
+
+        if not window.exec_():
+            return
+
+        # Todo
 
     def onMarkItemsAsFavorite(self):
         connection = connect()
@@ -673,4 +720,19 @@ class MaterialLibraryViewerDialog(QMainWindow):
         if watched == self.target_network_combo:
             if event.type() == QEvent.MouseButtonPress:
                 self.updateTargetNetworkList()
+        elif watched == self.library_browser:
+            if event.type() == QEvent.KeyPress:
+                if event.matches(QKeySequence.Find) or event.matches(QKeySequence.FindNext):
+                    self.search_field.setFocus()
+                    self.search_field.selectAll()
+                    return True
+                elif event.matches(QKeySequence.ZoomIn):
+                    self.library_browser.view.zoomIn()
+                    return True
+                elif event.matches(QKeySequence.ZoomOut):
+                    self.library_browser.view.zoomOut()
+                    return True
+                elif event.matches(QKeySequence.Refresh):
+                    self.library_browser.reloadContent()
+                    return True
         return False

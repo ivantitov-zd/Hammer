@@ -1,19 +1,22 @@
 try:
     from PyQt5.QtWidgets import QStyledItemDelegate, QStyle, QApplication
-    from PyQt5.QtCore import Qt, QRect, QPoint, QSize
+    from PyQt5.QtCore import Qt, QRect, QPoint, QSize, QEvent
     from PyQt5.QtGui import QColor, QImage, QCursor, QPainter, QIcon
 except ImportError:
     from PySide2.QtWidgets import QStyledItemDelegate, QStyle, QApplication
-    from PySide2.QtCore import Qt, QRect, QPoint, QSize
+    from PySide2.QtCore import Qt, QRect, QPoint, QSize, QEvent
     from PySide2.QtGui import QColor, QImage, QCursor, QPainter
 
 import hou
 
 from ..data_roles import FavoriteRole, InternalDataRole
-from ..texture import TextureMap
 from ..image import loadImage
+from ..texture import TextureMap
+from ..material import Material
+from ..engine_connector import EngineConnector
 
-FAVORITE_ICON = hou.qt.Icon('BUTTONS_favorites', 24, 24)
+FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 24, 24)
+FAVORITE_DISABLED_ICON = hou.qt.Icon('BUTTONS_not_favorites', 24, 24)
 ZOOM_ICON = hou.qt.Icon('IMAGE_zoom_in', 24, 24)
 
 MARGIN_SIZE = 4
@@ -32,22 +35,42 @@ class LibraryItemDelegate(QStyledItemDelegate):
         self._zoomed = False
 
     def editorEvent(self, event, model, option, index):
+        current_item = index.data(InternalDataRole)
+
+        rect = option.rect
+        rect_indented = rect.adjusted(MARGIN_SIZE, MARGIN_SIZE, -MARGIN_SIZE, -MARGIN_SIZE)
+        top_right_icon_rect = QRect(rect_indented.right() - 24, rect_indented.top(), 24, 24)
+
+        if event.type() == QEvent.MouseButtonRelease and event.button() == Qt.LeftButton:
+            if top_right_icon_rect.contains(event.pos()):
+                current_item.markAsFavorite(None)
+                option.widget.update(index)
+                return True
+
         if QApplication.queryKeyboardModifiers() != Qt.ControlModifier:
             if self._zoomed:
                 self._zoomed = False
-                option.widget.update()
+                option.widget.update(index)
             return False
 
         self._zoomed = True
 
-        current_item = index.data(InternalDataRole)
-        if not isinstance(current_item, TextureMap):
+        if current_item == self._previous_item:
+            option.widget.update(index)
             return False
 
-        if current_item != self._previous_item:
-            self._previous_item = current_item
+        if isinstance(current_item, Material):
+            icon = current_item.thumbnail(EngineConnector.currentEngine())
+            if icon:
+                self._image = icon.pixmap(256).toImage()
+            else:
+                self._image = None
+        elif isinstance(current_item, TextureMap):
             self._image = loadImage(current_item.path())
+        else:
+            return False
 
+        self._previous_item = current_item
         option.widget.update(index)
         return False
 
@@ -55,10 +78,13 @@ class LibraryItemDelegate(QStyledItemDelegate):
         current_item = index.data(InternalDataRole)
         selected = option.state & QStyle.State_Selected
         has_focus = option.state & QStyle.State_HasFocus
+        under_cursor = option.state & QStyle.State_MouseOver
 
         rect = option.rect
 
         rect_indented = rect.adjusted(MARGIN_SIZE, MARGIN_SIZE, -MARGIN_SIZE, -MARGIN_SIZE)
+
+        top_right_icon_rect = QRect(rect_indented.right() - 24, rect_indented.top(), 24, 24)
 
         thumbnail_rect = QRect()
         thumbnail_rect.setSize(option.decorationSize)
@@ -84,15 +110,14 @@ class LibraryItemDelegate(QStyledItemDelegate):
             painter.drawRect(rect.adjusted(adjust, adjust, -adjust, -adjust))
             painter.restore()
 
-        if self._image and isinstance(current_item, TextureMap) and \
-                option.state & QStyle.State_MouseOver and \
+        if self._image and isinstance(current_item, (TextureMap, Material)) and under_cursor and \
                 QApplication.queryKeyboardModifiers() == Qt.ControlModifier:
             # Draw zoomed texture
             cursor_pos = option.widget.mapFromGlobal(QCursor.pos()) - thumbnail_rect.topLeft()
             texture_width = self._image.width()
             texture_height = self._image.height()
-            sample_width = texture_width * 0.2
-            sample_height = texture_height * 0.2
+            sample_width = max(texture_width * 0.2, thumbnail_rect.width())
+            sample_height = max(texture_height * 0.2, thumbnail_rect.height())
 
             max_x = texture_width - sample_width
             max_y = texture_height - sample_height
@@ -112,7 +137,9 @@ class LibraryItemDelegate(QStyledItemDelegate):
 
             # Draw favorite icon
             if index.data(FavoriteRole):
-                FAVORITE_ICON.paint(painter, rect_indented, Qt.AlignTop | Qt.AlignRight)
+                FAVORITE_ENABLED_ICON.paint(painter, rect_indented, Qt.AlignTop | Qt.AlignRight)
+            elif under_cursor:
+                FAVORITE_DISABLED_ICON.paint(painter, top_right_icon_rect)
 
         # Draw text
         metrics = painter.fontMetrics()

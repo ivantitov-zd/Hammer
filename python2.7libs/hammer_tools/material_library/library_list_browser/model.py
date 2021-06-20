@@ -10,8 +10,8 @@ from ..library import Library, AllLibrary, UnboundLibrary
 
 
 class LibraryListModel(QAbstractListModel):
-    def __init__(self):
-        super(LibraryListModel, self).__init__()
+    def __init__(self, parent=None):
+        super(LibraryListModel, self).__init__(parent)
 
         self._libraries = ()
 

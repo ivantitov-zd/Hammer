@@ -12,6 +12,10 @@ class LocationField(QWidget):
     def __init__(self, initial_location=''):
         super(LocationField, self).__init__()
 
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+
         self.text_field = InputField(initial_location)
         self.layout().addWidget(self.text_field)
 

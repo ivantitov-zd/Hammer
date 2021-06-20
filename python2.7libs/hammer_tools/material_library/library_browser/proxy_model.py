@@ -8,6 +8,7 @@ except ImportError:
 from ..data_roles import FavoriteRole, InternalDataRole
 from ..material import Material
 from ..texture import TextureMap
+from ..fuzzy import fuzzyMatch, fuzzyMatchWeight
 
 
 class MaterialLibraryListProxyModel(QSortFilterProxyModel):
@@ -63,7 +64,19 @@ class MaterialLibraryListProxyModel(QSortFilterProxyModel):
         if not self._filter_pattern:
             return True
 
-        return self._filter_pattern in current_index.data(Qt.DisplayRole).lower()
+        return fuzzyMatch(self._filter_pattern, current_index.data(Qt.DisplayRole).lower())
+
+    def lessThan(self, source_left, source_right):
+        if not self._filter_pattern:
+            return source_left.row() > source_right.row()
+
+        text1 = source_left.data(Qt.DisplayRole)
+        text2 = source_right.data(Qt.DisplayRole)
+
+        weight1 = fuzzyMatchWeight(self._filter_pattern, text1.lower())
+        weight2 = fuzzyMatchWeight(self._filter_pattern, text2.lower())
+
+        return weight1 < weight2
 
     def __getattr__(self, attr_name):
         return self.sourceModel().__getattribute__(attr_name)

@@ -8,7 +8,7 @@ class AllLibrary(Library):
         super(AllLibrary, self).__init__()
 
         self._name = 'All'
-        self._description = 'Contains all items'
+        self._comment = 'Contains all items'
         self._favorite = False
 
     def materials(self):

@@ -24,7 +24,7 @@ class ThumbnailState:
 
 
 class TextureMap(object):
-    __slots__ = ('_material', '_id', '_name', '_comment', '_favorite', '_options', '_source_path', '_thumbnail_state',
+    __slots__ = ('_material', '_id', '_name', '_comment', '_favorite', '_options', '_path', '_thumbnail_state',
                  '_thumbnail', '_type')
 
     @staticmethod
@@ -32,7 +32,7 @@ class TextureMap(object):
         name_tokens = alphaNumericTokens(name.lower())[::-1]
         found_pos = float('+inf')
         found_type = None
-        for map_type, tags in MapType.tags().items():
+        for map_type, tags in MapType.allLabels().items():
             for tag in tags:
                 if tag in name_tokens:
                     pos = name_tokens.index(tag)
@@ -45,14 +45,17 @@ class TextureMap(object):
                     break
         return found_type or MapType.Unknown
 
+    def fillFromData(self, data):
+        self._id = data.get('id')
+        self._comment = data.get('comment')
+        self._favorite = data.get('favorite', False)
+        self._options = data.get('options')
+        self._path, _ = os.path.splitext(data['path'].replace('\\', '/'))
+
     @staticmethod
     def fromData(data):
         tex = TextureMap(data['name'])
-        tex._id = data.get('id')
-        tex._comment = data.get('comment')
-        tex._favorite = data.get('favorite', False)
-        tex._options = data.get('options')
-        tex._source_path, _ = os.path.splitext(data['source_path'].replace('\\', '/'))
+        tex.fillFromData(data)
         return tex
 
     def asData(self):
@@ -61,14 +64,14 @@ class TextureMap(object):
             'comment': self.comment(),
             'favorite': self.isFavorite(),
             'options': self._options,
-            'source_path': self._source_path,
+            'path': self._path,
             'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail)) if self._thumbnail else None
         }
 
     @staticmethod
     def allTextureMaps():
         connection = connect()
-        texture_data = connection.execute('SELECT id, name, comment, favorite, source_path FROM texture').fetchall()
+        texture_data = connection.execute('SELECT id, name, comment, favorite, path FROM texture').fetchall()
         connection.close()
         return tuple(TextureMap.fromData(data) for data in texture_data)
 
@@ -82,8 +85,8 @@ class TextureMap(object):
         else:
             connection = external_connection
 
-        cursor = connection.execute('INSERT INTO texture (name, comment, favorite, options, source_path, thumbnail) '
-                                    'VALUES (:name, :comment, :favorite, :options, :source_path, :thumbnail)',
+        cursor = connection.execute('INSERT INTO texture (name, comment, favorite, options, path, thumbnail) '
+                                    'VALUES (:name, :comment, :favorite, :options, :path, :thumbnail)',
                                     texture.asData())
         texture._id = cursor.lastrowid
 
@@ -109,7 +112,7 @@ class TextureMap(object):
                         'name': name,
                         'favorite': favorite,
                         'options': options,
-                        'source_path': os.path.join(root, file).replace('\\', '/')
+                        'path': os.path.join(root, file).replace('\\', '/')
                     })
                     textures.append(tex)
 
@@ -140,7 +143,7 @@ class TextureMap(object):
         self._comment = None
         self._favorite = False
         self._options = None
-        self._source_path = None
+        self._path = None
         self._thumbnail_state = ThumbnailState.NotLoaded
         self._thumbnail = None
         self._type = TextureMap.mapType(name)
@@ -170,8 +173,12 @@ class TextureMap(object):
         return self._favorite
 
     def markAsFavorite(self, state=True, external_connection=None):
+        if state is None:
+            state = not self._favorite
+
+        self._favorite = state
+
         if self.id() is None:
-            self._favorite = state
             return
 
         if external_connection is None:
@@ -181,8 +188,6 @@ class TextureMap(object):
 
         connection.execute('UPDATE texture SET favorite = :state WHERE id = :texture_id',
                            {'state': state, 'texture_id': self.id()})
-
-        self._favorite = state
 
         if external_connection is None:
             connection.commit()
@@ -226,22 +231,19 @@ class TextureMap(object):
     def options(self):
         return self._options
 
-    def source(self):
-        return self._source_path
-
     def type(self):
         return self._type
 
     def formats(self):
         formats = []
         if not self.id() and self._material:
-            root_path = self._material.source().path()
+            root_path = self._material.path()
             name = self._name
         else:
-            root_path, name = os.path.split(self._source_path)
+            root_path, name = os.path.split(self._path)
 
         for file_name in os.listdir(root_path):
-            if file_name.startswith(name):
+            if file_name.startswith(name):  # Fixme
                 formats.append(TextureFormat(file_name))
         return tuple(formats)
 
@@ -250,9 +252,9 @@ class TextureMap(object):
             tex_format = TextureFormat(tex_format)
 
         if self._material is None:
-            root_dir, name = os.path.split(self._source_path)
+            root_dir, name = os.path.split(self._path)
         else:
-            root_dir = self._material.source().path()
+            root_dir = self._material.path()
             name = self._name
 
         if tex_format is not None:
@@ -269,7 +271,7 @@ class TextureMap(object):
     def image(self):
         pass
 
-    def __repr__(self):
+    def __repr__(self):  # Fixme
         return '<{}>'.format(self.name())
 
     def libraries(self):
@@ -290,7 +292,7 @@ class TextureMap(object):
         from ..material import Material
 
         connection = connect()
-        materials_data = connection.execute('SELECT id, name, comment, favorite, source_path FROM material '
+        materials_data = connection.execute('SELECT id, name, comment, favorite, path FROM material '
                                             'LEFT JOIN texture_material ON texture_material.material_id = material.id '
                                             'WHERE texture_material.texture_id = :texture_id',
                                             {'texture_id': self.id()})

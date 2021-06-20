@@ -13,6 +13,7 @@ import hou
 
 from ..db import connect
 from ..engine_connector.builder import MantraPrincipledBuilder
+from ..image import loadImage
 
 
 class MaterialPreviewScene(object):
@@ -112,17 +113,17 @@ def updateMaterialThumbnails(materials, engine=None, hdri_path=None, external_co
     else:
         connection = external_connection
 
-    with hou.InterruptableOperation('Thumbnail rendering', open_interrupt_dialog=True) as op:
+    with hou.InterruptableOperation('Thumbnail rendering', open_interrupt_dialog=False) as op:
         try:
             material_count = float(len(materials))
         except TypeError:
             material_count = 1.0
+        op.updateLongProgress(0)
         for num, material in enumerate(materials, 1):
             material.addThumbnail(scene.render(material), engine.id() if engine else None,
                                   external_connection=connection)
             try:
-                op.updateLongProgress(num / material_count,
-                                      'Thumbnail {} / {}'.format(num, material_count))
+                op.updateLongProgress(num / material_count, 'Thumbnail {} / {}'.format(num, material_count))
             except hou.OperationInterrupted:
                 break  # Todo: Flash message
 
@@ -134,31 +135,28 @@ def updateMaterialThumbnails(materials, engine=None, hdri_path=None, external_co
 
 
 def updateTextureThumbnails(textures, external_connection=None):
-    image_path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_mat_lib_tex_thumb.png')
-    image_path = image_path.replace('\\', '/')
-
     if external_connection is None:
         connection = connect()
         connection.execute('BEGIN')
     else:
         connection = external_connection
 
-    with hou.InterruptableOperation('Thumbnail rendering', open_interrupt_dialog=True) as op:
+    with hou.InterruptableOperation('Thumbnail rendering', open_interrupt_dialog=False) as op:
         try:
             texture_count = float(len(textures))
         except TypeError:
             texture_count = 1.0
+        op.updateLongProgress(0)
         for num, texture in enumerate(textures, 1):
             format_collision = set(texture.formats()).intersection({'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'})
             if format_collision:
-                image_path = texture.path(format_collision.pop())
+                image = QImage(texture.path(format_collision.pop()))
             else:
-                subprocess.call('iconvert -g off {} {}'.format(texture.path(), image_path))
-            image = QImage(image_path).scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            texture.addThumbnail(image, external_connection=connection)
+                image = loadImage(texture.path())
+            texture.addThumbnail(image.scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation),
+                                 external_connection=connection)
             try:
-                op.updateLongProgress(num / texture_count,
-                                      'Thumbnail {} / {}'.format(num, texture_count))
+                op.updateLongProgress(num / texture_count, 'Thumbnail {} / {}'.format(num, texture_count))
             except hou.OperationInterrupted:
                 break  # Todo: Flash message
 
