@@ -609,8 +609,8 @@ class MaterialLibraryViewerWindow(QMainWindow):
 
     def openCurrentItemLocation(self):
         item = self.library_browser.currentItem()
-        if isinstance(item, Material) and item.source().path():
-            openLocation(item.source().path())
+        if isinstance(item, Material) and item.path():
+            openLocation(item.path())
         elif isinstance(item, TextureMap):
             openLocation(item.path(), select=True)
 
