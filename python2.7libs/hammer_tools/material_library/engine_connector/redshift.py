@@ -54,18 +54,38 @@ class RedshiftConnector(EngineConnector):
     def createThumbnail(self, material, options=None):
         scene = MaterialPreviewScene()
 
-        scene.render_node = scene.out_node.createNode('ifd')
-        scene.render_node.parm('camera').set(scene.cam_node.path())
-        scene.render_node.parm('vobject').set(scene.obj_node.path() + '/*')
-        scene.render_node.parm('alights').set(scene.obj_node.path() + '/*')
-        scene.render_node.parm('res_fraction').set('specific')
-        scene.render_node.parmTuple('res_override').set((256, 256))
+        scene.env_node = scene.env_node.changeNodeType('rslightdome', keep_parms=False, keep_network_contents=False)
+        scene.env_node.parm('background_enable').set(False)
+        scene.env_node.parm('env_map').set('photo_studio_01_2k.hdr')
+
+        scene.render_node = scene.out_node.createNode('Redshift_ROP')
+        scene.render_node.parm('RS_renderCamera').set(scene.cam_node.path())
+        scene.render_node.parm('RS_overrideCameraRes').set(True)
+        scene.render_node.parm('RS_overrideResScale').set('user')
+        scene.render_node.parmTuple('RS_overrideRes').set((256, 256))
+        scene.render_node.parm('RS_nonBlockingRendering').set(False)
+        scene.render_node.parm('RS_addDefaultLight').set(False)
+        scene.render_node.parm('RS_renderToMPlay').set(False)
+        scene.render_node.parm('RS_outputFileFormat').set('.png')
+        scene.render_node.parm('RS_outputBitsPNG').set('INTEGER16')
+        scene.render_node.parm('RS_aovAllAOVsDisabled').set(True)
+        scene.render_node.parm('MaxTraceDepthReflection').set(4)
+        scene.render_node.parm('MaxTraceDepthRefraction').set(4)
+        scene.render_node.parm('CopyToTextureCache').set(False)
+        # Todo: Turn on "Enable Refraction affects dome lights"
+        scene.render_node.parm('PrimaryGIEngine').set('RS_GIENGINE_BRUTE_FORCE')
+        # Todo: Use Photon map as secondary?
+        scene.render_node.parm('SecondaryGIEngine').set('RS_GIENGINE_BRUTE_FORCE')
+        scene.render_node.parm('NumGIBounces').set(4)
+        scene.render_node.parm('RS_objects_candidate').set(scene.obj_node.path() + '/*')
+        scene.render_node.parm('RS_lights_candidate').set(scene.obj_node.path() + '/*')
+        # Todo: RTX and others new features
 
         builder = RedshiftNetworkBuilder(self)
         material_node = builder.build(material, '/mat/')
         scene.geo_node.parm('shop_materialpath').set(material_node.path())
 
-        scene.render_node.parm('vm_picture').set(TEMP_IMAGE_PATH)
+        scene.render_node.parm('RS_outputFileNamePrefix').set(TEMP_IMAGE_PATH)
         scene.render_node.parm('execute').pressButton()
 
         image = loadImage(TEMP_IMAGE_PATH)

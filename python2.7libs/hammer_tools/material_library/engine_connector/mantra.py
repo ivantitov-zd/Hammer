@@ -59,7 +59,7 @@ class MantraConnector(EngineConnector):
         scene.render_node.parm('res_fraction').set('specific')
         scene.render_node.parmTuple('res_override').set((256, 256))
         scene.render_node.parm('vm_renderengine').set('pbrraytrace')
-        scene.render_node.parmTuple('vm_samples').set((3, 3))
+        scene.render_node.parmTuple('vm_samples').set((8, 8))
         scene.render_node.parm('vm_minraysamples').set(1)
         scene.render_node.parm('vm_maxraysamples').set(9)
         scene.render_node.parm('vm_dorayvariance').set(False)
