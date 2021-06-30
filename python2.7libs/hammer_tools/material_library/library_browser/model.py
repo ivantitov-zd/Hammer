@@ -5,10 +5,11 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
-from ..data_roles import InternalDataRole, FavoriteRole
+from ..data_roles import InternalDataRole, FavoriteRole, TextForFilterRole
 from ..engine_connector import EngineConnector
 from ..material import Material, MISSING_MATERIAL_THUMBNAIL_ICON
-from ..texture import TextureMap, MISSING_TEXTURE_THUMBNAIL_ICON
+from ..texture import Texture, MISSING_TEXTURE_THUMBNAIL_ICON
+from ..tooltip_formlayout import ToolTipFormLayout
 
 
 class MaterialLibraryModel(QAbstractListModel):
@@ -33,7 +34,7 @@ class MaterialLibraryModel(QAbstractListModel):
         self._library = library
         self.updateItemList()
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=None):
         return len(self._items)
 
     def index(self, row, column, parent):
@@ -47,7 +48,7 @@ class MaterialLibraryModel(QAbstractListModel):
             return
 
         flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if isinstance(index.internalPointer(), TextureMap):
+        if isinstance(index.internalPointer(), Texture):
             return flags | Qt.ItemIsDragEnabled
         return flags
 
@@ -72,17 +73,16 @@ class MaterialLibraryModel(QAbstractListModel):
         elif role == FavoriteRole:
             return item.isFavorite()
         elif role == Qt.ToolTipRole:
-            tooltip = '<p style="white-space:pre">'
-            tooltip += '<b>Type</b>  <i>{}</i>\n'.format('Material'
-                                                         if isinstance(item, Material)
-                                                         else 'Texture')
-            tooltip += '<b>ID</b>  <i>{}</i>\n'.format(item.id())
-            tooltip += '<b>Name</b>  <i>{}</i>\n'.format(item.name())
-            tooltip += '<b>Path</b>  <i>{}</i>\n'.format(item.path())
-            if isinstance(item, TextureMap):
-                tooltip += '<b>Formats</b>  <i>{}</i>'.format(' '.join(map(str, item.formats())))
-            tooltip += '</p>'
-            return tooltip
+            tooltip = ToolTipFormLayout()
+            tooltip.addRow('<b>Type</b>', 'Material' if isinstance(item, Material) else 'Texture')
+            tooltip.addRow('<b>ID</b>', item.id())
+            tooltip.addRow('<b>Name</b>', item.name())
+            tooltip.addRow('<b>Path</b>', item.path())
+            if isinstance(item, Texture):
+                tooltip.addRow('<b>Formats</b>', ' '.join(map(str, item.formats())))
+            return str(tooltip)
+        elif role == TextForFilterRole:
+            return item.name() + item.comment()
 
     def mimeData(self, indexes):
         data = QMimeData()

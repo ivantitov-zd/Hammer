@@ -1,5 +1,6 @@
 import hou
 
+from .. import ui
 from .engine_connector import EngineConnector
 from .mantra import MantraConnector
 from .builder import KarmaPrincipledBuilder
@@ -20,7 +21,7 @@ class KarmaConnector(MantraConnector):
         return 'Karma'
 
     def icon(self):
-        return hou.qt.Icon('MISC_karma', 16, 16)
+        return ui.icon('MISC_karma', 16)
 
     def nodeTypeAssociatedWithEngine(self, node_type):
         if 'karma' in node_type.description().lower():
@@ -30,6 +31,9 @@ class KarmaConnector(MantraConnector):
 
     def builders(self):
         return KarmaPrincipledBuilder(self),
+
+    def canCreateThumbnail(self):
+        return False
 
 
 EngineConnector.registerEngine(KarmaConnector)

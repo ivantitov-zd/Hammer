@@ -8,24 +8,19 @@ except ImportError:
     from PySide2.QtCore import QBuffer, QIODevice
     from PySide2.QtGui import QImage, QPixmap, QIcon
 
-import hou
-
+from . import ui
 from .db import connect
-from .texture import MapType, TextureMap
+from .texture import Texture
+from .map_type import MapType
 from .image import imageToBytes
+from .name import convertName
 
-MISSING_MATERIAL_THUMBNAIL_ICON = hou.qt.Icon('SOP_material', 256, 256)
-
-
-class ThumbnailState:
-    NotLoaded = 0
-    Loaded = 1
-    NotExists = 2
+MISSING_MATERIAL_THUMBNAIL_ICON = ui.icon('SOP_material', 256)
 
 
 class Material(object):
-    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_path', '_thumbnail_state', '_thumbnail',
-                 '_thumbnail_engine_id', '_thumbnail_for_engine')
+    __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_path', '_thumbnail',
+                 '_thumbnail_engine_id', '_thumbnail')
 
     def fillFromData(self, data):
         self._id = data.get('id')
@@ -45,12 +40,10 @@ class Material(object):
         return {
             'id': self.id(),
             'name': self.name(),
-            'comment': self.comment(),
+            'comment': self.comment() or None,
             'favorite': self.isFavorite(),
-            'options': self._options,
-            'path': self._path,
-            'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail))
-            if self._thumbnail and self._thumbnail != MISSING_MATERIAL_THUMBNAIL_ICON else None
+            'options': self._options or None,
+            'path': self._path
         }
 
     @staticmethod
@@ -70,8 +63,8 @@ class Material(object):
         else:
             connection = external_connection
 
-        cursor = connection.execute('INSERT INTO material (name, comment, favorite, options, path, thumbnail) '
-                                    'VALUES (:name, :comment, :favorite, :options, :path, :thumbnail)',
+        cursor = connection.execute('INSERT INTO material (name, comment, favorite, options, path) '
+                                    'VALUES (:name, :comment, :favorite, :options, :path)',
                                     material.asData())
         material._id = cursor.lastrowid
 
@@ -81,13 +74,13 @@ class Material(object):
         return material
 
     @staticmethod
-    def addMaterialsFromFolder(path, naming_mode=None, library=None, favorite=False, options=None):
+    def addMaterialsFromFolder(path, naming_options=None, library=None, favorite=False, options=None):
         materials = []
         for root, _, files in os.walk(path):
             for file in files:
-                if TextureMap.mapType(file) not in {MapType.Unknown, MapType.Thumbnail}:
+                if MapType.mapType(file) not in {MapType.Unknown, MapType.Thumbnail}:
                     mat = Material.fromData({
-                        'name': os.path.basename(root),
+                        'name': convertName(os.path.basename(root), naming_options),
                         'favorite': favorite,
                         'options': options,
                         'path': root
@@ -122,10 +115,8 @@ class Material(object):
         self._favorite = None
         self._options = None
         self._path = None
-        self._thumbnail_state = ThumbnailState.NotLoaded
-        self._thumbnail = None
         self._thumbnail_engine_id = None
-        self._thumbnail_for_engine = None
+        self._thumbnail = None
 
     def id(self):
         return self._id
@@ -143,7 +134,7 @@ class Material(object):
         return self._name
 
     def comment(self):
-        return self._comment
+        return self._comment or ''
 
     def isFavorite(self):
         return self._favorite
@@ -169,22 +160,6 @@ class Material(object):
             connection.commit()
             connection.close()
 
-    def _loadDefaultThumbnail(self):
-        if self.id() is None:
-            return
-
-        connection = connect()
-        data = connection.execute('SELECT thumbnail AS image FROM material '
-                                  'WHERE id = :material_id',
-                                  {'material_id': self.id()}).fetchone()
-        connection.close()
-        if data['image']:
-            self._thumbnail = QIcon(QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png')))
-            self._thumbnail_state = ThumbnailState.Loaded
-        else:
-            self._thumbnail = None
-            self._thumbnail_state = ThumbnailState.NotExists
-
     def thumbnail(self, engine=None, reload=False):
         if engine is not None and self.id():
             if engine.id() != self._thumbnail_engine_id:
@@ -194,20 +169,15 @@ class Material(object):
                                           {'material_id': self.id(), 'engine_id': engine.id()}).fetchone()
                 connection.close()
                 if data is not None:
-                    self._thumbnail_for_engine = QIcon(
+                    self._thumbnail = QIcon(
                         QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png'))
                     )
                     self._thumbnail_engine_id = engine.id()
-                    return self._thumbnail_for_engine
-            else:
-                return self._thumbnail_for_engine
-
-        if not self._thumbnail and self._thumbnail_state == ThumbnailState.NotLoaded or reload:
-            self._loadDefaultThumbnail()
+                    return self._thumbnail
         return self._thumbnail
 
-    def addThumbnail(self, image, engine_id=None, external_connection=None):
-        if self.id() is None:
+    def addThumbnail(self, image, engine_id, external_connection=None):
+        if self.id() is None:  # Fixme
             self._thumbnail = image
             return
 
@@ -218,39 +188,37 @@ class Material(object):
         else:
             connection = external_connection
 
-        if engine_id is None:
-            connection.execute('UPDATE material SET thumbnail = :image WHERE id = :id',
-                               {'id': self.id(), 'image': image_data})
-        else:
-            connection.execute('INSERT OR UPDATE INTO material VALUES (:material_id, :engine_id, :image)',
-                               {'material_id': self.id(), 'engine_id': engine_id, 'image': image_data})
+        connection.execute('INSERT OR REPLACE INTO material_thumbnail '
+                           '(material_id, engine_id, image) '
+                           'VALUES (:material_id, :engine_id, :image)',
+                           {'material_id': self.id(), 'engine_id': engine_id, 'image': image_data})
 
         if external_connection is None:
             connection.commit()
             connection.close()
 
     def options(self):
-        return self._options
+        return self._options or {}
 
     def path(self):
         return self._path
 
-    def textureMaps(self):  # Todo: + TextureMaps from database
+    def textures(self):  # Todo: + Textures from database
         textures = []
         for file_name in os.listdir(self.path()):
-            tex = TextureMap(file_name, self)
+            tex = Texture(file_name, self)
             if tex.type not in {MapType.Unknown, MapType.Thumbnail}:
                 textures.append(tex)
         return tuple(set(textures))
 
-    def addTextureMap(self, texture, role=None, external_connection=None):
+    def addTexture(self, texture, role=None, external_connection=None):
         if external_connection is None:
             connection = connect()
         else:
             connection = external_connection
 
         if texture.id() is None:
-            TextureMap.addTextureMap(texture, external_connection=connection)
+            Texture.addTexture(texture, external_connection=connection)
 
         connection.execute('INSERT INTO texture_material VALUES (:texture_id, :library_id, :role)',
                            {'texture_id': texture.id(), 'role': role, 'library_id': self.id()})

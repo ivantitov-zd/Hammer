@@ -49,4 +49,5 @@ class FilePathField(QWidget):
 
     def pickLocation(self):
         path = QFileDialog.getOpenFileName(self, 'Pick File', self.path(), self._formats)
-        self.setPath(path)
+        if path:
+            self.setPath(path)

@@ -1,9 +1,10 @@
 import hou
 
+from ... import ui
 from ...text import alphaNumericTokens
-from ...texture import MapType
+from ...map_type import MapType
 
-DEFAULT_BUILDER_ICON = hou.qt.Icon('MISC_empty', 16, 16)
+DEFAULT_BUILDER_ICON = ui.icon('MISC_empty', 16)
 
 
 class MaterialBuilder(object):
@@ -40,13 +41,14 @@ class MaterialBuilder(object):
         except NotImplementedError:
             pass
 
-        for tex_map in self.material.textureMaps():
+        for tex_map in self.material.textures():
             self.current_map = tex_map
             method = {
                 MapType.Unknown: lambda: None,
                 MapType.Thumbnail: lambda: None,
                 MapType.Diffuse: self.addDiffuse,
                 MapType.Roughness: self.addRoughness,
+                MapType.Glossiness: self.addGlossiness,
                 MapType.Metalness: self.addMetalness,
                 MapType.Reflection: self.addReflection,
                 MapType.Refraction: self.addRefraction,
@@ -106,6 +108,9 @@ class MaterialBuilder(object):
         raise NotImplementedError
 
     def addRoughness(self):
+        raise NotImplementedError
+
+    def addGlossiness(self):
         raise NotImplementedError
 
     def addMetalness(self):

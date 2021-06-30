@@ -1,8 +1,7 @@
-from __future__ import print_function
-
 import os
 import subprocess
 import sys
+import webbrowser
 
 try:
     from PyQt5.QtWidgets import QAction
@@ -66,6 +65,10 @@ def fuzzyMatch(pattern, word):
 
 
 def openLocation(path, select=False):
+    if 'http' in path:
+        webbrowser.open(path)
+        return
+
     new_path = os.path.normpath(path)
     path = None
     if not select and os.path.isfile(new_path):

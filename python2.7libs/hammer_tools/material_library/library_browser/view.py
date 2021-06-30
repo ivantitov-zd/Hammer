@@ -7,6 +7,7 @@ except ImportError:
     from PySide2.QtGui import QPainter, QFont, QColor
     from PySide2.QtCore import Qt, QModelIndex, QEvent, QSize
 
+from .. import ui
 from .delegate import LibraryItemDelegate
 
 
@@ -22,6 +23,7 @@ class LibraryView(QListView):
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.verticalScrollBar().setSingleStep(30)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.setDragDropMode(QAbstractItemView.DragOnly)
@@ -77,7 +79,7 @@ class LibraryView(QListView):
         if text:
             painter = QPainter(self.viewport())
             font = painter.font()
-            font.setPointSize(16)
+            font.setPointSize(ui.scaled(16))
             painter.setFont(font)
             painter.setPen(QColor(68, 68, 68))
             painter.drawText(self.rect(), Qt.AlignCenter, text)

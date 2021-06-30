@@ -18,8 +18,7 @@ CREATE TABLE material (
     comment TEXT,
     favorite INTEGER NOT NULL DEFAULT 0,
     options TEXT,
-    path TEXT,
-    thumbnail BLOB
+    path TEXT
 );
 
 CREATE TABLE material_thumbnail (
@@ -56,7 +55,6 @@ CREATE TABLE texture (
     options TEXT,
     path TEXT NOT NULL UNIQUE,
     thumbnail BLOB
-
 );
 
 CREATE TABLE texture_library (
@@ -85,7 +83,7 @@ POPULATE_LABELS = 'INSERT INTO map_types_labels VALUES (?, ?)'
 
 
 def createDatabase(file_path):
-    from ..texture.map_type import DEFAULT_MAP_TYPES_LABELS
+    from hammer_tools.material_library.map_type import DEFAULT_MAP_TYPES_LABELS
 
     connection = sqlite3.connect(file_path, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     connection.executescript(SCHEMA)

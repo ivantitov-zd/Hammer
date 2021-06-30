@@ -8,16 +8,14 @@ except ImportError:
     from PySide2.QtCore import Qt
 
 from .. import ui
-from .delegate import LibraryDelegate
 
 
-class LibraryListView(QListView):
+class MapTypesView(QListView):
     def __init__(self):
-        super(LibraryListView, self).__init__()
+        super(MapTypesView, self).__init__()
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         font = self.font()
         font.setPointSize(ui.scaled(12))
         self.setFont(font)
-        self.setItemDelegate(LibraryDelegate())

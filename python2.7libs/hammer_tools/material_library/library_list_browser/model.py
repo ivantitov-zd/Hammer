@@ -1,12 +1,11 @@
 try:
-    from PyQt5.QtWidgets import *
-    from PyQt5.QtCore import *
+    from PyQt5.QtCore import QAbstractListModel, QModelIndex, Qt
 except ImportError:
-    from PySide2.QtWidgets import *
-    from PySide2.QtCore import *
+    from PySide2.QtCore import QAbstractListModel, QModelIndex, Qt
 
 from ..data_roles import InternalDataRole
 from ..library import Library, AllLibrary, UnboundLibrary
+from ..library.polyhaven_library import PolyHavenLibrary  # Fixme
 
 
 class LibraryListModel(QAbstractListModel):
@@ -17,11 +16,15 @@ class LibraryListModel(QAbstractListModel):
 
     def updateLibraryList(self):
         self.beginResetModel()
-        self._libraries = (AllLibrary(), UnboundLibrary())
+        self._libraries = AllLibrary(), UnboundLibrary()
+        try:
+            self._libraries += PolyHavenLibrary(),
+        except Exception:  # Test only
+            pass
         self._libraries += Library.allLibraries()
         self.endResetModel()
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=None):
         return len(self._libraries)
 
     def index(self, row, column, parent):

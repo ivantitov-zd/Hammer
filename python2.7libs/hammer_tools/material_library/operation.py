@@ -53,6 +53,7 @@ class InterruptableOperation(QDialog):
         self._operation = operation
         self._count = count
         self._time_estimation_method = time_estimation_method
+        self._start_time = None
         self._previous_update = None
         self._durations = []
         self._stop = False
@@ -97,6 +98,7 @@ class InterruptableOperation(QDialog):
 
     def __enter__(self):
         self.open()
+        self._start_time = time()
         self._previous_update = time()
         return self
 
@@ -109,7 +111,7 @@ class InterruptableOperation(QDialog):
         if self._stop:
             raise hou.OperationInterrupted
 
-        time_elapsed = timedelta(seconds=int(sum(self._durations)))
+        time_elapsed = timedelta(seconds=int(time() - self._start_time))
         progress = (int(num / float(self._count) * 100) if num and self._count else '~')
 
         if status is not None:

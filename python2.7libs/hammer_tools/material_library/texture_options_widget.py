@@ -8,9 +8,9 @@ except ImportError:
     from PySide2.QtCore import *
 
 
-class LibraryOptionsWidget(QWidget):
+class TextureOptionsWidget(QWidget):
     def __init__(self):
-        super(LibraryOptionsWidget, self).__init__()
+        super(TextureOptionsWidget, self).__init__()
 
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)

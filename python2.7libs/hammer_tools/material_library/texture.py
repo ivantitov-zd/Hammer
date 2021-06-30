@@ -6,15 +6,14 @@ try:
 except ImportError:
     from PySide2.QtGui import QIcon, QPixmap, QImage
 
-import hou
-
-from ..db import connect
-from ..image import imageToBytes
-from ..text import alphaNumericTokens
+from . import ui
+from .db import connect
+from .image import imageToBytes
 from .map_type import MapType
 from .texture_format import TextureFormat
+from .name import convertName
 
-MISSING_TEXTURE_THUMBNAIL_ICON = hou.qt.Icon('BUTTONS_parmmenu_texture', 256, 256)
+MISSING_TEXTURE_THUMBNAIL_ICON = ui.icon('BUTTONS_parmmenu_texture', 256)
 
 
 class ThumbnailState:
@@ -23,27 +22,9 @@ class ThumbnailState:
     NotExists = 2
 
 
-class TextureMap(object):
+class Texture(object):
     __slots__ = ('_material', '_id', '_name', '_comment', '_favorite', '_options', '_path', '_thumbnail_state',
                  '_thumbnail', '_type')
-
-    @staticmethod
-    def mapType(name):  # Todo: Move to map type module
-        name_tokens = alphaNumericTokens(name.lower())[::-1]
-        found_pos = float('+inf')
-        found_type = None
-        for map_type, tags in MapType.allLabels().items():
-            for tag in tags:
-                if tag in name_tokens:
-                    pos = name_tokens.index(tag)
-                    if pos > found_pos:
-                        continue
-                    elif pos == found_pos:
-                        raise AssertionError('Found intersections between tags in different map types.')
-                    found_pos = pos
-                    found_type = map_type
-                    break
-        return found_type or MapType.Unknown
 
     def fillFromData(self, data):
         self._id = data.get('id')
@@ -54,31 +35,31 @@ class TextureMap(object):
 
     @staticmethod
     def fromData(data):
-        tex = TextureMap(data['name'])
+        tex = Texture(data['name'])
         tex.fillFromData(data)
         return tex
 
     def asData(self):
         return {
             'name': self.name(),
-            'comment': self.comment(),
+            'comment': self.comment() or None,
             'favorite': self.isFavorite(),
-            'options': self._options,
+            'options': self._options or None,
             'path': self._path,
             'thumbnail': sqlite3.Binary(imageToBytes(self._thumbnail)) if self._thumbnail else None
         }
 
     @staticmethod
-    def allTextureMaps():
+    def allTextures():
         connection = connect()
         texture_data = connection.execute('SELECT id, name, comment, favorite, path FROM texture').fetchall()
         connection.close()
-        return tuple(TextureMap.fromData(data) for data in texture_data)
+        return tuple(Texture.fromData(data) for data in texture_data)
 
     @staticmethod
-    def addTextureMap(texture, external_connection=None):
+    def addTexture(texture, external_connection=None):
         if isinstance(texture, dict):
-            texture = TextureMap.fromData(texture)
+            texture = Texture.fromData(texture)
 
         if external_connection is None:
             connection = connect()
@@ -96,8 +77,8 @@ class TextureMap(object):
         return texture
 
     @staticmethod
-    def addTexturesFromFolder(path, naming_mode=None, library=None, favorite=False, options=None):
-        from ..engine_connector import EngineConnector
+    def addTexturesFromFolder(path, naming_options=None, library=None, favorite=False, options=None):
+        from .engine_connector import EngineConnector
 
         textures = []
         supported_texture_formats = {tex_format for engine in EngineConnector.engines()
@@ -106,10 +87,10 @@ class TextureMap(object):
         for root, _, files in os.walk(path):
             for file in files:
                 name, ext = os.path.splitext(file)
-                if TextureMap.mapType(file) == MapType.Unknown and \
+                if MapType.mapType(file) == MapType.Unknown and \
                         TextureFormat(ext) in supported_texture_formats:
-                    tex = TextureMap.fromData({
-                        'name': name,
+                    tex = Texture.fromData({
+                        'name': convertName(name, naming_options),
                         'favorite': favorite,
                         'options': options,
                         'path': os.path.join(root, file).replace('\\', '/')
@@ -122,13 +103,13 @@ class TextureMap(object):
         if library is not None:
             for tex in textures:
                 try:
-                    library.addTextureMap(tex, external_connection=connection)
+                    library.addTexture(tex, external_connection=connection)
                 except sqlite3.IntegrityError:
                     continue
         else:
             for tex in textures:
                 try:
-                    TextureMap.addTextureMap(tex, external_connection=connection)
+                    Texture.addTexture(tex, external_connection=connection)
                 except sqlite3.IntegrityError:
                     continue
 
@@ -146,13 +127,13 @@ class TextureMap(object):
         self._path = None
         self._thumbnail_state = ThumbnailState.NotLoaded
         self._thumbnail = None
-        self._type = TextureMap.mapType(name)
+        self._type = MapType.mapType(name)
 
     def id(self):
         return self._id
 
     def __eq__(self, other):
-        if isinstance(other, TextureMap):
+        if isinstance(other, Texture):
             if self.id() and other.id():
                 return self.id() == other.id()
             else:
@@ -167,7 +148,7 @@ class TextureMap(object):
         return self._name
 
     def comment(self):
-        return self._comment
+        return self._comment or ''
 
     def isFavorite(self):
         return self._favorite
@@ -229,7 +210,7 @@ class TextureMap(object):
             connection.close()
 
     def options(self):
-        return self._options
+        return self._options or {}
 
     def type(self):
         return self._type
@@ -251,11 +232,11 @@ class TextureMap(object):
         if tex_format and not isinstance(tex_format, TextureFormat):
             tex_format = TextureFormat(tex_format)
 
-        if self._material is None:
-            root_dir, name = os.path.split(self._path)
-        else:
+        if self._material:
             root_dir = self._material.path()
             name = self._name
+        else:
+            root_dir, name = os.path.split(self._path)
 
         if tex_format is not None:
             file_path = os.path.join(root_dir, name + str(tex_format))
@@ -275,7 +256,7 @@ class TextureMap(object):
         return '<{}>'.format(self.name())
 
     def libraries(self):
-        from ..library import Library
+        from .library import Library
 
         connection = connect()
         libraries_data = connection.execute('SELECT * FROM library '
@@ -289,7 +270,7 @@ class TextureMap(object):
         return self._material
 
     def materials(self):
-        from ..material import Material
+        from .material import Material
 
         connection = connect()
         materials_data = connection.execute('SELECT id, name, comment, favorite, path FROM material '

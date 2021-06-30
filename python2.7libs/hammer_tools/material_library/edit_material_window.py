@@ -8,12 +8,13 @@ except ImportError:
     from PySide2.QtCore import *
 
 from . import ui
-from .library_options_widget import LibraryOptionsWidget
+from .material_options_widget import MaterialOptionsWidget
+from .library_bindings_widget import LibraryBindingsWidget
 
 
-class EditLibraryWindow(QDialog):
+class EditMaterialWindow(QDialog):
     def __init__(self, parent=None):
-        super(EditLibraryWindow, self).__init__(parent)
+        super(EditMaterialWindow, self).__init__(parent)
 
         self.setWindowTitle('Edit library')
         self.setWindowIcon(ui.icon('LOP_editmaterial', 32))
@@ -26,9 +27,12 @@ class EditLibraryWindow(QDialog):
         self._tabs = QTabWidget()
         main_layout.addWidget(self._tabs)
 
-        self._library_options_widget = LibraryOptionsWidget()
-        self._library_options_widget.layout().setContentsMargins(4, 4, 4, 4)
-        self._tabs.addTab(self._library_options_widget, 'Info')
+        self._material_options_widget = MaterialOptionsWidget()
+        self._material_options_widget.layout().setContentsMargins(4, 4, 4, 4)
+        self._tabs.addTab(self._material_options_widget, 'Info')
+
+        self._library_bindings = LibraryBindingsWidget()
+        self._tabs.addTab(self._library_bindings, 'Library bindings')
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
         main_layout.addSpacerItem(spacer)
@@ -55,8 +59,9 @@ class EditLibraryWindow(QDialog):
 
     def options(self):
         return {
-            'info': self._library_options_widget.options()
+            'info': self._material_options_widget.options(),
+            'library_bindings': self._library_bindings  # Todo
         }
 
-    def setOptions(self, library):
+    def setOptions(self, material):
         pass

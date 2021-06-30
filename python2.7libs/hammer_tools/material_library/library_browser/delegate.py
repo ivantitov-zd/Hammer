@@ -9,15 +9,16 @@ except ImportError:
 
 import hou
 
+from .. import ui
 from ..data_roles import FavoriteRole, InternalDataRole
 from ..image import loadImage
-from ..texture import TextureMap
+from ..texture import Texture
 from ..material import Material
 from ..engine_connector import EngineConnector
 
-FAVORITE_ENABLED_ICON = hou.qt.Icon('BUTTONS_favorites', 24, 24)
-FAVORITE_DISABLED_ICON = hou.qt.Icon('BUTTONS_not_favorites', 24, 24)
-ZOOM_ICON = hou.qt.Icon('IMAGE_zoom_in', 24, 24)
+FAVORITE_ENABLED_ICON = ui.icon('BUTTONS_favorites', 24)
+FAVORITE_DISABLED_ICON = ui.icon('BUTTONS_not_favorites', 24)
+ZOOM_ICON = ui.icon('IMAGE_zoom_in', 24)
 
 MARGIN_SIZE = 4
 
@@ -65,7 +66,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
                 self._image = icon.pixmap(256).toImage()
             else:
                 self._image = None
-        elif isinstance(current_item, TextureMap):
+        elif isinstance(current_item, Texture):
             self._image = loadImage(current_item.path())
         else:
             return False
@@ -73,6 +74,15 @@ class LibraryItemDelegate(QStyledItemDelegate):
         self._previous_item = current_item
         option.widget.update(index)
         return False
+
+    def sizeHint(self, option, index):
+        width = option.decorationSize.width() + MARGIN_SIZE * 2
+        widget = option.widget
+        viewport_width = widget.viewport().contentsRect().width() - widget.verticalScrollBar().sizeHint().width()
+        count = int(viewport_width / width)
+        width += (viewport_width - count * width) / count
+        size = super(LibraryItemDelegate, self).sizeHint(option, index)
+        return QSize(width, size.height())
 
     def paint(self, painter, option, index):
         current_item = index.data(InternalDataRole)
@@ -110,7 +120,7 @@ class LibraryItemDelegate(QStyledItemDelegate):
             painter.drawRect(rect.adjusted(adjust, adjust, -adjust, -adjust))
             painter.restore()
 
-        if self._image and isinstance(current_item, (TextureMap, Material)) and under_cursor and \
+        if self._image and isinstance(current_item, (Texture, Material)) and under_cursor and \
                 QApplication.queryKeyboardModifiers() == Qt.ControlModifier:
             # Draw zoomed texture
             cursor_pos = option.widget.mapFromGlobal(QCursor.pos()) - thumbnail_rect.topLeft()

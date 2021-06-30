@@ -7,9 +7,8 @@ except ImportError:
     from PySide2.QtGui import *
     from PySide2.QtCore import *
 
-import hou
-
 from ..widgets import ComboBox
+from . import ui
 from .engine_connector import EngineConnector
 
 
@@ -19,8 +18,8 @@ class BuildOptionsWindow(QDialog):
 
         self._widget = None
 
-        self.setWindowTitle('Hammer: Material build options')
-        self.setWindowIcon(hou.qt.Icon('SHELF_preflight', 32, 32))
+        self.setWindowTitle('Material build options')
+        self.setWindowIcon(ui.icon('SHELF_preflight', 32))
         self.resize(400, 300)
 
         layout = QVBoxLayout(self)
@@ -82,11 +81,11 @@ class BuildOptionsWindow(QDialog):
             data.update(self._widget.options())
         return data
 
-    def setOptions(self, options):
+    def setOptions(self, data):
         if self._widget is None:
             return
 
-        self._widget.setOptions(options)
+        self._widget.setOptions(data)
 
     def replaceOptionsWidget(self):
         if self._widget is not None:

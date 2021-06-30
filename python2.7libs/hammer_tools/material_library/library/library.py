@@ -1,6 +1,6 @@
 from ..db import connect
 from ..material import Material
-from ..texture import TextureMap
+from ..texture import Texture
 
 
 class Library(object):
@@ -24,9 +24,9 @@ class Library(object):
         return {
             'id': self.id(),
             'name': self.name(),
-            'comment': self.comment(),
+            'comment': self.comment() or None,
             'favorite': self.isFavorite(),
-            'options': self._options,
+            'options': self._options or None,
             'path': self._path
         }
 
@@ -76,7 +76,7 @@ class Library(object):
         return self._name
 
     def comment(self):
-        return self._comment
+        return self._comment or ''
 
     def isFavorite(self):
         return self._favorite
@@ -103,7 +103,7 @@ class Library(object):
             connection.close()
 
     def options(self):
-        return self._options
+        return self._options or {}
 
     def path(self):
         return self._path
@@ -123,7 +123,7 @@ class Library(object):
                                            'WHERE texture_library.library_id = :library_id',
                                            {'library_id': self.id()}).fetchall()
         connection.close()
-        return tuple(TextureMap.fromData(data) for data in textures_data)
+        return tuple(Texture.fromData(data) for data in textures_data)
 
     def items(self):
         return self.materials() + self.textures()
@@ -145,14 +145,14 @@ class Library(object):
             connection.close()
         return material
 
-    def addTextureMap(self, texture, external_connection=None):
+    def addTexture(self, texture, external_connection=None):
         if external_connection is None:
             connection = connect()
         else:
             connection = external_connection
 
         if texture.id() is None:
-            TextureMap.addTextureMap(texture, external_connection=connection)
+            Texture.addTexture(texture, external_connection=connection)
 
         connection.execute('INSERT INTO texture_library VALUES (:texture_id, :library_id)',
                            {'texture_id': texture.id(), 'library_id': self.id()})
@@ -165,8 +165,8 @@ class Library(object):
     def addItem(self, item, external_connection=None):
         if isinstance(item, Material):
             self.addMaterial(item, external_connection=external_connection)
-        elif isinstance(item, TextureMap):
-            self.addTextureMap(item, external_connection=external_connection)
+        elif isinstance(item, Texture):
+            self.addTexture(item, external_connection=external_connection)
         else:
             raise TypeError
 
@@ -207,7 +207,7 @@ class Library(object):
     def removeItem(self, item, external_connection=None):
         if isinstance(item, Material):
             self.removeMaterial(item, external_connection=external_connection)
-        elif isinstance(item, TextureMap):
+        elif isinstance(item, Texture):
             self.removeTexture(item, external_connection=external_connection)
         else:
             raise TypeError

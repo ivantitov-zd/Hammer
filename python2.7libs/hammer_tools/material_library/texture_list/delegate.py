@@ -9,7 +9,8 @@ except ImportError:
 
 from ..data_roles import InternalDataRole
 from ..image import loadImage
-from ..texture import MapType, MISSING_TEXTURE_THUMBNAIL_ICON
+from ..texture import MISSING_TEXTURE_THUMBNAIL_ICON
+from ..map_type import MapType
 
 MARGIN_SIZE = 4
 THUMBNAIL_SIZE = 64

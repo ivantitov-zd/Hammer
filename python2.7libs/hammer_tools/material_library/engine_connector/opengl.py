@@ -1,7 +1,7 @@
-import hou
-
-from ..texture import TextureFormat
+from .. import ui
+from ..texture_format import TextureFormat
 from .engine_connector import EngineConnector
+from .builder.opengl_principled import OpenGLPrincipledBuilder
 
 
 class OpenGLConnector(EngineConnector):
@@ -18,10 +18,16 @@ class OpenGLConnector(EngineConnector):
         return 'OpenGL'
 
     def icon(self):
-        return hou.qt.Icon('ROP_opengl', 16, 16)
+        return ui.icon('ROP_opengl', 16)
 
     def nodeTypeAssociatedWithEngine(self, node_type):
         return 'opengl' in node_type.name().lower()
+
+    def builders(self):
+        return OpenGLPrincipledBuilder(self),
+
+    def canCreateThumbnail(self):
+        return True
 
     def createThumbnail(self, material, options):
         pass

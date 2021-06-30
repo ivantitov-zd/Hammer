@@ -5,8 +5,7 @@ except ImportError:
     from PySide2.QtWidgets import *
     from PySide2.QtCore import *
 
-import hou
-
+from . import ui
 from .library_options_widget import LibraryOptionsWidget
 
 
@@ -14,8 +13,8 @@ class AddLibraryDialog(QDialog):
     def __init__(self, parent=None):
         super(AddLibraryDialog, self).__init__(parent)
 
-        self.setWindowTitle('Hammer: Add Material Library')
-        self.setWindowIcon(hou.qt.Icon('LOP_materiallibrary', 32, 32))
+        self.setWindowTitle('Add Library')
+        self.setWindowIcon(ui.icon('LOP_materiallibrary', 32))
         self.resize(400, 300)
 
         main_layout = QVBoxLayout(self)
@@ -23,8 +22,6 @@ class AddLibraryDialog(QDialog):
         main_layout.setSpacing(4)
 
         self._library_options_widget = LibraryOptionsWidget()
-        self.options = self._library_options_widget.options
-        self.setOptions = self._library_options_widget.setOptions
         main_layout.addWidget(self._library_options_widget)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -45,3 +42,6 @@ class AddLibraryDialog(QDialog):
         self.add_library_button = QPushButton('Add')
         self.add_library_button.clicked.connect(self.accept)
         button_layout.addWidget(self.add_library_button)
+
+    def options(self):
+        return self._library_options_widget.options()

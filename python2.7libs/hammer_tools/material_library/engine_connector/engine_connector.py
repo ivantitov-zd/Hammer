@@ -1,6 +1,8 @@
 import hou
 
-DEFAULT_ENGINE_ICON = hou.qt.Icon('COMMON_engine', 16, 16)
+from .. import ui
+
+DEFAULT_ENGINE_ICON = ui.icon('COMMON_engine', 16)
 
 
 class EngineConnector(object):
@@ -62,7 +64,10 @@ class EngineConnector(object):
     def builders():
         return ()
 
-    def createThumbnail(self, material, options):
+    def canCreateThumbnail(self):
+        return False
+
+    def createThumbnail(self, material, options=None):
         raise NotImplementedError
 
     def supportedTextureFormats(self):

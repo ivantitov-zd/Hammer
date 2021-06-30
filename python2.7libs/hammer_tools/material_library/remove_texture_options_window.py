@@ -7,7 +7,7 @@ except ImportError:
                                    QPushButton, QDialog)
     from PySide2.QtCore import Qt
 
-import hou
+from . import ui
 
 
 class RemoveTextureOptionsWindow(QDialog):
@@ -17,8 +17,8 @@ class RemoveTextureOptionsWindow(QDialog):
         self._items = items
         self._library = library
 
-        self.setWindowTitle('Hammer: Remove texture')
-        self.setWindowIcon(hou.qt.Icon('BUTTONS_material_exclude', 32, 32))
+        self.setWindowTitle('Remove texture')
+        self.setWindowIcon(ui.icon('BUTTONS_material_exclude', 32))
         self.resize(400, 300)
 
         layout = QVBoxLayout(self)

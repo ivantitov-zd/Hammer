@@ -1,3 +1,4 @@
+
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtCore import *
@@ -8,6 +9,7 @@ except ImportError:
 import hou
 
 from ..widgets import FilePathField, ComboBox
+from . import ui
 from .library import Library
 
 
@@ -21,8 +23,8 @@ class AddTextureDialog(QDialog):
     def __init__(self, parent=None):
         super(AddTextureDialog, self).__init__(parent)
 
-        self.setWindowTitle('Hammer: Add texture')
-        self.setWindowIcon(hou.qt.Icon('SOP_texture', 32, 32))
+        self.setWindowTitle('Add texture')
+        self.setWindowIcon(ui.icon('SOP_texture', 32))
         self.resize(400, 300)
 
         main_layout = QVBoxLayout(self)

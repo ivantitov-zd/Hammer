@@ -1,6 +1,6 @@
 from ..db import connect
 from ..material import Material
-from ..texture import TextureMap
+from ..texture import Texture
 from .library import Library
 
 
@@ -10,7 +10,7 @@ class UnboundLibrary(Library):
 
         self._name = 'Unbound'
         self._comment = 'Contains items not bound to any library'
-        self._favorite = False
+        self._favorite = True
 
     def materials(self):
         with connect() as connection:
@@ -24,4 +24,4 @@ class UnboundLibrary(Library):
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM texture '
                            'WHERE texture.id NOT IN (SELECT texture_id FROM texture_library)')
-            return tuple(TextureMap.fromData(data) for data in cursor.fetchall())
+            return tuple(Texture.fromData(data) for data in cursor.fetchall())

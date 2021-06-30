@@ -44,23 +44,23 @@ class RedshiftBuildOptions(QWidget):
             'use_sprite': self.use_sprite_toggle.isChecked()
         }
 
-    def setOptions(self, options):
-        uv_mode = options.get('uv_mode')
+    def setOptions(self, data):
+        uv_mode = data.get('uv_mode')
         if uv_mode is not None:
             self.uv_mode_combo.setCurrentIndex(self.uv_mode_combo.findData(uv_mode))
 
-        add_color_controls = options.get('add_color_controls')
+        add_color_controls = data.get('add_color_controls')
         if add_color_controls is not None:
             self.add_color_controls_toggle.setChecked(add_color_controls)
 
-        add_range_controls = options.get('add_range_controls')
+        add_range_controls = data.get('add_range_controls')
         if add_range_controls is not None:
             self.add_range_controls_toggle.setChecked(add_range_controls)
 
-        use_tri_planar = options.get('use_tri_planar')
+        use_tri_planar = data.get('use_tri_planar')
         if use_tri_planar is not None:
             self.use_tri_planar_toggle.setChecked(use_tri_planar)
 
-        use_sprite = options.get('use_sprite')
+        use_sprite = data.get('use_sprite')
         if use_sprite is not None:
             self.use_sprite_toggle.setChecked(use_sprite)

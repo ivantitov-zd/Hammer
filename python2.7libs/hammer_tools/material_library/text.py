@@ -1,6 +1,14 @@
 import os
 import re
 
+try:
+    from PyQt5.QtGui import QFont
+except ImportError:
+    from PySide2.QtGui import QFont
+
+MONOSPACE_FONT = QFont('Monospace')
+MONOSPACE_FONT.setStyleHint(QFont.Monospace)
+
 
 def alphaNumericTokens(text):
     parts = []

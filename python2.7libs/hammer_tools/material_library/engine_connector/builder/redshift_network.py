@@ -1,5 +1,5 @@
 from ...text import alphaNumericTokens, replaceUDIM, replaceUVTile
-from ...texture import MapType
+from ...map_type import MapType
 from .material_builder import MaterialBuilder
 from .redshift_options import RedshiftBuildOptions
 
@@ -113,6 +113,10 @@ class RedshiftNetworkBuilder(MaterialBuilder):
             node = self.__addRangeControl(node)
         if self.options.get('use_tri_planar'):
             node = self.__addTriPlanar(node)
+
+    def addGlossiness(self):
+        self.addRoughness()
+        self.shader_node.parm('relf_isGlossiness').set(True)
 
     def addMetalness(self):
         node = self.__addTexture()

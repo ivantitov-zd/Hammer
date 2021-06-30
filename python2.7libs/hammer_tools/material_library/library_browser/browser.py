@@ -8,9 +8,9 @@ except ImportError:
     from PySide2.QtGui import QIcon
 
 from ..material import Material
-from ..texture import TextureMap
+from ..texture import Texture
 from ..data_roles import InternalDataRole
-from .proxy_model import MaterialLibraryListProxyModel
+from .proxy_model import LibraryContentProxyModel
 from .model import MaterialLibraryModel
 from .view import LibraryView
 
@@ -30,7 +30,7 @@ class LibraryBrowser(QWidget):
 
         self.model = MaterialLibraryModel()
 
-        self.proxy_model = MaterialLibraryListProxyModel()
+        self.proxy_model = LibraryContentProxyModel()
         self.proxy_model.setSourceModel(self.model)
 
         self.view = LibraryView()
@@ -67,7 +67,7 @@ class LibraryBrowser(QWidget):
         items = []
         for index in self.view.selectedIndexes():
             item = index.data(InternalDataRole)
-            if isinstance(item, TextureMap):
+            if isinstance(item, Texture):
                 items.append(item)
         return tuple(items)
 
