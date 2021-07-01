@@ -42,7 +42,7 @@ class GenerateThumbnailWindow(QDialog):
             item = QListWidgetItem(engine.icon(), engine.name())
             item.setData(Qt.UserRole, engine)
             item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked)
+            item.setCheckState(Qt.Unchecked)
             self._engine_list.addItem(item)
 
         self._preview_scene_options_widget = PreviewSceneOptionsWidget()

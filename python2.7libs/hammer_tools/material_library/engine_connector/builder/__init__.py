@@ -4,3 +4,4 @@ from .mantra_principled_network import MantraPrincipledNetworkBuilder
 from .karma_principled import KarmaPrincipledBuilder
 from .karma_principled_network import KarmaPrincipledNetworkBuilder
 from .redshift_network import RedshiftNetworkBuilder
+from .delight_principled_network import DelightPrincipledBuilder

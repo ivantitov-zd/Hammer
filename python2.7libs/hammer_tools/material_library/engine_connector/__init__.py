@@ -3,3 +3,4 @@ from .opengl import OpenGLConnector
 from .mantra import MantraConnector
 from .karma import KarmaConnector
 from .redshift import RedshiftConnector
+from .delight import DelightConnector
