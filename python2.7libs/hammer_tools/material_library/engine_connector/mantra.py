@@ -52,8 +52,6 @@ class MantraConnector(EngineConnector):
 
         scene.render_node = scene.out_node.createNode('ifd')
         scene.render_node.parm('camera').set(scene.cam_node.path())
-        scene.render_node.parm('vobject').set(scene.obj_node.path() + '/*')
-        scene.render_node.parm('alights').set(scene.obj_node.path() + '/*')
         scene.render_node.parm('soho_autoheadlight').set(False)
         scene.render_node.parm('override_camerares').set(True)
         scene.render_node.parm('res_fraction').set('specific')
