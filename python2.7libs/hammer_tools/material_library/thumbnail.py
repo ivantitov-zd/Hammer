@@ -11,7 +11,6 @@ except ImportError:
 import hou
 
 from .db import connect
-from .engine_connector.builder import MantraPrincipledBuilder
 from .image import loadImage
 from .operation import InterruptableOperation
 
@@ -35,6 +34,8 @@ class MaterialPreviewScene(object):
 
         self.sphere_node = self.geo_node.createNode('sphere')
         self.sphere_node.parm('type').set('polymesh')
+        self.sphere_node.parm('rows').set(50)
+        self.sphere_node.parm('cols').set(50)
         self.sphere_node.parm('scale').set(0.27)
 
         self.uv_node = self.geo_node.createNode('texture')
@@ -104,7 +105,7 @@ def generateTextureThumbnails(textures, external_connection=None):
                 {'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'}
             )
             if format_collision:
-                image = QImage(texture.path(format_collision.pop()))
+                image = QImage(texture.path(tex_format=format_collision.pop()))
             else:
                 image = loadImage(texture.path())
             texture.addThumbnail(image.scaled(256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation),

@@ -26,6 +26,8 @@ CREATE TABLE material_thumbnail (
     engine_id TEXT NOT NULL,
     image BLOB NOT NULL,
 
+    PRIMARY KEY (material_id, engine_id),
+
     FOREIGN KEY (material_id) REFERENCES material(id) ON DELETE CASCADE
 );
 

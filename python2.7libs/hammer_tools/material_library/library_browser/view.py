@@ -1,11 +1,11 @@
 try:
-    from PyQt5.QtWidgets import QListView, QAbstractItemView
+    from PyQt5.QtWidgets import QListView, QAbstractItemView, QApplication
     from PyQt5.QtGui import QPainter, QFont, QColor
-    from PyQt5.QtCore import Qt, QModelIndex, QEvent, QSize
+    from PyQt5.QtCore import Qt, QModelIndex, QEvent, QSize, QPropertyAnimation, QEasingCurve
 except ImportError:
-    from PySide2.QtWidgets import QListView, QAbstractItemView
+    from PySide2.QtWidgets import QListView, QAbstractItemView, QApplication
     from PySide2.QtGui import QPainter, QFont, QColor
-    from PySide2.QtCore import Qt, QModelIndex, QEvent, QSize
+    from PySide2.QtCore import Qt, QModelIndex, QEvent, QSize, QPropertyAnimation, QEasingCurve
 
 from .. import ui
 from .delegate import LibraryItemDelegate
@@ -22,14 +22,41 @@ class LibraryView(QListView):
 
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.verticalScrollBar().setSingleStep(30)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self._animation = QPropertyAnimation(self.verticalScrollBar(), 'value')
+        self._animation.setDuration(200)
+        self._old_value = 0
+        self.verticalScrollBar().valueChanged.connect(self._animate)
 
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.setDragDropMode(QAbstractItemView.DragOnly)
         self.setDragEnabled(True)
 
         self.setItemDelegate(LibraryItemDelegate(self))
+
+    def _animate(self, new_value):
+        if QApplication.queryKeyboardModifiers() == Qt.ControlModifier:
+            if self._animation.state() == QPropertyAnimation.Running:
+                self._old_value = self._animation.currentValue()
+                self._animation.stop()
+            return
+
+        if self._animation.state() == QPropertyAnimation.Running:
+            if self._animation.currentValue() == new_value:
+                return
+            else:
+                self._old_value = self._animation.currentValue()
+                self._animation.stop()
+
+        self._animation.setStartValue(self._old_value)
+        self._animation.setEndValue(new_value)
+        if abs(new_value - self._old_value) > self.iconSize().height() * 5:
+            self._animation.setEasingCurve(QEasingCurve.InOutQuad)
+        else:
+            self._animation.setEasingCurve(QEasingCurve.OutSine)
+        self._old_value = new_value
+        self._animation.start()
 
     def library(self):
         return self.model().library()
@@ -42,7 +69,8 @@ class LibraryView(QListView):
             self.scrollTo(self.currentIndex(), QAbstractItemView.PositionAtCenter)
 
     def setIconSize(self, size):
-        super(LibraryView, self).setIconSize(size)
+        super(LibraryView, self).setIconSize(QSize(size, size))
+        self.verticalScrollBar().setSingleStep(int(size / 2.5))
         self.scrollToCurrent()
 
     def resizeEvent(self, event):
@@ -51,11 +79,11 @@ class LibraryView(QListView):
 
     def zoomIn(self, amount=8):
         size = min(self.iconSize().width() + amount, 256)
-        self.setIconSize(QSize(size, size))
+        self.setIconSize(size)
 
     def zoomOut(self, amount=8):
         size = max(self.iconSize().width() - amount, 48)
-        self.setIconSize(QSize(size, size))
+        self.setIconSize(size)
 
     def eventFilter(self, watched, event):
         if watched == self.viewport() and event.type() == QEvent.Wheel:

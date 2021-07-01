@@ -75,8 +75,8 @@ class OpenGLConnector(EngineConnector):
 
         image = loadImage(TEMP_IMAGE_PATH)
         os.remove(TEMP_IMAGE_PATH)
-        scene.destroy()
         hou.hscript('glcache -c')
+        scene.destroy()
         return image
 
     def supportedTextureFormats(self):

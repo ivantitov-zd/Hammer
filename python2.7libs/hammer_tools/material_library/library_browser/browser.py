@@ -34,7 +34,7 @@ class LibraryBrowser(QWidget):
         self.proxy_model.setSourceModel(self.model)
 
         self.view = LibraryView()
-        self.view.setIconSize(QSize(96, 96))
+        self.view.setIconSize(96)
         self.view.setModel(self.proxy_model)
         main_layout.addWidget(self.view)
 

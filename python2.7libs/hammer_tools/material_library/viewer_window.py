@@ -512,7 +512,7 @@ class MaterialLibraryViewerWindow(QMainWindow):
         self.thumbnail_size_slider.blockSignals(False)
 
     def setThumbnailSize(self, size):
-        self.library_browser.view.setIconSize(QSize(size, size))
+        self.library_browser.view.setIconSize(size)
 
     def openCurrentLibraryLocation(self):
         library = self.library_list_browser.view.currentIndex().data(InternalDataRole)
