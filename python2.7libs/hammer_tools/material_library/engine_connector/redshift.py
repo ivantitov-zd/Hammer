@@ -51,6 +51,12 @@ class RedshiftConnector(EngineConnector):
     def createThumbnail(self, material, options=None):
         scene = MaterialPreviewScene()
 
+        displace_enable_parm = scene.geo_node.parm('RS_objprop_displace_enable')
+        if displace_enable_parm is not None:
+            displace_enable_parm.set(True)
+            scene.geo_node.parm('RS_objprop_displace_scale').set(0.02)
+            scene.geo_node.parm('RS_objprop_rstess_enable').set(True)
+
         scene.env_node = scene.env_node.changeNodeType('rslightdome', keep_parms=False, keep_network_contents=False)
         scene.env_node.parm('background_enable').set(False)
         scene.env_node.parm('env_map').set('photo_studio_01_2k.hdr')
