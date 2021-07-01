@@ -1,3 +1,4 @@
+from .opengl_principled import OpenGLPrincipledBuilder
 from .mantra_principled import MantraPrincipledBuilder
 from .mantra_principled_network import MantraPrincipledNetworkBuilder
 from .karma_principled import KarmaPrincipledBuilder

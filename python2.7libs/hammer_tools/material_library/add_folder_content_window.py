@@ -163,6 +163,10 @@ class AddFolderContentDialog(QDialog):
         self._new_case_combo.addItems(['Title Case', 'Sentence case', 'lower case', 'UPPER CASE'])
         item_naming_group_layout.addWidget(self._new_case_combo, 4, 1)
 
+        self._keep_words_in_all_caps_toggle = QCheckBox('Keep words in all caps')
+        self._keep_words_in_all_caps_toggle.setChecked(True)
+        item_naming_group_layout.addWidget(self._keep_words_in_all_caps_toggle, 5, 0, 1, -1)
+
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
         main_layout.addSpacerItem(spacer)
 
@@ -194,7 +198,8 @@ class AddFolderContentDialog(QDialog):
                 'chars_to_replace_with_spaces': self._chars_to_replace_with_spaces_field.text(),
                 'remove_repeated_spaces': self._remove_repeated_spaces_toggle.isChecked(),
                 'switch_case': self._switch_case_toggle.isChecked(),
-                'new_case': self._new_case_combo.currentIndex()
+                'new_case': self._new_case_combo.currentIndex(),
+                'keep_words_in_all_caps': self._keep_words_in_all_caps_toggle.isChecked()
             },
             'add_materials': self._material_group.isChecked(),
             'mark_materials_as_favorite': self._material_favorite_toggle.isChecked(),

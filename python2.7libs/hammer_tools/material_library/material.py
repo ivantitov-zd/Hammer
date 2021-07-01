@@ -13,7 +13,7 @@ from .db import connect
 from .texture import Texture
 from .map_type import MapType
 from .image import imageToBytes
-from .name import convertName
+from .text import convertName
 
 MISSING_MATERIAL_THUMBNAIL_ICON = ui.icon('SOP_material', 256)
 

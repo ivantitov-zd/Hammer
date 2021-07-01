@@ -11,7 +11,7 @@ from .db import connect
 from .image import imageToBytes
 from .map_type import MapType
 from .texture_format import TextureFormat
-from .name import convertName
+from .text import convertName
 
 MISSING_TEXTURE_THUMBNAIL_ICON = ui.icon('BUTTONS_parmmenu_texture', 256)
 
@@ -228,7 +228,7 @@ class Texture(object):
                 formats.append(TextureFormat(file_name))
         return tuple(formats)
 
-    def path(self, tex_format=None, engine=None):
+    def path(self, engine=None, tex_format=None):
         if tex_format and not isinstance(tex_format, TextureFormat):
             tex_format = TextureFormat(tex_format)
 
@@ -243,7 +243,7 @@ class Texture(object):
         elif engine is not None:
             for target_format in engine.supportedTextureFormats():
                 if target_format in self.formats():
-                    return self.path(target_format)
+                    return self.path(tex_format=target_format)
             raise ValueError('No suitable texture format found for specified engine.')
         else:
             file_path = os.path.join(root_dir, name + str(self.formats()[0]))

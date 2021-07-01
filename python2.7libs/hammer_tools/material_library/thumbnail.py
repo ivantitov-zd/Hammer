@@ -17,10 +17,10 @@ from .operation import InterruptableOperation
 
 
 class MaterialPreviewScene(object):
-    def __init__(self):
+    def __init__(self, root='/out/'):
         self.out_node = hou.node('/out/')
 
-        self.obj_node = self.out_node.createNode('objnet')
+        self.obj_node = hou.node(root).createNode('objnet')
 
         self.env_node = self.obj_node.createNode('envlight')
         self.env_node.parm('ry').set(190)
@@ -43,55 +43,6 @@ class MaterialPreviewScene(object):
         self.uv_node.setRenderFlag(True)
         self.uv_node.setDisplayFlag(True)
         self.uv_node.setFirstInput(self.sphere_node)
-
-        # self.render_node = self.out_node.createNode('opengl')
-        # # Scene tab
-        # self.render_node.parm('camera').set(self.cam_node.path())
-        # self.render_node.parm('scenepath').set(self.obj_node.path())
-        # self.render_node.parm('tres').set(True)
-        # self.render_node.parmTuple('res').set((256, 256))
-        # # Output tab
-        # self.render_node.parm('colorcorrect').set('lut_gamma')
-        # self.render_node.parm('gamma').set(2.2)
-        # # Display Options tab
-        # self.render_node.parm('aamode').set('aa8')
-        # self.render_node.parm('usehdr').set('fp32')
-        # self.render_node.parm('hqlighting').set(True)
-        # self.render_node.parm('lightsamples').set(64)
-        # self.render_node.parm('shadows').set(False)
-        # self.render_node.parm('reflection').set(True)
-
-    def render(self, material):
-        with hou.undos.disabler():
-            image_path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_mat_lib_thumb.png')
-            image_path = image_path.replace('\\', '/')
-
-            if self.engine is None:
-                material_node = MantraPrincipledBuilder().build(material, '/mat/')
-                self.geo_node.parm('shop_materialpath').set(material_node.path())
-                self.render_node.parm('picture').set(image_path)
-
-                # Fix for metallic materials in 18.0
-                major_version, minor_version, build_version = hou.applicationVersion()
-                if major_version == 18 and minor_version == 0:
-                    self.render_node.parm('hqlighting').set(material_node.parm('metallic_useTexture').eval())
-                elif major_version == 18 and minor_version == 5:
-                    self.render_node.parm('reflection').set(
-                        material_node.parm('metallic_useTexture').eval() or
-                        material_node.parm('reflect_useTexture').eval()
-                    )
-            else:
-                material_node = self.engine.builders()[0]().build(material, '/mat/')
-
-            self.render_node.parm('execute').pressButton()
-            material_node.destroy()
-
-        if self.engine is None:
-            hou.hscript('glcache -c')
-
-        image = QImage(image_path)
-        os.remove(image_path)
-        return image
 
     def destroy(self):
         with hou.undos.disabler():

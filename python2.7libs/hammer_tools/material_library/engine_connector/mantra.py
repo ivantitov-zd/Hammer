@@ -6,9 +6,9 @@ from .. import ui
 from ..image import loadImage
 from ..path import TEMP_IMAGE_PATH
 from ..texture_format import TextureFormat
+from ..thumbnail import MaterialPreviewScene
 from .engine_connector import EngineConnector
 from .builder import MantraPrincipledBuilder
-from ..thumbnail import MaterialPreviewScene
 
 
 class MantraConnector(EngineConnector):
