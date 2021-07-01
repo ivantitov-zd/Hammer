@@ -12,9 +12,6 @@ from .builder import MantraPrincipledBuilder
 
 
 class MantraConnector(EngineConnector):
-    def __init__(self):
-        super(MantraConnector, self).__init__()
-
     def isAvailable(self):
         return True
 
@@ -86,8 +83,8 @@ class MantraConnector(EngineConnector):
         return image
 
     def supportedTextureFormats(self):
-        return TextureFormat.wrap('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'hdr', 'tif', 'tiff', 'tif3', 'tif16',
-                                  'tif32', 'pic', 'jpg', 'jpeg')
+        return TextureFormat.wrap('rat', 'exr', 'ptx', 'ptex', 'hdr', 'tga', 'tif', 'tiff', 'tif3', 'tif16', 'tif32',
+                                  'png', 'pic', 'jpg', 'jpeg')
 
 
 EngineConnector.registerEngine(MantraConnector)

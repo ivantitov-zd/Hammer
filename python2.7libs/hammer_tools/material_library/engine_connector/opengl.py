@@ -12,9 +12,6 @@ from .builder import OpenGLPrincipledBuilder, MantraPrincipledBuilder
 
 
 class OpenGLConnector(EngineConnector):
-    def __init__(self):
-        super(OpenGLConnector, self).__init__()
-
     def isAvailable(self):
         return True
 
@@ -80,8 +77,8 @@ class OpenGLConnector(EngineConnector):
         return image
 
     def supportedTextureFormats(self):
-        return TextureFormat.wrap('rat', 'exr', 'ptx', 'ptex', 'png', 'tga', 'hdr', 'tif', 'tif3', 'tif16', 'tif32',
-                                  'tiff', 'pic', 'jpg', 'jpeg')
+        return TextureFormat.wrap('rat', 'exr', 'hdr', 'ptx', 'ptex', 'tga', 'tif', 'tif3', 'tif16', 'tif32', 'tiff',
+                                  'png', 'pic', 'jpg', 'jpeg')
 
 
 EngineConnector.registerEngine(OpenGLConnector)

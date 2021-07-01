@@ -21,12 +21,13 @@ class RedshiftNetworkBuilder(MaterialBuilder):
         shader_node = self.network_node.node('Material1')
         if not shader_node:
             shader_node = self.network_node.createNode('redshift::Material')
-        shader_node.parm('refl_roughness').set(1)  # Todo: Move to addRoughness?
-        shader_node.parm('refl_brdf').set('1')  # GGX
-        shader_node.parm('refl_fresnel_mode').set('2')  # Metalness
         return shader_node
 
     def setup(self):
+        self.shader_node.parm('refl_roughness').set(1)  # Todo: Move to addRoughness?
+        self.shader_node.parm('refl_brdf').set('1')  # GGX
+        self.shader_node.parm('refl_fresnel_mode').set('2')  # Metalness
+
         self.output_node = self.network_node.node('redshift_material1')
         self.output_node.setInput(0, self.shader_node)
 
@@ -34,7 +35,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
             MapType.Diffuse: self.shader_node.inputIndex('diffuse_color'),
             MapType.Roughness: self.shader_node.inputIndex('refl_roughness'),
             MapType.Metalness: self.shader_node.inputIndex('refl_metalness'),
-            MapType.Reflection: self.shader_node.inputIndex('relf_color'),
+            MapType.Reflection: self.shader_node.inputIndex('refl_color'),
             MapType.Refraction: self.shader_node.inputIndex('refr_color'),
             MapType.Normal: self.shader_node.inputIndex('bump_input'),
             MapType.Bump: self.shader_node.inputIndex('bump_input'),
@@ -48,7 +49,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
     def cleanup(self):
         self.network_node.layoutChildren()
 
-    def __addTexture(self, texture_map=None, name=None, connect_to='shader', raw=True):
+    def __addTexture(self, texture_map=None, name=None, connect_to='shader', linear=True):
         texture_map = texture_map or self.current_map
         name = '_'.join(alphaNumericTokens(name or texture_map.name()))
 
@@ -60,7 +61,10 @@ class RedshiftNetworkBuilder(MaterialBuilder):
         elif uv_mode == 'uvtile':
             tex_map_path = replaceUVTile(tex_map_path, '<UVTILE>')
         texture_node.parm('tex0').set(tex_map_path)
-        texture_node.parm('tex0_gammaoverride').set(raw)
+        try:  # Fixme: Quick fix for Redshift 3.0.49+
+            texture_node.parm('tex0_gammaoverride').set(linear)
+        except AttributeError:
+            pass
 
         if connect_to is not None:
             if connect_to == 'shader':
@@ -101,7 +105,7 @@ class RedshiftNetworkBuilder(MaterialBuilder):
         return tri_planar_node
 
     def addDiffuse(self):
-        node = self.__addTexture(raw=False)
+        node = self.__addTexture(linear=False)
         if self.options.get('add_color_controls'):
             node = self.__addColorControl(node)
         if self.options.get('use_tri_planar'):

@@ -7,9 +7,6 @@ from .builder import KarmaPrincipledBuilder
 
 
 class KarmaConnector(MantraConnector):
-    def __init__(self):
-        super(KarmaConnector, self).__init__()
-
     def isAvailable(self):
         major_version, minor_version, build_version = hou.applicationVersion()
         return major_version >= 18

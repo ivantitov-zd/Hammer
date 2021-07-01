@@ -12,9 +12,6 @@ from ..thumbnail import MaterialPreviewScene
 
 
 class RedshiftConnector(EngineConnector):
-    def __init__(self):
-        super(RedshiftConnector, self).__init__()
-
     def isAvailable(self):
         return hou.nodeType(hou.ropNodeTypeCategory(), 'Redshift_ROP') is not None
 
@@ -94,7 +91,7 @@ class RedshiftConnector(EngineConnector):
         return image
 
     def supportedTextureFormats(self):
-        return TextureFormat.wrap(r'rs\w+bin', 'exr', 'ptx', 'ptex', 'hdr', 'png', 'tga', 'tif', 'tiff', 'jpg', 'jpeg')
+        return TextureFormat.wrap(r'rs\w+bin', 'hdr', 'exr', 'ptx', 'ptex', 'tga', 'tif', 'tiff', 'png', 'jpg', 'jpeg')
 
 
 EngineConnector.registerEngine(RedshiftConnector)
