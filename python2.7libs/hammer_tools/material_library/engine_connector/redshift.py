@@ -77,13 +77,13 @@ class RedshiftConnector(EngineConnector):
         # Todo: Use Photon map as secondary?
         scene.render_node.parm('SecondaryGIEngine').set('RS_GIENGINE_BRUTE_FORCE')
         scene.render_node.parm('NumGIBounces').set(4)
-        scene.render_node.parm('RS_objects_candidate').set(scene.obj_node.path() + '/*')
-        scene.render_node.parm('RS_lights_candidate').set(scene.obj_node.path() + '/*')
+        # scene.render_node.parm('RS_objects_candidate').set(scene.obj_node.path() + '/*')
+        # scene.render_node.parm('RS_lights_candidate').set(scene.obj_node.path() + '/*')
         # Todo: RTX and others new features
 
         builder = RedshiftNetworkBuilder(self)
-        material_node = builder.build(material, '/mat/')
-        scene.geo_node.parm('shop_materialpath').set(material_node.path())
+        scene.material_node = builder.build(material, '/mat/')
+        scene.geo_node.parm('shop_materialpath').set(scene.material_node.path())
 
         scene.render_node.parm('RS_outputFileNamePrefix').set(TEMP_IMAGE_PATH)
         scene.render_node.parm('execute').pressButton()

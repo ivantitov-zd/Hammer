@@ -34,8 +34,15 @@ class MaterialPreviewScene(object):
         self.geo_node = self.obj_node.createNode('geo')
 
         self.sphere_node = self.geo_node.createNode('sphere')
-        self.sphere_node.parm('type').set(4)  # NURBS prim type used for UV
+        self.sphere_node.parm('type').set('polymesh')
         self.sphere_node.parm('scale').set(0.27)
+
+        self.uv_node = self.geo_node.createNode('texture')
+        self.uv_node.parm('type').set('polar')
+        self.uv_node.parm('fixseams').set(True)
+        self.uv_node.setRenderFlag(True)
+        self.uv_node.setDisplayFlag(True)
+        self.uv_node.setFirstInput(self.sphere_node)
 
         # self.render_node = self.out_node.createNode('opengl')
         # # Scene tab
