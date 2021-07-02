@@ -22,6 +22,7 @@ class Target:
 class AddTextureDialog(QDialog):
     def __init__(self, parent=None):
         super(AddTextureDialog, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self.setWindowTitle('Add texture')
         self.setWindowIcon(ui.icon('SOP_texture', 32))

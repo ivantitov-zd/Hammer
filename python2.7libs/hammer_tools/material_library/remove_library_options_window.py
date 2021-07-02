@@ -13,6 +13,7 @@ from . import ui
 class RemoveLibraryOptionsWindow(QDialog):
     def __init__(self, libraries=None, parent=None):
         super(RemoveLibraryOptionsWindow, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self._libraries = libraries
 

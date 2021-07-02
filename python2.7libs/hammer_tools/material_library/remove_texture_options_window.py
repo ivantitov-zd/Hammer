@@ -13,6 +13,7 @@ from . import ui
 class RemoveTextureOptionsWindow(QDialog):
     def __init__(self, items, library=None):
         super(RemoveTextureOptionsWindow, self).__init__()
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self._items = items
         self._library = library

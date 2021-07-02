@@ -15,6 +15,7 @@ from .engine_connector import EngineConnector
 class BuildOptionsWindow(QDialog):
     def __init__(self, builder=None, parent=None):
         super(BuildOptionsWindow, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self._widget = None
 

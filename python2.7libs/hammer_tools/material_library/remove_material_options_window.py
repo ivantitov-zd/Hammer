@@ -13,6 +13,7 @@ from . import ui
 class RemoveMaterialOptionsWindow(QDialog):
     def __init__(self, items, library=None, parent=None):
         super(RemoveMaterialOptionsWindow, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self._items = items
         self._library = library

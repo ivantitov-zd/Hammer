@@ -21,6 +21,7 @@ class Target:
 class AddFolderContentDialog(QDialog):
     def __init__(self, parent=None):
         super(AddFolderContentDialog, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self.setWindowTitle('Add folder content')
         self.setWindowIcon(ui.icon('SHELF_find_material', 32))
@@ -30,25 +31,30 @@ class AddFolderContentDialog(QDialog):
         main_layout.setContentsMargins(4, 4, 4, 4)
         main_layout.setSpacing(4)
 
-        form_layout = QGridLayout()
-        form_layout.setContentsMargins(0, 0, 0, 0)
-        form_layout.setSpacing(4)
-        main_layout.addLayout(form_layout)
+        self._tabs = QTabWidget()
+        main_layout.addWidget(self._tabs)
+
+        main_tab_widget = QWidget()
+        self._tabs.addTab(main_tab_widget, 'Main')
+
+        main_tab_layout = QGridLayout(main_tab_widget)
+        main_tab_layout.setContentsMargins(4, 4, 4, 4)
+        main_tab_layout.setSpacing(4)
 
         self._path_label = QLabel('Path')
-        form_layout.addWidget(self._path_label, 0, 0)
+        main_tab_layout.addWidget(self._path_label, 0, 0)
 
         self._path_field = LocationField()
-        form_layout.addWidget(self._path_field, 0, 1)
+        main_tab_layout.addWidget(self._path_field, 0, 1)
 
         self._add_to_label = QLabel('Add to')
-        form_layout.addWidget(self._add_to_label, 1, 0)
+        main_tab_layout.addWidget(self._add_to_label, 1, 0)
 
         self._add_to_combo = ComboBox()
         self._add_to_combo.addItem('no library')
         self._add_to_combo.addItem('new library', Target.NewLibrary)
         self._add_to_combo.addItem('existing library', Target.ExistingLibrary)
-        form_layout.addWidget(self._add_to_combo, 1, 1)
+        main_tab_layout.addWidget(self._add_to_combo, 1, 1)
 
         self._new_library_group = QGroupBox('Library')
         self._new_library_group.setHidden(True)
@@ -60,7 +66,7 @@ class AddFolderContentDialog(QDialog):
         new_library_layout = QVBoxLayout(self._new_library_group)
         self._new_library_options_widget = LibraryOptionsWidget()
         new_library_layout.addWidget(self._new_library_options_widget)
-        form_layout.addWidget(self._new_library_group, 2, 0, 1, -1)
+        main_tab_layout.addWidget(self._new_library_group, 2, 0, 1, -1)
 
         self._existing_library_label = QLabel('Library')
         self._existing_library_label.setHidden(True)
@@ -69,7 +75,7 @@ class AddFolderContentDialog(QDialog):
                 self._add_to_combo.itemData(i, Qt.UserRole) != Target.ExistingLibrary
             )
         )
-        form_layout.addWidget(self._existing_library_label, 3, 0)
+        main_tab_layout.addWidget(self._existing_library_label, 3, 0)
 
         self._existing_library_combo = ComboBox()
         for library in Library.allLibraries():
@@ -80,95 +86,111 @@ class AddFolderContentDialog(QDialog):
                 self._add_to_combo.itemData(i, Qt.UserRole) != Target.ExistingLibrary
             )
         )
-        form_layout.addWidget(self._existing_library_combo, 3, 1)
+        main_tab_layout.addWidget(self._existing_library_combo, 3, 1)
 
-        self._material_group = QGroupBox('Add materials')
-        self._material_group.setCheckable(True)
-        self._material_group.setChecked(True)
-        main_layout.addWidget(self._material_group)
+        main_tab_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding), 4, 0, 1, -1)
 
-        material_group_layout = QGridLayout(self._material_group)
-        material_group_layout.setContentsMargins(4, 4, 4, 4)
-        material_group_layout.setSpacing(4)
-        self._material_group.setContentsMargins(10, 14, 10, 8)
+        materials_tab_widget = QWidget()
+        self._tabs.addTab(materials_tab_widget, 'Materials')
+
+        materials_tab_layout = QGridLayout(materials_tab_widget)
+        materials_tab_layout.setContentsMargins(4, 4, 4, 4)
+        materials_tab_layout.setSpacing(4)
+
+        self._add_materials_toggle = QCheckBox('Add materials')
+        self._add_materials_toggle.setCheckable(True)
+        self._add_materials_toggle.setChecked(True)
+        materials_tab_layout.addWidget(self._add_materials_toggle, 0, 0, 1, -1)
 
         self._material_name_source_label = QLabel('Material name source')
-        # material_group_layout.addWidget(self._material_name_source_label, 0, 0)
+        # materials_tab_layout.addWidget(self._material_name_source_label, 0, 0)
 
         self._material_name_source = ComboBox()
         self._material_name_source.addItems(['Folder name', 'Common part of texture names'])
-        # material_group_layout.addWidget(self._material_name_source, 0, 1)
+        self._add_materials_toggle.toggled.connect(self._material_name_source.setEnabled)
+        # materials_tab_layout.addWidget(self._material_name_source, 0, 1)
 
         self._material_favorite_toggle = QCheckBox('Mark as favorite')
-        material_group_layout.addWidget(self._material_favorite_toggle, 1, 0, 1, -1)
+        self._add_materials_toggle.toggled.connect(self._material_favorite_toggle.setEnabled)
+        materials_tab_layout.addWidget(self._material_favorite_toggle, 2, 0, 1, -1)
 
         self._generate_material_thumbnails_toggle = QCheckBox('Generate thumbnails')
         self._generate_material_thumbnails_toggle.setChecked(True)
-        material_group_layout.addWidget(self._generate_material_thumbnails_toggle, 2, 0, 1, -1)
+        self._add_materials_toggle.toggled.connect(self._generate_material_thumbnails_toggle.setEnabled)
+        materials_tab_layout.addWidget(self._generate_material_thumbnails_toggle, 3, 0, 1, -1)
 
-        self._texture_group = QGroupBox('Add textures')
-        self._texture_group.setCheckable(True)
-        self._texture_group.setChecked(True)
-        main_layout.addWidget(self._texture_group)
+        materials_tab_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding), 4, 0, 1, -1)
 
-        texture_group_layout = QGridLayout(self._texture_group)
-        texture_group_layout.setContentsMargins(4, 4, 4, 4)
-        texture_group_layout.setSpacing(4)
-        self._texture_group.setContentsMargins(10, 14, 10, 8)
+        textures_tab_widget = QWidget()
+        self._tabs.addTab(textures_tab_widget, 'Textures')
+
+        textures_tab_layout = QGridLayout(textures_tab_widget)
+        textures_tab_layout.setContentsMargins(4, 4, 4, 4)
+        textures_tab_layout.setSpacing(4)
+
+        self._add_textures_toggle = QCheckBox('Add textures')
+        self._add_textures_toggle.setCheckable(True)
+        self._add_textures_toggle.setChecked(True)
+        textures_tab_layout.addWidget(self._add_textures_toggle, 0, 0, 1, -1)
 
         self._texture_favorite_toggle = QCheckBox('Mark as favorite')
-        texture_group_layout.addWidget(self._texture_favorite_toggle, 1, 0, 1, -1)
+        self._add_textures_toggle.toggled.connect(self._texture_favorite_toggle.setEnabled)
+        textures_tab_layout.addWidget(self._texture_favorite_toggle, 1, 0, 1, -1)
 
         self._generate_texture_thumbnails_toggle = QCheckBox('Generate thumbnails')
         self._generate_texture_thumbnails_toggle.setChecked(True)
-        texture_group_layout.addWidget(self._generate_texture_thumbnails_toggle, 2, 0, 1, -1)
+        self._add_textures_toggle.toggled.connect(self._generate_texture_thumbnails_toggle.setEnabled)
+        textures_tab_layout.addWidget(self._generate_texture_thumbnails_toggle, 2, 0, 1, -1)
 
-        self._item_naming_group_box = QGroupBox('Item naming')
-        main_layout.addWidget(self._item_naming_group_box)
+        textures_tab_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding), 3, 0, 1, -1)
 
-        item_naming_group_layout = QGridLayout(self._item_naming_group_box)
-        item_naming_group_layout.setContentsMargins(4, 4, 4, 4)
-        item_naming_group_layout.setSpacing(4)
-        self._item_naming_group_box.setContentsMargins(10, 14, 10, 8)
+        naming_tab_widget = QWidget()
+        self._tabs.addTab(naming_tab_widget, 'Naming')
+
+        naming_tab_layout = QGridLayout(naming_tab_widget)
+        naming_tab_layout.setContentsMargins(4, 4, 4, 4)
+        naming_tab_layout.setSpacing(4)
 
         self._remove_prefix_label = QLabel('Remove prefix')
-        item_naming_group_layout.addWidget(self._remove_prefix_label, 0, 0)
+        naming_tab_layout.addWidget(self._remove_prefix_label, 0, 0)
 
         self._remove_prefix_field = InputField()
-        item_naming_group_layout.addWidget(self._remove_prefix_field, 0, 1)
+        naming_tab_layout.addWidget(self._remove_prefix_field, 0, 1)
 
         self._remove_suffix_label = QLabel('Remove suffix')
-        item_naming_group_layout.addWidget(self._remove_suffix_label, 1, 0)
+        naming_tab_layout.addWidget(self._remove_suffix_label, 1, 0)
 
         self._remove_suffix_field = InputField()
-        item_naming_group_layout.addWidget(self._remove_suffix_field, 1, 1)
+        naming_tab_layout.addWidget(self._remove_suffix_field, 1, 1)
 
         self._remove_chars_label = QLabel('Replace chars with spaces')
-        item_naming_group_layout.addWidget(self._remove_chars_label, 2, 0)
+        naming_tab_layout.addWidget(self._remove_chars_label, 2, 0)
 
         self._chars_to_replace_with_spaces_field = InputField('*')
         self._chars_to_replace_with_spaces_field.setFont(MONOSPACE_FONT)
-        item_naming_group_layout.addWidget(self._chars_to_replace_with_spaces_field, 2, 1)
+        naming_tab_layout.addWidget(self._chars_to_replace_with_spaces_field, 2, 1)
 
         self._remove_repeated_spaces_toggle = QCheckBox('Remove repeated spaces')
         self._remove_repeated_spaces_toggle.setChecked(True)
-        item_naming_group_layout.addWidget(self._remove_repeated_spaces_toggle, 3, 0, 1, -1)
+        naming_tab_layout.addWidget(self._remove_repeated_spaces_toggle, 3, 0, 1, -1)
 
         self._switch_case_toggle = QCheckBox('Switch case to')
         self._switch_case_toggle.setChecked(True)
-        item_naming_group_layout.addWidget(self._switch_case_toggle, 4, 0)
+        naming_tab_layout.addWidget(self._switch_case_toggle, 4, 0)
 
         self._new_case_combo = QComboBox()
         self._switch_case_toggle.toggled.connect(self._new_case_combo.setEnabled)
         self._new_case_combo.addItems(['Title Case', 'Sentence case', 'lower case', 'UPPER CASE'])
-        item_naming_group_layout.addWidget(self._new_case_combo, 4, 1)
+        naming_tab_layout.addWidget(self._new_case_combo, 4, 1)
 
         self._keep_words_in_all_caps_toggle = QCheckBox('Keep words in all caps')
         self._keep_words_in_all_caps_toggle.setChecked(True)
-        item_naming_group_layout.addWidget(self._keep_words_in_all_caps_toggle, 5, 0, 1, -1)
+        self._switch_case_toggle.toggled.connect(self._keep_words_in_all_caps_toggle.setEnabled)
+        naming_tab_layout.addWidget(self._keep_words_in_all_caps_toggle, 5, 0, 1, -1)
 
-        spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
-        main_layout.addSpacerItem(spacer)
+        naming_tab_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding), 6, 0, 1, -1)
+
+        main_layout.addSpacerItem(QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding))
 
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -201,10 +223,10 @@ class AddFolderContentDialog(QDialog):
                 'new_case': self._new_case_combo.currentIndex(),
                 'keep_words_in_all_caps': self._keep_words_in_all_caps_toggle.isChecked()
             },
-            'add_materials': self._material_group.isChecked(),
+            'add_materials': self._add_materials_toggle.isChecked(),
             'mark_materials_as_favorite': self._material_favorite_toggle.isChecked(),
             'material_thumbnails': self._generate_material_thumbnails_toggle.isChecked(),
-            'add_textures': self._texture_group.isChecked(),
+            'add_textures': self._add_textures_toggle.isChecked(),
             'mark_textures_as_favorite': self._texture_favorite_toggle.isChecked(),
             'texture_thumbnails': self._generate_texture_thumbnails_toggle.isChecked()
         }

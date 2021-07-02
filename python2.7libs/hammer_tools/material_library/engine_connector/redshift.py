@@ -79,7 +79,7 @@ class RedshiftConnector(EngineConnector):
         scene.render_node.parm('PrimaryGIEngine').set('RS_GIENGINE_BRUTE_FORCE')
         # Todo: Use Photon map as secondary?
         scene.render_node.parm('SecondaryGIEngine').set('RS_GIENGINE_BRUTE_FORCE')
-        scene.render_node.parm('NumGIBounces').set(4)
+        scene.render_node.parm('NumGIBounces').set(3)
         # scene.render_node.parm('RS_objects_candidate').set(scene.obj_node.path() + '/*')
         # scene.render_node.parm('RS_lights_candidate').set(scene.obj_node.path() + '/*')
         # Todo: RTX and others new features

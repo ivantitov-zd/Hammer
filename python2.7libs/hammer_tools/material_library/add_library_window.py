@@ -12,6 +12,7 @@ from .library_options_widget import LibraryOptionsWidget
 class AddLibraryDialog(QDialog):
     def __init__(self, parent=None):
         super(AddLibraryDialog, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self.setWindowTitle('Add Library')
         self.setWindowIcon(ui.icon('LOP_materiallibrary', 32))

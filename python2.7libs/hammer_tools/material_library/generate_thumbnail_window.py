@@ -9,12 +9,13 @@ except ImportError:
 
 from . import ui
 from .engine_connector import EngineConnector
-from .preview_scenel_options_widget import PreviewSceneOptionsWidget
+from .preview_scene_options_widget import PreviewSceneOptionsWidget
 
 
 class GenerateThumbnailWindow(QDialog):
     def __init__(self, material=None, parent=None):
         super(GenerateThumbnailWindow, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self._material = material
 

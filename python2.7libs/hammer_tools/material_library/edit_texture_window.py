@@ -15,6 +15,7 @@ from .library_bindings_widget import LibraryBindingsWidget
 class EditTextureWindow(QDialog):
     def __init__(self, parent=None):
         super(EditTextureWindow, self).__init__(parent)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self.setWindowTitle('Edit library')
         self.setWindowIcon(ui.icon('LOP_editmaterial', 32))

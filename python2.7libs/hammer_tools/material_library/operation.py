@@ -48,7 +48,7 @@ class InterruptableOperation(QDialog):
     def __init__(self, count=None, time_estimation_method=TimeEstimation.Mean,
                  operation='', icon='MISC_empty', parent=None):
         super(InterruptableOperation, self).__init__(parent)
-        self.setWindowFlags(Qt.Tool)
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
 
         self._operation = operation
         self._count = count
