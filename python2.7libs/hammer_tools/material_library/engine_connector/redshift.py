@@ -59,10 +59,15 @@ class RedshiftConnector(EngineConnector):
 
         scene.env_node = scene.env_node.changeNodeType('rslightdome', keep_parms=False, keep_network_contents=False)
         scene.env_node.parm('background_enable').set(False)
+        abs_hdr_path = hou.findFile('pic/photo_studio_01_2k.hdr')
         try:
-            scene.env_node.parm('env_map').set('photo_studio_01_2k.hdr')
+            scene.env_node.parm('env_map').set(abs_hdr_path)
         except AttributeError:
-            scene.env_node.parm('tex0').set('photo_studio_01_2k.hdr')
+            pass
+        try:
+            scene.env_node.parm('tex0').set(abs_hdr_path)
+        except AttributeError:
+            pass
 
         scene.render_node = scene.out_node.createNode('Redshift_ROP')
         scene.render_node.parm('RS_renderCamera').set(scene.cam_node.path())
