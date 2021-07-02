@@ -499,8 +499,14 @@ class MaterialLibraryViewerWindow(QMainWindow):
                                                          library,
                                                          options['mark_textures_as_favorite'])
             if options['add_materials'] and options['material_thumbnails']:
-                from hammer_tools.material_library.engine_connector import MantraConnector
-                generateMaterialThumbnails(materials, MantraConnector())
+                thumbnail_options_window = GenerateThumbnailWindow(parent=hou.qt.mainWindow())
+                if thumbnail_options_window.exec_():
+                    material_thumbnail_options = thumbnail_options_window.options()
+                    thumbnail_options_window.deleteLater()
+
+                    for engine in material_thumbnail_options['engines']:
+                        generateMaterialThumbnails(materials, engine,
+                                                   material_thumbnail_options)
             if options['add_textures'] and options['texture_thumbnails']:
                 generateTextureThumbnails(textures)
             self.reloadContent()
@@ -760,6 +766,6 @@ class MaterialLibraryViewerWindow(QMainWindow):
         elif watched == self.library_list_browser:
             if event.type() == QEvent.KeyPress:
                 if event.matches(QKeySequence.Refresh):
-                    self.library_list_browser.reloadContent()
+                    self.reloadContent()
                     return True
         return False
