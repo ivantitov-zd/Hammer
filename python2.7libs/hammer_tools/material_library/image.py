@@ -24,7 +24,11 @@ def imageToBytes(image):
 def loadImage(path):
     tex_format = TextureFormat(path)
     if tex_format in {'png', 'bmp', 'tga', 'tif', 'tiff', 'jpg', 'jpeg'}:
-        return QImage(path)
+        image = QImage(path)
+        if not image.isNull():
+            return image
+        else:
+            return
 
     temp_path = os.path.join(tempfile.gettempdir(), str(os.getpid()) + 'hammer_temp_image.png')
     temp_path = temp_path.replace('\\', '/')

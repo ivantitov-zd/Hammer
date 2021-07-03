@@ -16,14 +16,17 @@ from .operation import InterruptableOperation
 
 
 class MaterialPreviewScene(object):
-    def __init__(self, root='/out/'):
-        self.out_node = hou.node('/out/')
+    def __init__(self, root='/out'):
+        self.out_node = hou.node('/out')
 
-        self.obj_node = hou.node(root).createNode('objnet')
+        if root is None:
+            self.obj_node = hou.node('/obj')
+        else:
+            self.obj_node = hou.node(root).createNode('objnet')
 
         self.env_node = self.obj_node.createNode('envlight')
         self.env_node.parm('ry').set(190)
-        self.env_node.parm('env_map').set('photo_studio_01_2k.hdr')
+        self.env_node.parm('env_map').set(hou.findFile('pic/photo_studio_01_2k.hdr'))
 
         self.cam_node = self.obj_node.createNode('cam')
         self.cam_node.parmTuple('t').set((-0.4, 0, 0.7))
@@ -36,7 +39,7 @@ class MaterialPreviewScene(object):
         self.sphere_node.parm('type').set('polymesh')
         self.sphere_node.parm('rows').set(50)
         self.sphere_node.parm('cols').set(50)
-        self.sphere_node.parm('scale').set(0.27)
+        self.sphere_node.parm('scale').set(0.295)
 
         self.uv_node = self.geo_node.createNode('texture')
         self.uv_node.parm('type').set('polar')
@@ -49,7 +52,12 @@ class MaterialPreviewScene(object):
         with hou.undos.disabler():
             self.render_node.destroy()
             self.material_node.destroy()
-            self.obj_node.destroy()
+            if self.obj_node.path() != '/obj':
+                self.obj_node.destroy()
+            else:
+                self.env_node.destroy()
+                self.cam_node.destroy()
+                self.geo_node.destroy()
 
 
 def generateMaterialThumbnails(materials, engine, options=None, external_connection=None):

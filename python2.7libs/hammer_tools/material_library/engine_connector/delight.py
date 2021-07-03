@@ -1,4 +1,5 @@
 import os
+import time
 
 import hou
 
@@ -42,7 +43,7 @@ class DelightConnector(EngineConnector):
         return True
 
     def createThumbnail(self, material, options=None):
-        scene = MaterialPreviewScene()
+        scene = MaterialPreviewScene(None)
 
         scene.render_node = scene.out_node.createNode('3Delight')
         scene.render_node.parmTuple('f').deleteAllKeyframes()
@@ -56,16 +57,26 @@ class DelightConnector(EngineConnector):
         scene.render_node.parm('max_reflection_depth').set(4)
         scene.render_node.parm('max_refraction_depth').set(4)
 
+        scene.render_node.parm('override_display_flags').set(True)
+        scene.render_node.parm('objects_to_render').set(scene.geo_node.path())
+        scene.render_node.parm('lights_to_render').set(scene.env_node.path())
+
         builder = DelightPrincipledBuilder(self)
         scene.material_node = builder.build(material, '/mat/')
         scene.geo_node.parm('shop_materialpath').set(scene.material_node.path())
 
         scene.render_node.parm('default_image_filename').set(TEMP_IMAGE_PATH)
         scene.render_node.parm('default_image_format').set('png')
+        # scene.render_node.parm('default_image_bits').set('uint8')
         scene.render_node.parm('execute').pressButton()
 
-        image = loadImage(TEMP_IMAGE_PATH)
-        os.remove(TEMP_IMAGE_PATH)
+        output_path = TEMP_IMAGE_PATH.replace('.png', '_rgba.png')
+        image = None
+        start_time = time.time()
+        while image is None and time.time() - start_time < 30:
+            time.sleep(4.5)
+            image = loadImage(output_path)
+        os.remove(output_path)
         scene.destroy()
         return image
 

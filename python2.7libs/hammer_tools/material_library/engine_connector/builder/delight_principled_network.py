@@ -67,6 +67,9 @@ class DelightPrincipledBuilder(MaterialBuilder):
         tex_map_path = texture_map.path(engine=self.engine)
         texture_node.parm('textureFile').set(tex_map_path)
 
+        if linear:
+            texture_node.parm('textureFile_meta_colorspace').set('linear')
+
         if connect_to is not None:
             if connect_to == 'shader':
                 connect_to = self.shader_node

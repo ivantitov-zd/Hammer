@@ -78,11 +78,15 @@ class LibraryItemDelegate(QStyledItemDelegate):
     def sizeHint(self, option, index):
         width = option.decorationSize.width() + MARGIN_SIZE * 2
         widget = option.widget
-        viewport_width = widget.viewport().contentsRect().width() - widget.verticalScrollBar().sizeHint().width()
-        count = int(viewport_width / width)
-        width += (viewport_width - count * width) / count
-        size = super(LibraryItemDelegate, self).sizeHint(option, index)
-        return QSize(width, size.height())
+        scroll_bar = widget.verticalScrollBar()
+        available_width = widget.width() - widget.frameWidth() * 2 - scroll_bar.sizeHint().width() - 10
+        count = int(available_width / width)
+        count = min(count, widget.model().rowCount())
+        count = max(count, 1)
+        width += int((available_width - count * width) / float(count))
+        width = min(width, available_width)
+        height = super(LibraryItemDelegate, self).sizeHint(option, index).height()
+        return QSize(width, height)
 
     def paint(self, painter, option, index):
         current_item = index.data(InternalDataRole)
