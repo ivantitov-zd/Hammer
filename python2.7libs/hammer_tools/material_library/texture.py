@@ -188,13 +188,13 @@ class Texture(object):
                                       {'texture_id': self.id()}).fetchone()
             connection.close()
             if data['image']:
-                self._thumbnail = QIcon(QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png')))
+                self._thumbnail = QPixmap.fromImage(QImage.fromData(bytes(data['image']), 'png'))
                 self._thumbnail_state = ThumbnailState.Loaded
             else:
                 self._thumbnail = None
                 self._thumbnail_state = ThumbnailState.NotExists
 
-        return self._thumbnail
+        return QIcon(self._thumbnail)
 
     def addThumbnail(self, image, external_connection=None):
         if self.id() is None:
