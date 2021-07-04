@@ -30,7 +30,7 @@ class EditMaterialWindow(QDialog):
 
         self._material_options_widget = MaterialOptionsWidget()
         self._material_options_widget.layout().setContentsMargins(4, 4, 4, 4)
-        self._tabs.addTab(self._material_options_widget, 'Info')
+        self._tabs.addTab(self._material_options_widget, 'Main')
 
         self._library_bindings = LibraryBindingsWidget()
         self._tabs.addTab(self._library_bindings, 'Library bindings')
@@ -60,9 +60,9 @@ class EditMaterialWindow(QDialog):
 
     def options(self):
         return {
-            'info': self._material_options_widget.options(),
+            'main': self._material_options_widget.options(),
             'library_bindings': self._library_bindings  # Todo
         }
 
     def setOptions(self, material):
-        pass
+        self._material_options_widget.setOptions(material.asData())

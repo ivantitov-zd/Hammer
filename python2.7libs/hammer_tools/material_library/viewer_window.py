@@ -1,15 +1,17 @@
+import math
+
 try:
     from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QSpacerItem,
                                  QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
                                  QToolBar, QApplication, QFileDialog)
-    from PyQt5.QtCore import Qt, QSize, QEvent
-    from PyQt5.QtGui import QIcon, QCursor, QKeySequence
+    from PyQt5.QtCore import Qt, QSize, QEvent, QPoint, QRect
+    from PyQt5.QtGui import QIcon, QCursor, QKeySequence, QImage, QPainter, QColor, QFontMetrics
 except ImportError:
     from PySide2.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QSpacerItem,
                                    QSizePolicy, QPushButton, QSlider, QSplitter, QAction, QMenu, QAbstractItemView,
                                    QToolBar, QApplication, QFileDialog)
-    from PySide2.QtCore import Qt, QSize, QEvent
-    from PySide2.QtGui import QIcon, QCursor, QKeySequence
+    from PySide2.QtCore import Qt, QSize, QEvent, QPoint, QRect
+    from PySide2.QtGui import QIcon, QCursor, QKeySequence, QImage, QPainter, QColor, QFontMetrics
 
 import hou
 
@@ -34,6 +36,8 @@ from .material import Material
 from .texture import Texture
 from .build_options_window import BuildOptionsWindow
 from .edit_library_window import EditLibraryWindow
+from .edit_material_window import EditMaterialWindow
+from .edit_texture_window import EditTextureWindow
 from .labels_editor.editor_window import LabelsEditorWindow
 from .filter_button import FilterButton
 from .generate_thumbnail_window import GenerateThumbnailWindow
@@ -179,6 +183,8 @@ class MaterialLibraryViewerWindow(QMainWindow):
         self.create_material_action = None
         self.create_material_and_assign_action = None
         self.generate_material_thumbnail_action = None
+        self.generate_texture_thumbnail_action = None
+        self.copy_item_thumbnail_action = None
         self.save_item_thumbnail_action = None
         self.set_custom_material_thumbnail_action = None
         self.copy_item_path_action = None
@@ -262,8 +268,14 @@ class MaterialLibraryViewerWindow(QMainWindow):
         self.create_material_and_assign_action = QAction('Create material and assign\t[Ctrl]', self)
         self.create_material_and_assign_action.triggered.connect(self.createMaterialAndAssign)
 
-        self.generate_material_thumbnail_action = QAction('Generate thumbnail', self)
+        self.generate_material_thumbnail_action = QAction('Generate thumbnail...', self)
         self.generate_material_thumbnail_action.triggered.connect(self.generateItemThumbnails)
+
+        self.copy_item_thumbnail_action = QAction('Copy thumbnail', self)
+        self.copy_item_thumbnail_action.triggered.connect(self.copyItemThumbnail)
+        self.copy_item_thumbnail_action.setShortcut(QKeySequence('Ctrl+Shift+C'))
+        self.copy_item_thumbnail_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        self.library_browser.addAction(self.copy_item_thumbnail_action)
 
         self.save_item_thumbnail_action = QAction('Save thumbnail...', self)
         self.save_item_thumbnail_action.triggered.connect(self.saveItemThumbnail)
@@ -349,13 +361,14 @@ class MaterialLibraryViewerWindow(QMainWindow):
         self.material_menu.addAction(self.create_material_action)
         self.material_menu.addAction(self.create_material_and_assign_action)
         self.material_menu.addSeparator()
-        self.material_menu.addAction(self.generate_material_thumbnail_action)
-        self.material_menu.addAction(self.save_item_thumbnail_action)
-        # self.material_menu.addAction(self.set_custom_material_thumbnail_action)
-        self.material_menu.addSeparator()
         self.material_menu.addAction(self.show_material_textures_action)
         self.material_menu.addAction(self.open_item_location_action)
         self.material_menu.addAction(self.copy_item_path_action)
+        self.material_menu.addSeparator()
+        self.material_menu.addAction(self.generate_material_thumbnail_action)
+        self.material_menu.addAction(self.copy_item_thumbnail_action)
+        self.material_menu.addAction(self.save_item_thumbnail_action)
+        # self.material_menu.addAction(self.set_custom_material_thumbnail_action)
         self.material_menu.addSeparator()
         self.material_menu.addAction(self.mark_item_as_favorite_action)
         self.material_menu.addAction(self.edit_item_action)
@@ -372,12 +385,14 @@ class MaterialLibraryViewerWindow(QMainWindow):
         self.texture_menu = Menu(self.library_browser.view)
         self.library_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
 
-        self.texture_menu.addAction(self.generate_material_thumbnail_action)
-        self.texture_menu.addAction(self.save_item_thumbnail_action)
-        # self.texture_menu.addAction(self.set_custom_material_thumbnail_action)
-        self.texture_menu.addSeparator()
         self.texture_menu.addAction(self.open_item_location_action)
         self.texture_menu.addAction(self.copy_item_path_action)
+        self.texture_menu.addSeparator()
+        self.texture_menu.addAction(self.generate_material_thumbnail_action)
+        # self.texture_menu.addAction(self.generate_texture_thumbnail_action)
+        self.texture_menu.addAction(self.copy_item_thumbnail_action)
+        self.texture_menu.addAction(self.save_item_thumbnail_action)
+        # self.texture_menu.addAction(self.set_custom_material_thumbnail_action)
         self.texture_menu.addSeparator()
         self.texture_menu.addAction(self.mark_item_as_favorite_action)
         self.texture_menu.addAction(self.edit_item_action)
@@ -465,7 +480,7 @@ class MaterialLibraryViewerWindow(QMainWindow):
         window = AddLibraryDialog(hou.qt.mainWindow())
         try:
             if window.exec_():
-                Library.addLibrary(window.options())
+                Library.addLibraryToDB(window.options())
                 self.library_list_browser.reloadContent()
         finally:
             window.deleteLater()
@@ -482,7 +497,7 @@ class MaterialLibraryViewerWindow(QMainWindow):
             options = window.options()
             if options['add_to'] == Target.NewLibrary:
                 library = Library.fromData(options['new_library_options'])
-                Library.addLibrary(library)
+                Library.addLibraryToDB(library)
             elif options['add_to'] == Target.ExistingLibrary:
                 library = options['existing_library']
             else:  # options['add_to'] == Target.NoLibrary
@@ -572,13 +587,6 @@ class MaterialLibraryViewerWindow(QMainWindow):
             obj_node.parm('shop_materialpath').set(mat_node.path())
 
     def generateLibraryThumbnails(self):
-        materials = (mat for lib in self.library_list_browser.selectedLibraries() for mat in lib.materials())
-        generateMaterialThumbnails(materials)
-        textures = (tex for lib in self.library_list_browser.selectedLibraries() for tex in lib.textures())
-        generateTextureThumbnails(textures)
-        self.library_browser.reloadContent(True)
-
-    def generateItemThumbnails(self):
         window = GenerateThumbnailWindow(parent=hou.qt.mainWindow())
         if not window.exec_():
             return
@@ -586,9 +594,29 @@ class MaterialLibraryViewerWindow(QMainWindow):
         options = window.options()
         window.deleteLater()
 
-        generateTextureThumbnails(self.library_browser.selectedTextures())
+        textures = (tex for lib in self.library_list_browser.selectedLibraries() for tex in lib.textures())
+        generateTextureThumbnails(textures)
+
+        materials = (mat for lib in self.library_list_browser.selectedLibraries() for mat in lib.materials())
         for engine in options['engines']:
-            generateMaterialThumbnails(self.library_browser.selectedMaterials(), engine, options)
+            generateMaterialThumbnails(materials, engine, options)
+
+        self.library_browser.reloadContent(True)
+
+    def generateItemThumbnails(self):
+        generateTextureThumbnails(self.library_browser.selectedTextures())
+
+        materials = self.library_browser.selectedMaterials()
+        if materials:
+            window = GenerateThumbnailWindow(parent=hou.qt.mainWindow())
+            if not window.exec_():
+                return
+
+            options = window.options()
+            window.deleteLater()
+
+            for engine in options['engines']:
+                generateMaterialThumbnails(materials, engine, options)
         self.library_browser.reloadContent(True)
 
     def generateTextureThumbnail(self):
@@ -596,9 +624,55 @@ class MaterialLibraryViewerWindow(QMainWindow):
         window = GenerateTextureThumbnailWindow(texture)
         window.exec_()
 
+    def copyItemThumbnail(self):
+        items = []
+        for item in self.library_browser.selectedItems():
+            if item.thumbnail(engine=EngineConnector.currentEngine()):
+                items.append(item)
+
+        if not items:
+            return
+
+        count = len(items)
+        if count == 1:
+            pixmap = items[0].thumbnail(engine=EngineConnector.currentEngine()).pixmap(256)
+            QApplication.clipboard().setPixmap(pixmap)
+        else:
+            font = self.font()
+            font.setPointSize(12)
+            metrics = QFontMetrics(font)
+            text_area_height = metrics.height() + 8
+            lines_count = math.ceil(count / 7.0)
+            if lines_count == 1:
+                width = 256 * count + 16 * (count + 1)
+            else:
+                width = 256 * 7 + 16 * 8
+            height = 256 * lines_count + 16 * (lines_count + 1) + text_area_height * lines_count
+            canvas = QImage(width, height, QImage.Format_ARGB32)
+            painter = QPainter(canvas)
+            painter.fillRect(0, 0, width, height, QColor(64, 64, 64))
+            painter.setPen(Qt.white)
+            painter.setFont(font)
+            for index, item in enumerate(items):
+                pixmap = item.thumbnail(engine=EngineConnector.currentEngine()).pixmap(256)
+                column = index % 7
+                row = int(index / 7.0)
+                image_top_left_pos = QPoint(16 + column * 16 + column * 256,
+                                            16 + row * (16 + text_area_height) + row * 256)
+                painter.drawPixmap(image_top_left_pos, pixmap)
+
+                text_rect = QRect(image_top_left_pos + QPoint(0, 256),
+                                  image_top_left_pos + QPoint(256, 256 + text_area_height))
+                text = metrics.elidedText('{}. {}'.format(index + 1, item.name()), Qt.ElideRight,
+                                          text_rect.adjusted(4, 0, -4, 0).width())
+                painter.drawText(text_rect, Qt.AlignCenter, text)
+            painter.end()
+            QApplication.clipboard().setImage(canvas)
+
     def saveItemThumbnail(self):
         item = self.library_browser.currentItem()
-        if not item.thumbnail():
+        thumbnail = item.thumbnail(engine=EngineConnector.currentEngine())
+        if not thumbnail:
             return
 
         if isinstance(item, Material):
@@ -608,7 +682,7 @@ class MaterialLibraryViewerWindow(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(self, 'Save thumbnail', path, 'Image (*.png *.jpg *.jpeg);; Any (*.*)')
         if not path:
             return
-        item.thumbnail().pixmap(256).save(path)
+        thumbnail.pixmap(256).save(path)
 
     def copyCurrentItemPath(self):
         item = self.library_browser.currentItem()
@@ -629,6 +703,7 @@ class MaterialLibraryViewerWindow(QMainWindow):
     def onShowMaterialTextures(self):
         material = self.library_browser.currentItem()
         window = TextureListBrowser(self)
+        window.setAttribute(Qt.WA_DeleteOnClose, True)
         window.model.setTextureList(material.textures())
         window.show()
 
@@ -652,15 +727,44 @@ class MaterialLibraryViewerWindow(QMainWindow):
         window.setOptions(library)
 
         if not window.exec_():
+            window.deleteLater()
             return
 
-        # Todo
+        options = window.options()
+        window.deleteLater()
+
+        library.fillFromData(options['main'])
+        Library.addLibraryToDB(library)
+
+        self.library_list_browser.reloadContent()
 
     def editMaterial(self, material):
-        pass
+        window = EditMaterialWindow(self)
+        window.setOptions(material)
+
+        if not window.exec_():
+            window.deleteLater()
+            return
+
+        options = window.options()
+        window.deleteLater()
+
+        material.fillFromData(options['main'])
+        Material.addMaterialToDB(material)
 
     def editTexture(self, texture):
-        pass
+        window = EditTextureWindow(self)
+        window.setOptions(texture)
+
+        if not window.exec_():
+            window.deleteLater()
+            return
+
+        options = window.options()
+        window.deleteLater()
+
+        texture.fillFromData(options['main'])
+        Texture.addTextureToDB(texture)
 
     def editItem(self):
         item = self.library_browser.currentItem()
@@ -671,6 +775,8 @@ class MaterialLibraryViewerWindow(QMainWindow):
             self.editMaterial(item)
         elif isinstance(item, Texture):
             self.editTexture(item)
+
+        self.library_browser.reloadContent()
 
     def onMarkItemsAsFavorite(self):
         connection = connect()

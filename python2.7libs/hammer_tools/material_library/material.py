@@ -23,12 +23,12 @@ class Material(object):
                  '_thumbnail_engine_id', '_thumbnail')
 
     def fillFromData(self, data):
-        self._id = data.get('id')
-        self._name = data['name']
-        self._comment = data.get('comment')
-        self._favorite = data.get('favorite', False)
-        self._options = data.get('options')
-        self._path = data['path'].replace('\\', '/')
+        self._id = data.get('id', self._id)
+        self._name = data.get('name', self._name)
+        self._comment = data.get('comment', self._comment)
+        self._favorite = data.get('favorite', self._favorite)
+        self._options = data.get('options', self._options)
+        self._path = data.get('path', self._path).replace('\\', '/')
 
     @staticmethod
     def fromData(data):
@@ -54,7 +54,7 @@ class Material(object):
         return tuple(Material.fromData(data) for data in materials_data)
 
     @staticmethod
-    def addMaterial(material, external_connection=None):
+    def addMaterialToDB(material, external_connection=None):
         if isinstance(material, dict):
             material = Material.fromData(material)
 
@@ -63,10 +63,15 @@ class Material(object):
         else:
             connection = external_connection
 
-        cursor = connection.execute('INSERT INTO material (name, comment, favorite, options, path) '
-                                    'VALUES (:name, :comment, :favorite, :options, :path)',
-                                    material.asData())
-        material._id = cursor.lastrowid
+        connection.execute('PRAGMA foreign_keys = OFF')
+        cursor = connection.execute(
+            'INSERT OR REPLACE INTO material (id, name, comment, favorite, options, path) '
+            'VALUES (:id, :name, :comment, :favorite, :options, :path)',
+            material.asData()
+        )
+        if material.id() is None:
+            material._id = cursor.lastrowid
+        connection.execute('PRAGMA foreign_keys = ON')
 
         if external_connection is None:
             connection.commit()
@@ -100,7 +105,7 @@ class Material(object):
         else:
             for mat in materials:
                 try:
-                    Material.addMaterial(mat, external_connection=connection)
+                    Material.addMaterialToDB(mat, external_connection=connection)
                 except sqlite3.IntegrityError:
                     continue
 
@@ -218,7 +223,7 @@ class Material(object):
             connection = external_connection
 
         if texture.id() is None:
-            Texture.addTexture(texture, external_connection=connection)
+            Texture.addTextureToDB(texture, external_connection=connection)
 
         connection.execute('INSERT INTO texture_material VALUES (:texture_id, :library_id, :role)',
                            {'texture_id': texture.id(), 'role': role, 'library_id': self.id()})

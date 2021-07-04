@@ -29,7 +29,7 @@ class EditLibraryWindow(QDialog):
 
         self._library_options_widget = LibraryOptionsWidget()
         self._library_options_widget.layout().setContentsMargins(4, 4, 4, 4)
-        self._tabs.addTab(self._library_options_widget, 'Info')
+        self._tabs.addTab(self._library_options_widget, 'Main')
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Ignored, QSizePolicy.Expanding)
         main_layout.addSpacerItem(spacer)
@@ -56,8 +56,8 @@ class EditLibraryWindow(QDialog):
 
     def options(self):
         return {
-            'info': self._library_options_widget.options()
+            'main': self._library_options_widget.options()
         }
 
     def setOptions(self, library):
-        pass
+        self._library_options_widget.setOptions(library.asData())

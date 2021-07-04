@@ -30,7 +30,7 @@ class EditTextureWindow(QDialog):
 
         self._texture_options_widget = TextureOptionsWidget()
         self._texture_options_widget.layout().setContentsMargins(4, 4, 4, 4)
-        self._tabs.addTab(self._texture_options_widget, 'Info')
+        self._tabs.addTab(self._texture_options_widget, 'Main')
 
         self._library_bindings = LibraryBindingsWidget()
         self._tabs.addTab(self._library_bindings, 'Library bindings')
@@ -60,9 +60,9 @@ class EditTextureWindow(QDialog):
 
     def options(self):
         return {
-            'info': self._texture_options_widget.options(),
+            'main': self._texture_options_widget.options(),
             'library_bindings': self._library_bindings  # Todo
         }
 
     def setOptions(self, texture):
-        pass
+        self._texture_options_widget.setOptions(texture.asData())

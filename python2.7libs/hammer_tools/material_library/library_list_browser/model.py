@@ -6,6 +6,7 @@ except ImportError:
 from ..data_roles import InternalDataRole
 from ..library import Library, AllLibrary, UnboundLibrary
 from ..library.polyhaven_library import PolyHavenLibrary  # Fixme
+from ..tooltip_formlayout import ToolTipFormLayout
 
 
 class LibraryListModel(QAbstractListModel):
@@ -45,4 +46,11 @@ class LibraryListModel(QAbstractListModel):
         if role == Qt.DisplayRole:
             return library.name()
         elif role == Qt.ToolTipRole:
-            return library.comment()
+            tooltip = ToolTipFormLayout()
+            tooltip.addRow('<b>ID</b>', library.id())
+            tooltip.addRow('<b>Name</b>', library.name())
+            tooltip.addRow('<b>Path</b>', library.path())
+            tooltip.addRow('<b>Comment</b>', library.comment() or None)
+            tooltip.addRow('<b>Materials</b>', len(library.materials()))
+            tooltip.addRow('<b>Textures</b>', len(library.textures()))
+            return str(tooltip)

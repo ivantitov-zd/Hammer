@@ -1,3 +1,5 @@
+from ..map_type import MapType
+
 try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtCore import *
@@ -77,8 +79,10 @@ class MaterialLibraryModel(QAbstractListModel):
             tooltip.addRow('<b>Type</b>', 'Material' if isinstance(item, Material) else 'Texture')
             tooltip.addRow('<b>ID</b>', item.id())
             tooltip.addRow('<b>Name</b>', item.name())
-            tooltip.addRow('<b>Path</b>', item.path())
-            if isinstance(item, Texture):
+            tooltip.addRow('<b>Path</b>', item.path() or None)
+            if isinstance(item, Material):
+                tooltip.addRow('<b>Map types</b>', ' '.join(MapType.typeName(tex.type()) for tex in item.textures()))
+            elif isinstance(item, Texture):
                 tooltip.addRow('<b>Formats</b>', ' '.join(map(str, item.formats())))
             return str(tooltip)
         elif role == TextForFilterRole:

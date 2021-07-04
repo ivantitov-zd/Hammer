@@ -58,6 +58,7 @@ class RedshiftConnector(EngineConnector):
             scene.geo_node.parm('RS_objprop_rstess_enable').set(True)
 
         scene.env_node = scene.env_node.changeNodeType('rslightdome', keep_parms=False, keep_network_contents=False)
+        scene.env_node.parm('ry').set(190)
         scene.env_node.parm('background_enable').set(False)
         abs_hdr_path = hou.findFile('pic/photo_studio_01_2k.hdr')
         try:

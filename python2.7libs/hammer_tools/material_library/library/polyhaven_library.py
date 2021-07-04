@@ -41,6 +41,8 @@ class PolyHavenMaterial(Material):
 class PolyHavenLibrary(Library):
     def __init__(self):
         super(PolyHavenLibrary, self).__init__()
+        if not os.path.exists('D:/polyhaven_cache'):
+            raise IOError
 
         self._name = 'Poly Haven'
         self._comment = 'Materials from PolyHaven.com'

@@ -120,8 +120,8 @@ class LibraryItemDelegate(QStyledItemDelegate):
             painter.save()
             painter.setBrush(QColor(36, 36, 36))
             painter.setPen(Qt.NoPen)
-            adjust = painter.pen().width() / 2
-            painter.drawRect(rect.adjusted(adjust, adjust, -adjust, -adjust))
+            adjust = painter.pen().width()
+            painter.drawRect(rect.adjusted(0, 0, -adjust, -adjust))
             painter.restore()
 
         if self._image and isinstance(current_item, (Texture, Material)) and under_cursor and \
@@ -166,6 +166,6 @@ class LibraryItemDelegate(QStyledItemDelegate):
             painter.setBrush(Qt.transparent)
             painter.setPen(QColor(185, 134, 32))
             adjust = painter.pen().width()
-            painter.drawRect(rect.adjusted(adjust, adjust, -adjust, -adjust))
+            painter.drawRect(rect.adjusted(0, 0, -adjust, -adjust))
 
         painter.restore()

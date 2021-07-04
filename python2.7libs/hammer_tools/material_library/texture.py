@@ -27,11 +27,12 @@ class Texture(object):
                  '_thumbnail', '_type')
 
     def fillFromData(self, data):
-        self._id = data.get('id')
-        self._comment = data.get('comment')
-        self._favorite = data.get('favorite', False)
-        self._options = data.get('options')
-        self._path, _ = os.path.splitext(data['path'].replace('\\', '/'))
+        self._id = data.get('id', self._id)
+        self._comment = data.get('comment', self._comment)
+        self._favorite = data.get('favorite', self._favorite)
+        self._options = data.get('options', self._options)
+        if 'path' in data.keys():
+            self._path, _ = os.path.splitext(data['path'].replace('\\', '/'))
 
     @staticmethod
     def fromData(data):
@@ -57,7 +58,7 @@ class Texture(object):
         return tuple(Texture.fromData(data) for data in texture_data)
 
     @staticmethod
-    def addTexture(texture, external_connection=None):
+    def addTextureToDB(texture, external_connection=None):
         if isinstance(texture, dict):
             texture = Texture.fromData(texture)
 
@@ -66,10 +67,15 @@ class Texture(object):
         else:
             connection = external_connection
 
-        cursor = connection.execute('INSERT INTO texture (name, comment, favorite, options, path, thumbnail) '
-                                    'VALUES (:name, :comment, :favorite, :options, :path, :thumbnail)',
-                                    texture.asData())
-        texture._id = cursor.lastrowid
+        connection.execute('PRAGMA foreign_keys = OFF')
+        cursor = connection.execute(
+            'INSERT OR REPLACE INTO texture (id, name, comment, favorite, options, path, thumbnail) '
+            'VALUES (:id, :name, :comment, :favorite, :options, :path, :thumbnail)',
+            texture.asData()
+        )
+        if texture.id() is None:
+            texture._id = cursor.lastrowid
+        connection.execute('PRAGMA foreign_keys = ON')
 
         if external_connection is None:
             connection.commit()
@@ -109,7 +115,7 @@ class Texture(object):
         else:
             for tex in textures:
                 try:
-                    Texture.addTexture(tex, external_connection=connection)
+                    Texture.addTextureToDB(tex, external_connection=connection)
                 except sqlite3.IntegrityError:
                     continue
 
@@ -174,7 +180,7 @@ class Texture(object):
             connection.commit()
             connection.close()
 
-    def thumbnail(self, reload=False):
+    def thumbnail(self, reload=False, **kwargs):
         if not self._thumbnail and self._thumbnail_state == ThumbnailState.NotLoaded or reload:
             connection = connect()
             data = connection.execute('SELECT thumbnail AS image FROM texture '

@@ -7,12 +7,12 @@ class Library(object):
     __slots__ = ('_id', '_name', '_comment', '_favorite', '_options', '_path')
 
     def fillFromData(self, data):
-        self._id = data.get('id')
-        self._name = data['name']
-        self._comment = data.get('comment')
-        self._favorite = data.get('favorite', False)
-        self._options = data.get('options')
-        self._path = data.get('path')
+        self._id = data.get('id', self._id)
+        self._name = data.get('name', self._name)
+        self._comment = data.get('comment', self._comment)
+        self._favorite = data.get('favorite', self._favorite)
+        self._options = data.get('options', self._options)
+        self._path = data.get('path', self._path)
 
     @staticmethod
     def fromData(data):
@@ -38,15 +38,20 @@ class Library(object):
         return tuple(Library.fromData(data) for data in cursor.fetchall())
 
     @staticmethod
-    def addLibrary(library):
+    def addLibraryToDB(library):
         if isinstance(library, dict):
             library = Library.fromData(library)
 
         connection = connect()
-        cursor = connection.execute('INSERT INTO library (name, comment, favorite, options, path) '
-                                    'VALUES (:name, :comment, :favorite, :options, :path)',
-                                    library.asData())
-        library._id = cursor.lastrowid
+        connection.execute('PRAGMA foreign_keys = OFF')
+        cursor = connection.execute(
+            'INSERT OR REPLACE INTO library (id, name, comment, favorite, options, path) '
+            'VALUES (:id, :name, :comment, :favorite, :options, :path)',
+            library.asData()
+        )
+        if library.id() is None:
+            library._id = cursor.lastrowid
+        connection.execute('PRAGMA foreign_keys = ON')
 
         connection.commit()
         connection.close()
@@ -135,7 +140,7 @@ class Library(object):
             connection = external_connection
 
         if material.id() is None:
-            Material.addMaterial(material, external_connection=connection)
+            Material.addMaterialToDB(material, external_connection=connection)
 
         connection.execute('INSERT INTO material_library VALUES (:material_id, :library_id)',
                            {'material_id': material.id(), 'library_id': self.id()})
@@ -152,7 +157,7 @@ class Library(object):
             connection = external_connection
 
         if texture.id() is None:
-            Texture.addTexture(texture, external_connection=connection)
+            Texture.addTextureToDB(texture, external_connection=connection)
 
         connection.execute('INSERT INTO texture_library VALUES (:texture_id, :library_id)',
                            {'texture_id': texture.id(), 'library_id': self.id()})
