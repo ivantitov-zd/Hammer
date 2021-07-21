@@ -21,6 +21,9 @@ from ..menu import Menu
 from . import ui
 from .db import connect
 from .data_roles import InternalDataRole
+from .library import Library
+from .material import Material
+from .texture import Texture
 from .engine_connector import EngineConnector
 from .library_list_browser import LibraryListBrowser
 from .library_browser import LibraryBrowser
@@ -31,9 +34,6 @@ from .remove_library_options_window import RemoveLibraryOptionsWindow
 from .remove_material_options_window import RemoveMaterialOptionsWindow
 from .remove_texture_options_window import RemoveTextureOptionsWindow
 from .thumbnail import generateMaterialThumbnails, generateTextureThumbnails
-from .library import Library
-from .material import Material
-from .texture import Texture
 from .build_options_window import BuildOptionsWindow
 from .edit_library_window import EditLibraryWindow
 from .edit_material_window import EditMaterialWindow
@@ -203,6 +203,7 @@ class MaterialLibraryViewerWindow(QMainWindow):
 
         self.createMaterialContextMenu()
         self.createTextureContextMenu()
+        self.library_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
         self.library_browser.view.customContextMenuRequested.connect(self.onLibraryBrowserContextMenuRequested)
 
         self.updateTargetNetworkList()
@@ -356,7 +357,6 @@ class MaterialLibraryViewerWindow(QMainWindow):
 
     def createMaterialContextMenu(self):
         self.material_menu = Menu(self.library_browser.view)
-        self.library_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.material_menu.addAction(self.create_material_action)
         self.material_menu.addAction(self.create_material_and_assign_action)
@@ -375,7 +375,30 @@ class MaterialLibraryViewerWindow(QMainWindow):
         self.material_menu.addAction(self.remove_item_action)
 
     def updateMaterialContextMenu(self):
-        pass
+        if len(self.library_browser.selectedMaterials()) > 1:
+            self.create_material_and_assign_action.setDisabled(True)  # Todo
+
+            self.show_material_textures_action.setDisabled(True)
+            self.open_item_location_action.setDisabled(True)  # Todo
+
+            self.save_item_thumbnail_action.setDisabled(True)  # Todo
+
+            self.edit_item_action.setDisabled(True)
+        else:
+            self.create_material_action.setEnabled(True)
+            self.create_material_and_assign_action.setEnabled(True)
+
+            self.show_material_textures_action.setEnabled(True)
+            self.open_item_location_action.setEnabled(True)
+            self.copy_item_path_action.setEnabled(True)
+
+            self.generate_material_thumbnail_action.setEnabled(True)
+            self.copy_item_thumbnail_action.setEnabled(True)
+            self.save_item_thumbnail_action.setEnabled(True)
+
+            self.mark_item_as_favorite_action.setEnabled(True)
+            self.edit_item_action.setEnabled(True)
+            self.remove_item_action.setEnabled(True)
 
     def showMaterialContextMenu(self):
         self.updateMaterialContextMenu()
@@ -383,7 +406,6 @@ class MaterialLibraryViewerWindow(QMainWindow):
 
     def createTextureContextMenu(self):
         self.texture_menu = Menu(self.library_browser.view)
-        self.library_browser.view.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.texture_menu.addAction(self.open_item_location_action)
         self.texture_menu.addAction(self.copy_item_path_action)
@@ -399,7 +421,23 @@ class MaterialLibraryViewerWindow(QMainWindow):
         self.texture_menu.addAction(self.remove_item_action)
 
     def updateTextureContextMenu(self):
-        pass
+        if len(self.library_browser.selectedTextures()) > 1:
+            self.open_item_location_action.setDisabled(True)  # Todo
+
+            self.save_item_thumbnail_action.setDisabled(True)  # Todo
+
+            self.edit_item_action.setDisabled(True)
+        else:
+            self.open_item_location_action.setEnabled(True)
+            self.copy_item_path_action.setEnabled(True)
+
+            self.generate_material_thumbnail_action.setEnabled(True)
+            self.copy_item_thumbnail_action.setEnabled(True)
+            self.save_item_thumbnail_action.setEnabled(True)
+
+            self.mark_item_as_favorite_action.setEnabled(True)
+            self.edit_item_action.setEnabled(True)
+            self.remove_item_action.setEnabled(True)
 
     def showTextureContextMenu(self):
         self.updateTextureContextMenu()

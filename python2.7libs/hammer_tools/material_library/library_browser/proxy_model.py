@@ -46,7 +46,7 @@ class LibraryContentProxyModel(QSortFilterProxyModel):
 
     def setPattern(self, pattern):
         self._pattern = pattern.lower()
-        self.invalidateFilter()
+        self.invalidate()
 
     def filterAcceptsRow(self, source_row, source_parent):
         current_index = self.sourceModel().index(source_row, 0, source_parent)
@@ -76,7 +76,6 @@ class LibraryContentProxyModel(QSortFilterProxyModel):
 
         weight1 = fuzzyMatchWeight(self._pattern, text1.lower())
         weight2 = fuzzyMatchWeight(self._pattern, text2.lower())
-
         return weight1 < weight2
 
     def __getattr__(self, attr_name):

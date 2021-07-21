@@ -9,6 +9,9 @@ except ImportError:
 MONOSPACE_FONT = QFont('Monospace')
 MONOSPACE_FONT.setStyleHint(QFont.Monospace)
 
+NOT_ALNUM_PATTERN = re.compile(r'[\W_\s]')
+SPACE_SEQUENCES_PATTERN = re.compile(r'\s+')
+
 
 def alphaNumericTokens(text):
     parts = []
@@ -50,10 +53,6 @@ def replaceUTile(file_path, tag='%(U)d'):
 
 def replaceVTile(file_path, tag='%(V)d'):
     return replaceByPattern(file_path, tag, r'(?P<VTile>[vV]\d+)')
-
-
-NOT_ALNUM_PATTERN = re.compile(r'[\W_\s]')
-SPACE_SEQUENCES_PATTERN = re.compile(r'\s+')
 
 
 def convertName(name, options):  # Todo: Rewrite with args

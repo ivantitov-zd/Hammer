@@ -104,7 +104,7 @@ class RedshiftConnector(EngineConnector):
         return image
 
     def supportedTextureFormats(self):
-        return TextureFormat.wrap(r'rs\w+bin', 'hdr', 'exr', 'ptx', 'ptex', 'tga', 'tif', 'tiff', 'png', 'jpg', 'jpeg')
+        return TextureFormat.wrap(r'rs\w+bin', 'hdr', 'exr', 'ptx', 'ptex', 'tif', 'tiff', 'tga', 'png', 'jpg', 'jpeg')
 
 
 EngineConnector.registerEngine(RedshiftConnector)

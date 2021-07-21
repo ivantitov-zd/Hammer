@@ -31,6 +31,8 @@ class LibraryBrowser(QWidget):
         self.model = MaterialLibraryModel()
 
         self.proxy_model = LibraryContentProxyModel()
+        self.proxy_model.setDynamicSortFilter(True)
+        self.proxy_model.sort(0, Qt.DescendingOrder)
         self.proxy_model.setSourceModel(self.model)
 
         self.view = LibraryView()
@@ -47,6 +49,7 @@ class LibraryBrowser(QWidget):
                                     (Qt.DecorationRole,))
 
     def hasSelection(self):
+        """Returns True if selection model has selected items, False otherwise."""
         return self.view.selectionModel().hasSelection()
 
     def currentItem(self):
